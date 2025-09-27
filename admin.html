@@ -77,11 +77,18 @@
             margin-bottom: 5px;
             font-weight: bold;
         }
+        .current-password-display {
+            background: #fff;
+            color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: normal;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Màn hình đăng nhập -->
         <div id="loginScreen" class="login-box">
             <h1>🔒 Trang Quản Trị Bí Mật</h1>
             <p>Vui lòng nhập mật khẩu admin:</p>
@@ -89,18 +96,19 @@
             <button onclick="login()" class="btn" style="width: 100%;">🔑 Đăng Nhập</button>
         </div>
 
-        <!-- Nội dung admin (ẩn ban đầu) -->
         <div id="adminContent" style="display: none;">
             <h1>👑 Trang Quản Trị Bí Mật</h1>
             
-            <!-- 🆕 QUẢN LÝ MẬT KHẨU -->
             <div class="admin-section password-section">
                 <h2>🔐 Quản Lý Mật Khẩu</h2>
                 <p>Thay đổi mật khẩu truy cập các trang</p>
                 
                 <div class="password-form">
+                    
                     <div class="password-field">
-                        <label>🔄 Đổi Mật Khẩu Trang Chính (Index)</label>
+                        <label>🔒 Mật Khẩu Trang Chính Hiện Tại:</label>
+                        <div id="currentSitePassword" class="current-password-display"></div>
+                        <label>🔄 Đổi Mật Khẩu Trang Chính Mới</label>
                         <input type="password" id="newSitePassword" class="date-input" 
                                placeholder="Nhập mật khẩu mới cho trang chính">
                         <button onclick="changeSitePassword()" class="btn" style="margin-top: 10px;">
@@ -109,9 +117,9 @@
                     </div>
                     
                     <div class="password-field">
-                        <label>🔒 Đổi Mật Khẩu Admin</label>
-                        <input type="password" id="currentAdminPassword" class="date-input" 
-                               placeholder="Nhập mật khẩu admin hiện tại">
+                        <label>🔑 Mật Khẩu Admin Hiện Tại:</label>
+                        <div id="currentAdminPasswordDisplay" class="current-password-display"></div>
+                        <label>🔒 Đổi Mật Khẩu Admin Mới</label>
                         <input type="password" id="newAdminPassword" class="date-input" 
                                placeholder="Nhập mật khẩu admin mới">
                         <button onclick="changeAdminPassword()" class="btn" style="margin-top: 10px;">
@@ -123,7 +131,6 @@
                 <div id="passwordMessage" style="margin-top: 15px; font-weight: bold;"></div>
             </div>
 
-            <!-- Ảnh hiện tại -->
             <div class="admin-section">
                 <h2>📷 Ảnh Hiện Tại</h2>
                 <div id="currentImageContainer">
@@ -132,29 +139,26 @@
                 </div>
             </div>
 
-            <!-- Upload ảnh -->
             <div class="admin-section">
                 <h2>📤 Upload Ảnh Mới</h2>
                 
                 <div class="upload-options">
-                    <div class="upload-option active" onclick="switchUploadMode('url')">
+                    <div class="upload-option active" onclick="switchUploadMode('url', this)">
                         <h3>🌐 URL Ảnh</h3>
                         <p>Dán link ảnh từ internet</p>
                     </div>
-                    <div class="upload-option" onclick="switchUploadMode('file')">
+                    <div class="upload-option" onclick="switchUploadMode('file', this)">
                         <h3>📁 File từ máy</h3>
-                        <p>Tải ảnh từ thiết bị</p>
+                        <p>Tải ảnh từ thiết bị (Tối đa 5MB)</p>
                     </div>
                 </div>
 
-                <!-- Chế độ URL -->
                 <div id="urlUpload" class="upload-mode">
                     <input type="text" id="imageUrl" class="date-input" 
                            placeholder="Dán URL ảnh (ví dụ: https://i.imgur.com/abc123.jpg)">
                     <button onclick="uploadImageUrl()" class="btn">🖼️ Upload từ URL</button>
                 </div>
 
-                <!-- Chế độ File -->
                 <div id="fileUpload" class="upload-mode" style="display:none;">
                     <input type="file" id="fileInput" accept="image/*">
                     <label for="fileInput" class="btn" style="cursor: pointer;">📁 Chọn Ảnh</label>
@@ -163,7 +167,6 @@
                 </div>
             </div>
 
-            <!-- Thêm tin nhắn -->
             <div class="admin-section">
                 <h2>💌 Thêm Tin Nhắn Mới</h2>
                 <textarea id="newMessage" class="message-input" 
@@ -171,13 +174,11 @@
                 <button onclick="addMessage()" class="btn">💝 Gửi Tin Nhắn</button>
             </div>
 
-            <!-- Quản lý tin nhắn -->
             <div class="admin-section">
                 <h2>📋 Tin Nhắn Hiện Tại</h2>
                 <div id="currentMessages"></div>
             </div>
 
-            <!-- Navigation -->
             <div class="navigation" style="text-align: center; margin-top: 30px;">
                 <a href="/" class="btn">🏠 Về Trang Chính</a>
                 <a href="/game" class="btn">🎮 Chơi Game</a>
@@ -210,6 +211,7 @@
                     document.getElementById('loginScreen').style.display = 'none';
                     document.getElementById('adminContent').style.display = 'block';
                     loadCurrentData();
+                    loadCurrentPasswords(); // Tải mật khẩu ngay sau khi đăng nhập
                 } else {
                     alert('Sai mật khẩu! Vui lòng thử lại.');
                 }
@@ -217,19 +219,30 @@
                 alert('Lỗi kết nối! Vui lòng thử lại.');
             }
         }
+        
+        async function loadCurrentPasswords() {
+            if (!isAuthenticated) return;
+            try {
+                const response = await fetch('/api/passwords', {
+                    headers: { 'Authorization': adminPassword }
+                });
+                const data = await response.json();
+                
+                document.getElementById('currentSitePassword').textContent = data.sitePassword;
+                document.getElementById('currentAdminPasswordDisplay').textContent = data.adminPassword;
+                
+            } catch (error) {
+                console.error('Lỗi tải mật khẩu:', error);
+                showPasswordMessage('Lỗi tải thông tin mật khẩu!', 'error');
+            }
+        }
 
-        // 🆕 Hàm đổi mật khẩu trang chính
         async function changeSitePassword() {
             if (!isAuthenticated) return login();
             
             const newPassword = document.getElementById('newSitePassword').value.trim();
-            if (!newPassword) {
-                showPasswordMessage('Vui lòng nhập mật khẩu mới!', 'error');
-                return;
-            }
-
-            if (newPassword.length < 3) {
-                showPasswordMessage('Mật khẩu phải có ít nhất 3 ký tự!', 'error');
+            if (!newPassword || newPassword.length < 3) {
+                showPasswordMessage('Mật khẩu trang chính phải có ít nhất 3 ký tự!', 'error');
                 return;
             }
 
@@ -247,28 +260,22 @@
                 if (response.ok) {
                     showPasswordMessage(data.message, 'success');
                     document.getElementById('newSitePassword').value = '';
+                    loadCurrentPasswords(); // Cập nhật hiển thị mật khẩu mới
                 } else {
-                    showPasswordMessage(data.error, 'error');
+                    showPasswordMessage(data.error || 'Lỗi khi đổi mật khẩu trang chính', 'error');
                 }
             } catch (error) {
                 showPasswordMessage('Lỗi kết nối!', 'error');
             }
         }
 
-        // 🆕 Hàm đổi mật khẩu admin
         async function changeAdminPassword() {
             if (!isAuthenticated) return login();
             
-            const currentPassword = document.getElementById('currentAdminPassword').value;
             const newPassword = document.getElementById('newAdminPassword').value.trim();
             
-            if (!currentPassword || !newPassword) {
-                showPasswordMessage('Vui lòng nhập đầy đủ thông tin!', 'error');
-                return;
-            }
-
-            if (newPassword.length < 3) {
-                showPasswordMessage('Mật khẩu mới phải có ít nhất 3 ký tự!', 'error');
+            if (!newPassword || newPassword.length < 3) {
+                showPasswordMessage('Mật khẩu admin mới phải có ít nhất 3 ký tự!', 'error');
                 return;
             }
 
@@ -277,46 +284,44 @@
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'Authorization': adminPassword
+                        'Authorization': adminPassword // Sử dụng mật khẩu cũ để xác thực
                     },
-                    body: JSON.stringify({ currentPassword, newPassword })
+                    body: JSON.stringify({ newPassword })
                 });
 
                 const data = await response.json();
                 if (response.ok) {
                     showPasswordMessage(data.message, 'success');
-                    document.getElementById('currentAdminPassword').value = '';
                     document.getElementById('newAdminPassword').value = '';
                     
-                    // Cập nhật mật khẩu admin hiện tại
+                    // Cập nhật mật khẩu admin hiện tại trong bộ nhớ và hiển thị
                     adminPassword = newPassword;
+                    loadCurrentPasswords(); 
                 } else {
-                    showPasswordMessage(data.error, 'error');
+                    showPasswordMessage(data.error || 'Lỗi khi đổi mật khẩu admin', 'error');
                 }
             } catch (error) {
                 showPasswordMessage('Lỗi kết nối!', 'error');
             }
         }
 
-        // 🆕 Hiển thị thông báo mật khẩu
         function showPasswordMessage(message, type) {
             const messageElement = document.getElementById('passwordMessage');
             messageElement.textContent = message;
             messageElement.style.color = type === 'success' ? '#2ed573' : '#ff4757';
             
-            // Tự động ẩn thông báo sau 5 giây
             setTimeout(() => {
                 messageElement.textContent = '';
             }, 5000);
         }
 
-        function switchUploadMode(mode) {
+        function switchUploadMode(mode, element) {
             currentUploadMode = mode;
             
             document.querySelectorAll('.upload-option').forEach(opt => {
                 opt.classList.remove('active');
             });
-            event.currentTarget.classList.add('active');
+            element.classList.add('active');
             
             document.getElementById('urlUpload').style.display = mode === 'url' ? 'block' : 'none';
             document.getElementById('fileUpload').style.display = mode === 'file' ? 'block' : 'none';
@@ -371,11 +376,6 @@
             
             if (!file) return alert('Vui lòng chọn file ảnh!');
             
-            if (file.size > 5 * 1024 * 1024) {
-                alert('File quá lớn! Tối đa 5MB.');
-                return;
-            }
-
             const formData = new FormData();
             formData.append('image', file);
 
