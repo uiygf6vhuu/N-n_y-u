@@ -1,89 +1,197 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin 💻</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>Admin - Trang Riêng Tư 🔒</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .admin-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border: 2px solid #ff6b6b;
+        }
+        .login-box {
+            text-align: center;
+            max-width: 400px;
+            margin: 50px auto;
+        }
+        .password-input {
+            font-size: 1.2em;
+            padding: 12px;
+            width: 100%;
+            margin: 15px 0;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🔑 Trang Admin</h1>
+    <div class="container">
+        <!-- Màn hình đăng nhập -->
+        <div id="loginScreen" class="login-box">
+            <h1>🔒 Trang Quản Trị Riêng Tư</h1>
+            <p>Vui lòng nhập mật khẩu để tiếp tục:</p>
+            <input type="password" id="adminPassword" class="password-input" placeholder="Nhập mật khẩu admin">
+            <button onclick="login()" class="btn" style="width: 100%;">🔑 Đăng Nhập</button>
+        </div>
 
-    <div id="loginBox">
-      <input type="password" id="password" placeholder="Nhập mật khẩu" class="date-input">
-      <button onclick="login()" class="btn">Đăng nhập</button>
+        <!-- Nội dung admin (ẩn ban đầu) -->
+        <div id="adminContent" style="display: none;">
+            <h1>👑 Trang Quản Trị</h1>
+            
+            <!-- Upload ảnh -->
+            <div class="admin-section">
+                <h2>📷 Upload Ảnh Mới</h2>
+                <input type="text" id="imageUrl" class="date-input" 
+                       placeholder="Dán URL ảnh (ví dụ: https://i.imgur.com/abc123.jpg)">
+                <button onclick="uploadImage()" class="btn">🖼️ Upload Ảnh</button>
+                <p><small>💡 Lấy URL ảnh từ Imgur, Google Photos, etc.</small></p>
+            </div>
+
+            <!-- Thêm tin nhắn -->
+            <div class="admin-section">
+                <h2>💌 Thêm Tin Nhắn Mới</h2>
+                <textarea id="newMessage" class="message-input" 
+                          placeholder="Nhập tin nhắn yêu thương..."></textarea>
+                <button onclick="addMessage()" class="btn">💝 Gửi Tin Nhắn</button>
+            </div>
+
+            <!-- Quản lý tin nhắn hiện tại -->
+            <div class="admin-section">
+                <h2>📋 Tin Nhắn Hiện Tại</h2>
+                <div id="currentMessages"></div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="navigation" style="text-align: center; margin-top: 30px;">
+                <a href="/" class="btn">🏠 Về Trang Chính</a>
+                <a href="/game" class="btn">🎮 Chơi Game</a>
+                <button onclick="logout()" class="btn" style="background: #ff4757;">🚪 Đăng Xuất</button>
+            </div>
+        </div>
     </div>
 
-    <div id="adminBox" style="display:none;">
-      <h2>📷 Cập nhật Ảnh (Dùng URL)</h2>
-      <input type="text" id="imageUrl" placeholder="Dán URL ảnh vào đây (ví dụ: https://imgur.com/link.jpg)" class="date-input">
-      <button onclick="uploadImage()" class="btn">Lưu URL Ảnh</button>
+    <script>
+        let isAuthenticated = false;
 
-      <h2>💌 Thêm tin nhắn</h2>
-      <textarea id="adminMessage" placeholder="Nhập tin nhắn..." class="message-input"></textarea>
-      <button onclick="addMessage()" class="btn">Lưu tin nhắn</button>
-      <ul id="adminList" class="message-list"></ul>
+        async function login() {
+            const password = document.getElementById('adminPassword').value;
+            if (!password) return alert('Vui lòng nhập mật khẩu!');
 
-      <a href="/" class="btn">Xem Trang Người Dùng</a>
-      <a href="game.html" class="btn">Chơi Game</a>
-    </div>
-  </div>
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
 
-<script>
-async function login() {
-  const password = document.getElementById('password').value;
-  const res = await fetch('/api/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ password })
-  });
-  if (res.ok) {
-    document.getElementById('loginBox').style.display = 'none';
-    document.getElementById('adminBox').style.display = 'block';
-    loadMessages();
-  } else {
-    alert("Sai mật khẩu!");
-  }
-}
+                if (response.ok) {
+                    isAuthenticated = true;
+                    document.getElementById('loginScreen').style.display = 'none';
+                    document.getElementById('adminContent').style.display = 'block';
+                    loadCurrentMessages();
+                } else {
+                    alert('Sai mật khẩu! Vui lòng thử lại.');
+                }
+            } catch (error) {
+                alert('Lỗi kết nối! Vui lòng thử lại.');
+            }
+        }
 
-async function addMessage() {
-  const msg = document.getElementById('adminMessage').value;
-  const res = await fetch('/api/love-messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message: msg })
-  });
-  const data = await res.json();
-  alert(data.message);
-  document.getElementById('adminMessage').value = ''; // Xóa nội dung
-  loadMessages();
-}
+        async function addMessage() {
+            if (!isAuthenticated) return login();
+            
+            const message = document.getElementById('newMessage').value.trim();
+            if (!message) return alert('Vui lòng nhập tin nhắn!');
 
-async function loadMessages() {
-  const res = await fetch('/api/love-messages');
-  const data = await res.json();
-  const list = document.getElementById('adminList');
-  list.innerHTML = '';
-  data.messages.forEach(m => {
-    const li = document.createElement('li');
-    li.textContent = m;
-    list.appendChild(li);
-  });
-}
+            try {
+                const response = await fetch('/api/love-messages', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Basic ' + btoa('admin:' + getPassword())
+                    },
+                    body: JSON.stringify({ message })
+                });
 
-// SỬA: Hàm upload ảnh mới, gửi URL lên server
-async function uploadImage() {
-  const imageUrl = document.getElementById('imageUrl').value;
-  if (!imageUrl.trim()) return alert("Vui lòng dán URL ảnh!");
+                if (response.ok) {
+                    alert('✅ Đã thêm tin nhắn thành công!');
+                    document.getElementById('newMessage').value = '';
+                    loadCurrentMessages();
+                } else {
+                    alert('❌ Lỗi khi thêm tin nhắn!');
+                }
+            } catch (error) {
+                alert('Lỗi kết nối!');
+            }
+        }
 
-  const res = await fetch('/api/upload-url', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ imageUrl: imageUrl })
-  });
-  const data = await res.json();
-  alert(data.message);
-}
-</script>
+        async function uploadImage() {
+            if (!isAuthenticated) return login();
+            
+            const imageUrl = document.getElementById('imageUrl').value.trim();
+            if (!imageUrl) return alert('Vui lòng nhập URL ảnh!');
+
+            try {
+                const response = await fetch('/api/upload-url', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Basic ' + btoa('admin:' + getPassword())
+                    },
+                    body: JSON.stringify({ imageUrl })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    alert('✅ Đã upload ảnh thành công!');
+                    document.getElementById('imageUrl').value = '';
+                } else {
+                    alert('❌ ' + (data.error || 'Lỗi upload ảnh!'));
+                }
+            } catch (error) {
+                alert('Lỗi kết nối!');
+            }
+        }
+
+        async function loadCurrentMessages() {
+            try {
+                const response = await fetch('/api/love-messages');
+                const data = await response.json();
+                
+                const container = document.getElementById('currentMessages');
+                container.innerHTML = '';
+                
+                if (data.messages && data.messages.length > 0) {
+                    data.messages.forEach((msg, index) => {
+                        const div = document.createElement('div');
+                        div.style.cssText = 'background: #f1f2f6; padding: 10px; margin: 5px 0; border-radius: 5px;';
+                        div.innerHTML = `💬 ${msg}`;
+                        container.appendChild(div);
+                    });
+                } else {
+                    container.innerHTML = '<p>Chưa có tin nhắn nào.</p>';
+                }
+            } catch (error) {
+                console.error('Lỗi tải tin nhắn:', error);
+            }
+        }
+
+        function getPassword() {
+            return document.getElementById('adminPassword').value;
+        }
+
+        function logout() {
+            isAuthenticated = false;
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('adminContent').style.display = 'none';
+            document.getElementById('adminPassword').value = '';
+        }
+
+        // Enter để đăng nhập
+        document.getElementById('adminPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') login();
+        });
+    </script>
 </body>
 </html>
