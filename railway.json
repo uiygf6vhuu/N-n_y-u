@@ -1,9 +1,8 @@
+[file name]: railway.json
+[file content begin]
 {
   "build": {
-    "builder": "RAILPACK",
-    "environment": {
-      "NODE_VERSION": "20"
-    }
+    "builder": "NIXPACKS"
   },
   "deploy": {
     "startCommand": "npm start",
@@ -11,3 +10,4 @@
     "restartPolicyMaxRetries": 10
   }
 }
+[file content end]
