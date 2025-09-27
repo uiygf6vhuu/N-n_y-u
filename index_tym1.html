@@ -17,8 +17,18 @@
             align-items: center;
             flex-direction: column;
         }
-
-        /* KHUNG HIỂN THỊ ẢNH VÀ THÔNG TIN */
+        /* 1. IFRAME CHỨA HIỆU ỨNG GỐC */
+        #tym-iframe {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: transparent; /* Quan trọng */
+            z-index: 10;
+        }
+        /* 2. KHU VỰC ẢNH VÀ NỘI DUNG */
         #content-overlay {
             position: fixed;
             top: 0;
@@ -29,9 +39,9 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 20; /* Nằm trên hiệu ứng nền */
+            z-index: 20; 
+            text-align: center;
         }
-        
         /* ẢNH TIM ĐẬP */
         .love-image-tym {
             width: 250px;
@@ -41,47 +51,29 @@
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
             border: 5px solid white;
             display: none;
-            /* Animation Heartbeat */
             animation: heartbeat 1.5s infinite; 
         }
-
         @keyframes heartbeat {
             0% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 105, 180, 0.7); }
             50% { transform: scale(1.1); box-shadow: 0 0 30px rgba(255, 105, 180, 1); }
             100% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 105, 180, 0.7); }
         }
-
         .navigation { position: fixed; bottom: 20px; z-index: 30; }
-        .btn { /* Đảm bảo nút được kế thừa từ style.css */ }
-
-        /* ----------------------------------------------------------------------------------
-         * IFRAME/CANVAS NỀN (Phần này chỉ để chạy hiệu ứng Tym gốc)
-         * ---------------------------------------------------------------------------------- */
-        #tym-iframe {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-            background-color: transparent; 
-            z-index: 10;
-        }
     </style>
 </head>
 <body>
-    <iframe id="tym-iframe" src="tym1_bg" allowtransparency="true"></iframe>
+    <iframe id="tym-iframe" src="/tym1_bg" allowtransparency="true"></iframe>
 
     <div id="content-overlay">
         <h1 style="color: white; text-shadow: 0 0 10px #ff69b4;">Kỷ Niệm Của Chúng Ta!</h1>
-        <img id="loveImage" class="love-image-tym" style="display:none;">
+        <img id="loveImage" class="love-image-tym" style="display:none;" alt="Ảnh Kỷ Niệm">
         <p id="noImage" style="text-align: center; color: white; margin-top: 20px;">
             (Chưa có ảnh nào được tải lên, vui lòng tải ảnh từ trang Admin!)
         </p>
     </div>
 
     <div id="navigation" class="navigation" style="display:none;">
-        <a href="index.html" class="btn" style="background: #2ed573;">💌 Quay về Trang Chính</a>
+        <a href="/" class="btn" style="background: #2ed573;">💌 Quay về Trang Chính</a>
         <button class="btn" onclick="logout()" style="background: #ff4757;">🚪 Khóa Trang</button>
     </div>
 
@@ -92,11 +84,10 @@
             try {
                 if (!sitePassword) {
                     alert('Bạn cần đăng nhập trước để xem kỷ niệm này!');
-                    window.location.href = 'index.html';
+                    window.location.href = '/';
                     return;
                 }
 
-                // Gọi API để lấy ảnh (cần mật khẩu)
                 const imgResponse = await fetch('/api/love-image', {
                     headers: { 'Authorization': sitePassword }
                 });
@@ -120,7 +111,7 @@
                     }
                 } else {
                     loveImage.style.display = 'none';
-                    noImage.textContent = 'Lỗi tải ảnh hoặc ảnh chưa được upload!';
+                    noImage.textContent = 'Lỗi tải ảnh. Mật khẩu có thể đã bị đổi. Vui lòng đăng nhập lại.';
                     noImage.style.display = 'block';
                 }
             } catch (error) {
@@ -131,9 +122,9 @@
         }
         
         function logout() {
-            // Xóa mật khẩu và quay về trang chính
+            // Chỉ xóa mật khẩu và chuyển hướng, không cần logic ẩn/hiện element phức tạp
             localStorage.removeItem('sitePassword');
-            window.location.href = 'index.html'; 
+            window.location.href = '/'; 
         }
 
         document.addEventListener('DOMContentLoaded', loadContent);
