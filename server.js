@@ -50,20 +50,34 @@ app.get('/api/love-image', (req, res) => {
   res.json({ image: loveImage });
 });
 
-// Route chính
+// 🚨 QUAN TRỌNG: Thêm routing cho tất cả các file HTML
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+app.get('/game', (req, res) => {
+  res.sendFile(path.join(__dirname, 'game.html'));
+});
+
+// 🚨 THÊM: Routing cho các file HTML khi truy cập trực tiếp
+app.get('/admin.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 app.get('/game.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'game.html'));
 });
 
-app.get('/admin.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'admin.html'));
+// 🚨 THÊM: Xử lý các route không tồn tại - trả về index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// SỬA: Lắng nghe trên 0.0.0.0 để hoạt động trên Railway
+// Lắng nghe server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server love đang chạy trên port ${PORT}`);
 });
