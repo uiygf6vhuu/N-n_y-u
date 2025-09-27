@@ -1,91 +1,265 @@
 <!DOCTYPE html>
 <html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <title>Kỷ Niệm Của Chúng Ta (Viền Tym 1) 💕</title>
-    <link rel="stylesheet" href="style.css">
-    <style>
-        /* CSS CHUNG */
-        html, body { height: 100%; padding: 0; margin: 0; background: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; flex-direction: column; }
-        
-        /* IFRAME CHỨA HIỆU ỨNG GỐC */
-        #tym-iframe { position: fixed; top: 0; left: 0; width: 100%; height: 100%; border: none; background-color: transparent; z-index: 10; }
-        
-        /* KHU VỰC ẢNH VÀ NỘI DUNG */
-        #content-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 20; text-align: center; }
-        
-        /* ẢNH TIM ĐẬP */
-        .love-image-tym {
-            width: 250px; height: 250px; object-fit: cover; border-radius: 50%;
-            box-shadow: 0 0 15px rgba(255, 105, 180, 0.9); border: 5px solid white;
-            display: none; animation: heartbeat 1.5s infinite; 
-        }
+ <HEAD>
+  <TITLE> I Love You </TITLE>
+  <META NAME="Generator" CONTENT="EditPlus">
+  <META NAME="Author" CONTENT="">
+  <META NAME="Keywords" CONTENT="">
+  <META NAME="Description" CONTENT="">
+  <link rel="stylesheet" href="style.css">
+  <style>
+  html, body {
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    background: #000;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+  canvas {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+  }
+  
+  /* OVERLAY MỚI ĐỂ CHỨA ẢNH VÀ NÚT */
+  #content-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 20; 
+      text-align: center;
+  }
+  
+  .love-image-tym {
+      width: 250px;
+      height: 250px;
+      object-fit: cover;
+      border-radius: 50%;
+      box-shadow: 0 0 15px rgba(255, 105, 180, 0.9);
+      border: 5px solid white;
+      display: none;
+      animation: heartbeat 1.5s infinite; 
+      margin-bottom: 20px;
+  }
+  
+  @keyframes heartbeat {
+      0% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 105, 180, 0.7); }
+      50% { transform: scale(1.1); box-shadow: 0 0 30px rgba(255, 105, 180, 1); }
+      100% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 105, 180, 0.7); }
+  }
+  
+  .navigation { position: fixed; bottom: 20px; z-index: 30; }
+  </style>
+ </HEAD>
 
-        @keyframes heartbeat {
-            0% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 105, 180, 0.7); }
-            50% { transform: scale(1.1); box-shadow: 0 0 30px rgba(255, 105, 180, 1); }
-            100% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 105, 180, 0.7); }
-        }
+ <BODY>
+  <canvas id="pinkboard"></canvas>
+  
+  <div id="content-overlay">
+      <h1 style="color: white; text-shadow: 0 0 10px #ff69b4;">Kỷ Niệm Của Chúng Ta! (Hiệu ứng 1)</h1>
+      <img id="loveImage" class="love-image-tym" style="display:none;">
+      <p id="noImage" style="text-align: center; color: white; margin-top: 20px;">
+          (Đang tải ảnh...)
+      </p>
+      <div id="navigation" class="navigation" style="display:none;">
+          <a href="/" class="btn" style="background: #2ed573;">💌 Quay về Trang Chính</a>
+          <button class="btn" onclick="logout()" style="background: #ff4757;">🚪 Khóa Trang</button>
+      </div>
+  </div>
+  
+  <script>
+  /*
+ * Settings
+ */
+var settings = {
+  particles: {
+    length:   500, // maximum amount of particles
+    duration:   2, // particle duration in sec
+    velocity: 100, // particle velocity in pixels/sec
+    effect: -0.75, // play with this for a nice effect
+    size:      30, // particle size in pixels
+  },
+};
 
-        .navigation { position: fixed; bottom: 20px; z-index: 30; }
-    </style>
-</head>
-<body>
-    <iframe id="tym-iframe" src="/tym1_bg" allowtransparency="true"></iframe>
+/* --- ĐOẠN CODE GỐC (GIỮ NGUYÊN) --- */
+// ... (Point Class, Particle Class, ParticlePool Class, Polyfills)
+// (Tôi lược bớt ở đây để ngắn gọn, code này là code gốc của bạn)
+(function(){var b=0;var c=["ms","moz","webkit","o"];for(var a=0;a<c.length&&!window.requestAnimationFrame;++a){window.requestAnimationFrame=window[c[a]+"RequestAnimationFrame"];window.cancelAnimationFrame=window[c[a]+"CancelAnimationFrame"]||window[c[a]+"CancelRequestAnimationFrame"]}if(!window.requestAnimationFrame){window.requestAnimationFrame=function(h,e){var d=new Date().getTime();var f=Math.max(0,16-(d-b));var g=window.setTimeout(function(){h(d+f)},f);b=d+f;return g}}if(!window.cancelAnimationFrame){window.cancelAnimationFrame=function(d){clearTimeout(d)}}}());
 
-    <div id="content-overlay">
-        <h1 style="color: white; text-shadow: 0 0 10px #ff69b4;">Kỷ Niệm Của Chúng Ta! (Hiệu ứng 1)</h1>
-        <img id="loveImage" class="love-image-tym" style="display:none;" alt="Ảnh Kỷ Niệm">
-        <p id="noImage" style="text-align: center; color: white; margin-top: 20px;"></p>
-    </div>
+var Point = (function() {
+  function Point(x, y) { this.x = (typeof x !== 'undefined') ? x : 0; this.y = (typeof y !== 'undefined') ? y : 0; }
+  Point.prototype.clone = function() { return new Point(this.x, this.y); };
+  Point.prototype.length = function(length) { if (typeof length == 'undefined') return Math.sqrt(this.x * this.x + this.y * this.y); this.normalize(); this.x *= length; this.y *= length; return this; };
+  Point.prototype.normalize = function() { var length = this.length(); this.x /= length; this.y /= length; return this; };
+  return Point;
+})();
 
-    <div id="navigation" class="navigation" style="display:none;">
-        <a href="/" class="btn" style="background: #2ed573;">💌 Quay về Trang Chính</a>
-        <button class="btn" onclick="logout()" style="background: #ff4757;">🚪 Khóa Trang</button>
-    </div>
+var Particle = (function() {
+  function Particle() { this.position = new Point(); this.velocity = new Point(); this.acceleration = new Point(); this.age = 0; }
+  Particle.prototype.initialize = function(x, y, dx, dy) { this.position.x = x; this.position.y = y; this.velocity.x = dx; this.velocity.y = dy; this.acceleration.x = dx * settings.particles.effect; this.acceleration.y = dy * settings.particles.effect; this.age = 0; };
+  Particle.prototype.update = function(deltaTime) { this.position.x += this.velocity.x * deltaTime; this.position.y += this.velocity.y * deltaTime; this.velocity.x += this.acceleration.x * deltaTime; this.velocity.y += this.acceleration.y * deltaTime; this.age += deltaTime; };
+  Particle.prototype.draw = function(context, image) { function ease(t) { return (--t) * t * t + 1; } var size = image.width * ease(this.age / settings.particles.duration); context.globalAlpha = 1 - this.age / settings.particles.duration; context.drawImage(image, this.position.x - size / 2, this.position.y - size / 2, size, size); };
+  return Particle;
+})();
 
-    <script>
-        let sitePassword = localStorage.getItem('sitePassword');
+var ParticlePool = (function() {
+  var particles, firstActive = 0, firstFree   = 0, duration    = settings.particles.duration;
+  function ParticlePool(length) { particles = new Array(length); for (var i = 0; i < particles.length; i++) particles[i] = new Particle(); }
+  ParticlePool.prototype.add = function(x, y, dx, dy) { particles[firstFree].initialize(x, y, dx, dy); firstFree++; if (firstFree   == particles.length) firstFree   = 0; if (firstActive == firstFree       ) firstActive++; if (firstActive == particles.length) firstActive = 0; };
+  ParticlePool.prototype.update = function(deltaTime) { var i; if (firstActive < firstFree) { for (i = firstActive; i < firstFree; i++) particles[i].update(deltaTime); } if (firstFree < firstActive) { for (i = firstActive; i < particles.length; i++) particles[i].update(deltaTime); for (i = 0; i < firstFree; i++) particles[i].update(deltaTime); } while (particles[firstActive].age >= duration && firstActive != firstFree) { firstActive++; if (firstActive == particles.length) firstActive = 0; } };
+  ParticlePool.prototype.draw = function(context, image) { if (firstActive < firstFree) { for (i = firstActive; i < firstFree; i++) particles[i].draw(context, image); } if (firstFree < firstActive) { for (i = firstActive; i < particles.length; i++) particles[i].draw(context, image); for (i = 0; i < firstFree; i++) particles[i].draw(context, image); } };
+  return ParticlePool;
+})();
+/* --- KẾT THÚC CODE GỐC (GIỮ NGUYÊN) --- */
 
-        async function loadContent() {
-            // Logic tải ảnh và kiểm tra mật khẩu giữ nguyên...
-            try {
-                if (!sitePassword) {
-                    alert('Bạn cần đăng nhập trước để xem kỷ niệm này!');
-                    window.location.href = '/';
-                    return;
-                }
-                const imgResponse = await fetch('/api/love-image', { headers: { 'Authorization': sitePassword } });
-                const loveImage = document.getElementById('loveImage');
-                const noImage = document.getElementById('noImage');
-                document.getElementById('navigation').style.display = 'block';
 
-                if (imgResponse.ok) {
-                    const imgData = await imgResponse.json();
-                    if (imgData.image) {
-                        loveImage.src = imgData.image;
-                        loveImage.style.display = 'block';
-                        noImage.style.display = 'none';
-                    } else {
-                        noImage.textContent = 'Chưa có ảnh nào được tải lên!';
-                        noImage.style.display = 'block';
-                    }
-                } else {
-                    noImage.textContent = 'Lỗi tải ảnh hoặc ảnh chưa được upload!';
-                    noImage.style.display = 'block';
-                }
-            } catch (error) {
-                document.getElementById('noImage').textContent = 'Lỗi kết nối server.';
-                document.getElementById('noImage').style.display = 'block';
-            }
-        }
-        
-        function logout() {
-            localStorage.removeItem('sitePassword');
-            window.location.href = '/'; 
-        }
+/*
+ * Putting it all together (ĐÃ SỬA CHỮA)
+ */
+(function(canvas) {
+  var context = canvas.getContext('2d'),
+      particles = new ParticlePool(settings.particles.length),
+      particleRate = settings.particles.length / settings.particles.duration, // particles/sec
+      time;
+  
+  // get point on heart with -PI <= t <= PI
+  function pointOnHeart(t) {
+    return new Point(
+      160 * Math.pow(Math.sin(t), 3),
+      130 * Math.cos(t) - 50 * Math.cos(2 * t) - 20 * Math.cos(3 * t) - 10 * Math.cos(4 * t) + 25
+    );
+  }
+  
+  // creating the particle image using a dummy canvas
+  var image = (function() {
+    var canvas  = document.createElement('canvas'),
+        context = canvas.getContext('2d');
+    canvas.width  = settings.particles.size;
+    canvas.height = settings.particles.size;
+    // helper function to create the path
+    function to(t) {
+      var point = pointOnHeart(t);
+      point.x = settings.particles.size / 2 + point.x * settings.particles.size / 350;
+      point.y = settings.particles.size / 2 - point.y * settings.particles.size / 350;
+      return point;
+    }
+    // create the path
+    context.beginPath();
+    var t = -Math.PI;
+    var point = to(t);
+    context.moveTo(point.x, point.y);
+    while (t < Math.PI) {
+      t += 0.01; // baby steps!
+      point = to(t);
+      context.lineTo(point.x, point.y);
+    }
+    context.closePath();
+    // create the fill
+    context.fillStyle = '#ea80b0'; // Màu tím hồng gốc
+    context.fill();
+    // create the image
+    var image = new Image();
+    image.src = canvas.toDataURL();
+    return image;
+  })();
+  
+  // render that thing!
+  function render() {
+    requestAnimationFrame(render);
+    var newTime   = new Date().getTime() / 1000,
+        deltaTime = newTime - (time || newTime);
+    time = newTime;
+    
+    // !!! ĐIỀU CHỈNH QUAN TRỌNG: LÀM NỀN CANVAS TRONG SUỐT !!!
+    context.clearRect(0, 0, canvas.width, canvas.height); 
+    // Nếu bạn muốn giữ hiệu ứng vệt mờ của canvas gốc, hãy thêm:
+    // context.fillStyle = "rgba(0,0,0,0.01)"; 
+    // context.fillRect(0, 0, canvas.width, canvas.height); 
+    
+    // create new particles
+    var amount = particleRate * deltaTime;
+    for (var i = 0; i < amount; i++) {
+      var pos = pointOnHeart(Math.PI - 2 * Math.PI * Math.random());
+      var dir = pos.clone().length(settings.particles.velocity);
+      particles.add(canvas.width / 2 + pos.x, canvas.height / 2 - pos.y, dir.x, -dir.y);
+    }
+    
+    // update and draw particles
+    particles.update(deltaTime);
+    particles.draw(context, image);
+  }
+  
+  // handle (re-)sizing of the canvas
+  function onResize() {
+    canvas.width  = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+  }
+  window.onresize = onResize;
+  
+  // delay rendering bootstrap
+  setTimeout(function() {
+    onResize();
+    render();
+  }, 10);
+})(document.getElementById('pinkboard'));
+  
+  
+  // ========================================================
+  // LOGIC TẢI ẢNH VÀ ĐIỀU HƯỚNG
+  // ========================================================
 
-        document.addEventListener('DOMContentLoaded', loadContent);
-    </script>
-</body>
-</html>
+  let sitePassword = localStorage.getItem('sitePassword');
+
+  async function loadContent() {
+      // Logic tải ảnh và kiểm tra mật khẩu giữ nguyên...
+      try {
+          if (!sitePassword) {
+              alert('Bạn cần đăng nhập trước để xem kỷ niệm này!');
+              window.location.href = '/';
+              return;
+          }
+          const imgResponse = await fetch('/api/love-image', { headers: { 'Authorization': sitePassword } });
+          const loveImage = document.getElementById('loveImage');
+          const noImage = document.getElementById('noImage');
+          document.getElementById('navigation').style.display = 'block';
+
+          if (imgResponse.ok) {
+              const imgData = await imgResponse.json();
+              if (imgData.image) {
+                  loveImage.src = imgData.image;
+                  loveImage.style.display = 'block';
+                  noImage.style.display = 'none';
+              } else {
+                  noImage.textContent = 'Chưa có ảnh nào được tải lên!';
+                  noImage.style.display = 'block';
+              }
+          } else {
+              noImage.textContent = 'Lỗi tải ảnh hoặc ảnh chưa được upload!';
+              noImage.style.display = 'block';
+          }
+      } catch (error) {
+          document.getElementById('noImage').textContent = 'Lỗi kết nối server.';
+          document.getElementById('noImage').style.display = 'block';
+      }
+  }
+  
+  function logout() {
+      localStorage.removeItem('sitePassword');
+      window.location.href = '/'; 
+  }
+
+  document.addEventListener('DOMContentLoaded', loadContent);
+  </script>
+ </BODY>
+</HTML>
