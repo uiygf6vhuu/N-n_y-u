@@ -7,26 +7,59 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
-// Thêm middleware để log các request
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-  next();
+// Bộ nhớ tạm
+let loveMessages = [];
+let loveImage = null;
+
+// API: đăng nhập admin
+const ADMIN_PASSWORD = "admin123";
+app.post('/api/login', (req, res) => {
+  const { password } = req.body;
+  if (password === ADMIN_PASSWORD) {
+    res.json({ success: true });
+  } else {
+    res.status(401).json({ success: false, error: "Sai mật khẩu" });
+  }
 });
 
-// ... (phần API của bạn giữ nguyên)
+// API: lưu tin nhắn
+app.post('/api/love-messages', (req, res) => {
+  const { message } = req.body;
+  if (!message || !message.trim()) return res.status(400).json({ error: "Tin nhắn không hợp lệ" });
+  loveMessages.push(message);
+  res.json({ success: true, message: "Đã lưu tin nhắn 💌" });
+});
 
-// Route chính
+// API: lấy tin nhắn
+app.get('/api/love-messages', (req, res) => {
+  res.json({ messages: loveMessages });
+});
+
+// API: Nhận URL ảnh từ Admin
+app.post('/api/upload-url', (req, res) => {
+  const { imageUrl } = req.body;
+  if (!imageUrl || !imageUrl.startsWith('http')) {
+    return res.status(400).json({ success: false, error: "URL ảnh không hợp lệ" });
+  }
+  loveImage = imageUrl;
+  res.json({ success: true, image: loveImage, message: "Đã lưu URL ảnh thành công!" });
+});
+
+// API: lấy ảnh
+app.get('/api/love-image', (req, res) => {
+  res.json({ image: loveImage });
+});
+
+// Routes cho các trang HTML
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.get('/admin', (req, res) => {
-  console.log('Admin page accessed');
   res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 app.get('/game', (req, res) => {
-  console.log('Game page accessed');
   res.sendFile(path.join(__dirname, 'game.html'));
 });
 
@@ -39,14 +72,11 @@ app.get('/game.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'game.html'));
 });
 
-// Xử lý lỗi 404
-app.use((req, res) => {
-  res.status(404).send('Page not found');
+// Xử lý các route khác
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server love đang chạy trên port ${PORT}`);
-  console.log(`🌐 Truy cập: https://your-project.railway.app`);
-  console.log(`🔗 Admin: https://your-project.railway.app/admin`);
-  console.log(`🎮 Game: https://your-project.railway.app/game`);
+  console.log(`🚀 Server chạy trên port ${PORT}`);
 });
