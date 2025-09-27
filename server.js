@@ -1,4 +1,4 @@
-// server.js
+// server.js (Phiên bản sử dụng File System để lưu dữ liệu)
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
@@ -8,39 +8,76 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
+const DATA_FILE = path.join(__dirname, 'data.json'); // <-- Tên file dữ liệu
 
 // --------------------------------------------------------------------------------
-// IN-MEMORY STORAGE (DỮ LIỆU SẼ BỊ MẤT KHI SERVER RESTART)
+// HÀM XỬ LÝ DỮ LIỆU BỀN VỮNG (PERSISTENCE)
 // --------------------------------------------------------------------------------
 
-let inMemoryDB = {
-    // Mật khẩu mặc định
+let inMemoryDB = {}; // Dữ liệu sẽ được load từ file
+
+/**
+ * Mẫu dữ liệu mặc định ban đầu
+ */
+const DEFAULT_DATA = {
     passwords: {
         site: "tinhyeu123",
         admin: "admin456"
     },
-    // Tin nhắn
     messages: [
         { date: '2025-01-01', message: 'Chào mừng đến với trang bí mật!' }
     ],
-    // URL ảnh
     loveImage: 'https://picsum.photos/seed/defaultlove/400/400',
-    // Điểm game (Sắp xếp theo điểm giảm dần)
     gameScores: [
         { playerName: "Top Player", score: 180, level: 6, clicksPerMinute: 320, date: new Date().toISOString() },
         { playerName: "Medium", score: 85, level: 4, clicksPerMinute: 200, date: new Date().toISOString() }
     ]
 };
 
+/**
+ * Tải dữ liệu từ file JSON. Nếu file không tồn tại, dùng dữ liệu mặc định.
+ */
+const loadData = () => {
+    try {
+        if (fs.existsSync(DATA_FILE)) {
+            const data = fs.readFileSync(DATA_FILE, 'utf8');
+            inMemoryDB = JSON.parse(data);
+            console.log('✅ Dữ liệu đã được tải thành công từ data.json.');
+        } else {
+            inMemoryDB = DEFAULT_DATA;
+            saveData(); // Tạo file mới với dữ liệu mặc định
+            console.log('⚠️ Không tìm thấy data.json. Đã tạo dữ liệu mặc định.');
+        }
+    } catch (error) {
+        console.error('❌ Lỗi khi tải dữ liệu:', error.message);
+        inMemoryDB = DEFAULT_DATA;
+    }
+};
+
+/**
+ * Lưu dữ liệu vào file JSON.
+ */
+const saveData = () => {
+    try {
+        fs.writeFileSync(DATA_FILE, JSON.stringify(inMemoryDB, null, 2), 'utf8');
+        // console.log('Dữ liệu đã được lưu vào data.json.');
+    } catch (error) {
+        console.error('❌ Lỗi khi lưu dữ liệu:', error.message);
+    }
+};
+
 // --------------------------------------------------------------------------------
 // CẤU HÌNH SERVER VÀ MIDDLEWARE
 // --------------------------------------------------------------------------------
 
-// Cấu hình Multer để lưu file tạm thời (vẫn cần để xử lý upload file)
+// Cấu hình Multer để lưu file tạm thời
 const upload = multer({ dest: UPLOADS_DIR });
 if (!fs.existsSync(UPLOADS_DIR)) {
     fs.mkdirSync(UPLOADS_DIR);
 }
+
+// Tải dữ liệu ngay khi server khởi động
+loadData(); 
 
 // Middleware
 app.use(bodyParser.json());
@@ -78,7 +115,7 @@ const requireAdminAuth = (req, res, next) => {
 // --------------------------------------------------------------------------------
 // ENDPOINTS PHỤC VỤ FILE
 // --------------------------------------------------------------------------------
-
+// (GIỮ NGUYÊN)
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 app.get('/game', (req, res) => res.sendFile(path.join(__dirname, 'game.html')));
@@ -96,12 +133,11 @@ app.get('/game', (req, res) => res.sendFile(path.join(__dirname, 'game.html')));
 
 
 // --------------------------------------------------------------------------------
-// API CHO TRANG CHÍNH (SITE API)
+// API CHO TRANG CHÍNH (SITE API) - ĐÃ THÊM saveData()
 // --------------------------------------------------------------------------------
 
 // GET /api/messages - Tải tin nhắn + Dùng để xác thực Trang Chính
 app.get('/api/messages', requireSiteAuth, (req, res) => {
-    // Tin nhắn được đảo ngược để hiển thị tin mới nhất trước trong danh sách
     const formattedMessages = [...inMemoryDB.messages].reverse().map(m => `${m.date}: ${m.message}`);
     res.json({ messages: formattedMessages });
 });
@@ -114,15 +150,16 @@ app.post('/api/messages-with-date', requireSiteAuth, (req, res) => {
     }
     
     inMemoryDB.messages.push({ date, message: message.substring(0, 500) });
+    saveData(); // <-- LƯU DỮ LIỆU
     res.json({ message: 'Message posted successfully.' });
 });
 
 
 // --------------------------------------------------------------------------------
-// API CHO TRANG ADMIN (ADMIN API)
+// API CHO TRANG ADMIN (ADMIN API) - ĐÃ THÊM saveData()
 // --------------------------------------------------------------------------------
 
-// GET /api/passwords - Lấy mật khẩu hiện tại
+// GET /api/passwords - Lấy mật khẩu hiện tại (GIỮ NGUYÊN)
 app.get('/api/passwords', requireAdminAuth, (req, res) => {
     res.json({ 
         sitePassword: inMemoryDB.passwords.site,
@@ -138,6 +175,7 @@ app.post('/api/change-site-password', requireAdminAuth, (req, res) => {
     }
     
     inMemoryDB.passwords.site = newPassword;
+    saveData(); // <-- LƯU DỮ LIỆU
     res.json({ message: 'Đã đổi mật khẩu trang chính thành công!' });
 });
 
@@ -149,12 +187,12 @@ app.post('/api/change-admin-password', requireAdminAuth, (req, res) => {
     }
     
     inMemoryDB.passwords.admin = newPassword;
+    saveData(); // <-- LƯU DỮ LIỆU
     res.json({ message: 'Đã đổi mật khẩu Admin thành công!' });
 });
 
-// GET /api/love-image - Lấy URL ảnh tình yêu
+// GET /api/love-image - Lấy URL ảnh tình yêu (GIỮ NGUYÊN)
 app.get('/api/love-image', (req, res) => {
-    // Cho phép cả Site và Admin truy cập
     const authHeader = req.headers['authorization'];
     if (authHeader !== inMemoryDB.passwords.site && authHeader !== inMemoryDB.passwords.admin) {
         return res.status(403).json({ error: 'Invalid password.' });
@@ -169,10 +207,11 @@ app.post('/api/upload-url', requireAdminAuth, (req, res) => {
     if (!imageUrl) return res.status(400).json({ error: 'URL ảnh là bắt buộc.' });
 
     inMemoryDB.loveImage = imageUrl;
+    saveData(); // <-- LƯU DỮ LIỆU
     res.json({ message: 'URL ảnh đã được cập nhật.', image: imageUrl });
 });
 
-// POST /api/upload-file - Upload ảnh từ file (lưu cục bộ tạm thời)
+// POST /api/upload-file - Upload ảnh từ file
 app.post('/api/upload-file', requireAdminAuth, upload.single('image'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'File ảnh là bắt buộc.' });
     
@@ -180,41 +219,40 @@ app.post('/api/upload-file', requireAdminAuth, upload.single('image'), (req, res
     const fileName = req.file.filename + fileExtension;
     const filePath = path.join(UPLOADS_DIR, fileName);
     
-    // Đổi tên file để giữ nguyên extension
     fs.renameSync(req.file.path, filePath);
 
-    // Lưu đường dẫn cục bộ (sẽ bị mất trên Railway sau khi server restart)
+    // Lưu đường dẫn cục bộ
     inMemoryDB.loveImage = `/uploads/${fileName}`;
+    saveData(); // <-- LƯU DỮ LIỆU
 
     res.json({ message: 'File ảnh đã được upload thành công (tạm thời).', image: inMemoryDB.loveImage });
 });
 
-// GET /api/love-messages - Lấy danh sách tin nhắn (cho Admin)
+// GET /api/love-messages - Lấy danh sách tin nhắn (GIỮ NGUYÊN)
 app.get('/api/love-messages', requireAdminAuth, (req, res) => {
-    // Tin nhắn được đảo ngược để hiển thị tin mới nhất trước
     const formattedMessages = [...inMemoryDB.messages].reverse().map(m => `${m.date}: ${m.message}`);
     res.json({ messages: formattedMessages });
 });
 
-// POST /api/love-messages - Thêm tin nhắn (cho Admin)
+// POST /api/love-messages - Thêm tin nhắn
 app.post('/api/love-messages', requireAdminAuth, (req, res) => {
     const { message } = req.body;
     if (!message) return res.status(400).json({ error: 'Tin nhắn là bắt buộc.' });
     
     const today = new Date().toISOString().split('T')[0];
     inMemoryDB.messages.push({ date: today, message: message.substring(0, 500) });
+    saveData(); // <-- LƯU DỮ LIỆU
 
     res.json({ message: 'Tin nhắn đã được thêm thành công.' });
 });
 
 
 // --------------------------------------------------------------------------------
-// API CHO TRANG GAME (GAME API)
+// API CHO TRANG GAME (GAME API) - ĐÃ THÊM saveData()
 // --------------------------------------------------------------------------------
 
-// GET /api/game-scores - Lấy bảng xếp hạng
+// GET /api/game-scores - Lấy bảng xếp hạng (GIỮ NGUYÊN)
 app.get('/api/game-scores', requireSiteAuth, (req, res) => {
-    // Sắp xếp theo điểm và chỉ lấy top 10
     const sortedScores = [...inMemoryDB.gameScores]
         .sort((a, b) => b.score - a.score)
         .slice(0, 10);
@@ -239,6 +277,7 @@ app.post('/api/game-score', requireSiteAuth, (req, res) => {
     };
     
     inMemoryDB.gameScores.push(newScore);
+    saveData(); // <-- LƯU DỮ LIỆU
 
     res.json({ message: 'Điểm đã được lưu thành công.' });
 });
@@ -252,5 +291,7 @@ app.listen(PORT, () => {
     console.log(`Server is running at http://localhost:${PORT}`);
     console.log(`Site password: ${inMemoryDB.passwords.site}`);
     console.log(`Admin password: ${inMemoryDB.passwords.admin}`);
-    console.log("WARNING: Data is stored in memory and will be LOST on server restart.");
+    console.log("----------------------------------------------------------");
+    console.log("LƯU Ý: Dữ liệu được lưu trong file data.json.");
+    console.log("Nếu deploy lên cloud, hãy đảm bảo data.json được lưu trữ.");
 });
