@@ -5,7 +5,7 @@
     <title>Trang Tình Yêu Bí Mật 💕</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* CSS Cũ: Giữ nguyên để hiển thị form đăng nhập */
+        /* CSS CŨ: Giữ nguyên để hiển thị form đăng nhập */
         .login-container {
             max-width: 400px;
             margin: 100px auto;
@@ -42,6 +42,13 @@
          * CSS MỚI: Khung Trái Tim và Slideshow
          * ------------------------------------------------------------------- */
 
+        .container {
+            /* Tăng chiều rộng để khối trái tim và tin nhắn không quá sát nhau */
+            max-width: 1000px; 
+            margin: 0 auto;
+            padding: 20px;
+        }
+
         .heart-section {
             display: flex;
             flex-direction: column;
@@ -71,9 +78,9 @@
 
         .heart-container {
             position: relative;
-            height: 350px; /* Điều chỉnh kích thước trái tim */
+            height: 350px;
             width: 350px;
-            animation: heart-beat 1.3s infinite;
+            /* Animation sẽ được set qua JS */
         }
 
         /* Khối chính tạo hình trái tim bằng CSS */
@@ -86,9 +93,10 @@
         #heart-frame:before, #heart-frame:after {
             content: '';
             position: absolute;
-            background: var(--heart-color, #dc143c); /* Màu viền */
-            width: 175px; /* 350px / 2 */
-            height: 280px; /* 350px * 0.8 */
+            /* Sử dụng biến CSS để thay đổi màu từ JS */
+            background: var(--heart-color, #dc143c); 
+            width: 175px; 
+            height: 280px;
             border-top-left-radius: 87.5px;
             border-top-right-radius: 87.5px;
         }
@@ -106,11 +114,16 @@
             transform-origin: 100% 100%;
         }
 
-        /* Tên animation đã thay đổi để không trùng với CSS gốc */
-        @keyframes heart-beat {
+        /* Animation của trái tim */
+        @keyframes heart-beat-strong {
             0% { transform: scale(1); }
             30% { transform: scale(.9); }
-            60% { transform: scale(1.05); }
+            60% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        @keyframes heart-beat-light {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
             100% { transform: scale(1); }
         }
 
@@ -119,7 +132,7 @@
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 180px; /* Kích thước ảnh nhỏ hơn 350px để chừa viền */
+            width: 180px; 
             height: 180px;
             background: #fff;
             border-radius: 50%;
@@ -165,7 +178,7 @@
                     <select id="heart-select" onchange="changeHeartStyle()">
                         <option value="style1">Viền 1 (Mạnh mẽ - Đỏ)</option>
                         <option value="style2">Viền 2 (Bay nhẹ - Hồng)</option>
-                        <option value="style3" selected>Viền 3 (Cổ điển - Hồng Tím)</option>
+                        <option value="style3" selected>Viền 3 (Cổ điển - Tím)</option>
                     </select>
                 </div>
 
@@ -195,9 +208,7 @@
         let slideshowInterval;
         let currentImageIndex = 0;
         const intervalTime = 4000; // 4 giây
-
-        // Dữ liệu ảnh: Kết hợp ảnh được Admin upload và ảnh mẫu
-        let allImages = [];
+        let allImages = []; // Danh sách ảnh cho slideshow
 
         // =========================================================
         // LOGIC ĐĂNG NHẬP
@@ -238,12 +249,9 @@
             if (!isAuthenticated) return;
 
             try {
-                // Tải tin nhắn
                 await loadMessages();
-                
-                // Tải ảnh Admin
-                await loadAdminImage();
-                
+                await loadAdminImage(); // Tải ảnh từ Admin
+
                 // Khởi tạo Slideshow
                 createSlideshow();
                 
@@ -252,7 +260,6 @@
 
             } catch (error) {
                 console.error('Lỗi tải dữ liệu:', error);
-                alert('Lỗi tải dữ liệu! Vui lòng thử lại.');
             }
         }
         
@@ -265,7 +272,7 @@
                 if (imgResponse.ok) {
                     const imgData = await imgResponse.json();
                     
-                    // Nếu Admin đã upload ảnh, thêm nó vào đầu danh sách
+                    // Nếu Admin đã upload ảnh, sử dụng ảnh đó và thêm ảnh mẫu để tạo hiệu ứng slideshow
                     if (imgData.image) {
                         allImages = [imgData.image];
                     }
@@ -274,21 +281,24 @@
                 console.error('Lỗi tải ảnh Admin:', error);
             }
             
-            // Nếu không có ảnh Admin, sử dụng ảnh mẫu (Slideshow không hoạt động nếu không có ảnh)
-            if (allImages.length === 0) {
-                 allImages = [
-                    'https://picsum.photos/seed/love1/180/180',
-                    'https://picsum.photos/seed/love2/180/180',
-                    'https://picsum.photos/seed/love3/180/180'
-                ];
-            }
+            // Nếu không có ảnh Admin, hoặc chỉ có 1 ảnh, thêm ảnh mẫu (ảnh giả) để đảm bảo slideshow hoạt động
+            // Nếu bạn muốn hiển thị nhiều ảnh được Admin upload, bạn sẽ cần thay đổi API trong server.js.
+            // Hiện tại chỉ có API cho 1 ảnh, nên ta dùng ảnh mẫu
+            
+            // Thêm các ảnh mẫu vào danh sách
+            allImages.push(
+                'https://picsum.photos/seed/love4/180/180',
+                'https://picsum.photos/seed/love5/180/180',
+                'https://picsum.photos/seed/love6/180/180'
+            );
+
+             // Loại bỏ trùng lặp và giữ 3 ảnh đầu tiên
+             allImages = [...new Set(allImages)].slice(0, 3);
         }
 
         function createSlideshow() {
             const slideshowEl = document.getElementById('slideshow');
             slideshowEl.innerHTML = '';
-            
-            // Xóa thông báo "Chưa có ảnh" (đã bị loại bỏ)
             
             allImages.forEach((url, index) => {
                 const img = document.createElement('img');
@@ -343,22 +353,22 @@
         }
 
         // =========================================================
-        // LOGIC CHỌN KIỂU VIỀN ĐỘNG
+        // LOGIC CHỌN KIỂU VIỀN ĐỘNG (Mô phỏng 3 file gốc)
         // =========================================================
         
-        // Cài đặt cho từng kiểu viền (tương ứng với các file gốc)
+        // Cài đặt cho từng kiểu viền 
         const heartStyles = {
-            'style1': { 
+            'style1': { // Mạnh mẽ (Mô phỏng index.html)
                 color: '#dc143c', 
-                animation: 'heart-beat 1s infinite' // Mạnh mẽ
+                animation: 'heart-beat-strong 1s infinite' 
             }, 
-            'style2': { 
-                color: '#ff69b4', // Hồng nhẹ
-                animation: 'heart-beat 2s infinite linear' // Bay nhẹ
+            'style2': { // Bay nhẹ (Mô phỏng index2.html)
+                color: '#ff69b4', 
+                animation: 'heart-beat-light 2s infinite linear' 
             },
-            'style3': { 
-                color: '#9370db', // Tím nhạt
-                animation: 'heart-beat 1.3s infinite' // Cổ điển
+            'style3': { // Cổ điển (Mô phỏng index3.html)
+                color: '#9370db', 
+                animation: 'heart-beat-strong 1.3s infinite' 
             }
         };
 
@@ -392,6 +402,13 @@
         // Enter để đăng nhập
         document.getElementById('sitePassword').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') login();
+        });
+
+        // Áp dụng style mặc định khi tải trang lần đầu
+        document.addEventListener('DOMContentLoaded', () => {
+             // Chọn kiểu mặc định để animation chạy
+            document.getElementById('heart-select').value = 'style3';
+            // Không gọi changeHeartStyle() ở đây vì nó sẽ được gọi sau khi loadData() hoàn tất đăng nhập.
         });
     </script>
 </body>
