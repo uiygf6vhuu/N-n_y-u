@@ -15,9 +15,9 @@
     </div>
 
     <div id="adminBox" style="display:none;">
-      <h2>📷 Upload ảnh</h2>
-      <input type="file" id="imageFile">
-      <button onclick="uploadImage()" class="btn">Tải ảnh</button>
+      <h2>📷 Cập nhật Ảnh (Dùng URL)</h2>
+      <input type="text" id="imageUrl" placeholder="Dán URL ảnh vào đây (ví dụ: https://imgur.com/link.jpg)" class="date-input">
+      <button onclick="uploadImage()" class="btn">Lưu URL Ảnh</button>
 
       <h2>💌 Thêm tin nhắn</h2>
       <textarea id="adminMessage" placeholder="Nhập tin nhắn..." class="message-input"></textarea>
@@ -55,6 +55,7 @@ async function addMessage() {
   });
   const data = await res.json();
   alert(data.message);
+  document.getElementById('adminMessage').value = ''; // Xóa nội dung
   loadMessages();
 }
 
@@ -70,14 +71,18 @@ async function loadMessages() {
   });
 }
 
+// SỬA: Hàm upload ảnh mới, gửi URL lên server
 async function uploadImage() {
-  const file = document.getElementById('imageFile').files[0];
-  if (!file) return alert("Chọn ảnh trước!");
-  const formData = new FormData();
-  formData.append('image', file);
-  const res = await fetch('/api/upload', { method: 'POST', body: formData });
+  const imageUrl = document.getElementById('imageUrl').value;
+  if (!imageUrl.trim()) return alert("Vui lòng dán URL ảnh!");
+
+  const res = await fetch('/api/upload-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageUrl: imageUrl })
+  });
   const data = await res.json();
-  alert("Đã upload ảnh!");
+  alert(data.message);
 }
 </script>
 </body>
