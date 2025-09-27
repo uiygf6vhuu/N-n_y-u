@@ -1,50 +1,57 @@
 const express = require('express');
 const path = require('path');
+const multer = require('multer');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Middleware
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Phục vụ file tĩnh ngay trong thư mục gốc
-app.use(express.static(__dirname));
-
-// Route chính
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// API trả về quotes tình yêu
-app.get('/api/love-quotes', (req, res) => {
-    const quotes = [
-        "Tình yêu không phải là tìm thấy người hoàn hảo, mà là nhìn thấy sự hoàn hảo trong một người không hoàn hảo.",
-        "Yêu là khi ánh mắt em trở thành nhà của trái tim anh.",
-        "Tình yêu đích thực là khi bạn tìm thấy một nửa của mình mà bạn chưa từng biết là mình đang thiếu.",
-        "Trong ánh mắt em, anh tìm thấy cả bầu trời sao lấp lánh.",
-        "Tình yêu không cần phải hoàn hảo, nó chỉ cần chân thành."
-    ];
-    const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-    res.json({ quote: randomQuote });
-});
-
-// Bộ nhớ tạm để lưu tin nhắn yêu thương
+// Bộ nhớ tạm
 let loveMessages = [];
+let loveImage = null;
 
-// API lưu tin nhắn
+// Thiết lập upload ảnh
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'public/uploads/'),
+  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
+});
+const upload = multer({ storage });
+
+// API: đăng nhập admin
+const ADMIN_PASSWORD = "admin123"; // đổi mật khẩu tại đây
+app.post('/api/login', (req, res) => {
+  const { password } = req.body;
+  if (password === ADMIN_PASSWORD) {
+    res.json({ success: true });
+  } else {
+    res.status(401).json({ success: false, error: "Sai mật khẩu" });
+  }
+});
+
+// API: lưu tin nhắn
 app.post('/api/love-messages', (req, res) => {
-    const { message } = req.body;
-    if (!message || !message.trim()) {
-        return res.status(400).json({ error: "Tin nhắn không hợp lệ" });
-    }
-    loveMessages.push(message);
-    res.json({ success: true, message: "Đã lưu tin nhắn yêu thương 💌" });
+  const { message } = req.body;
+  if (!message || !message.trim()) return res.status(400).json({ error: "Tin nhắn không hợp lệ" });
+  loveMessages.push(message);
+  res.json({ success: true, message: "Đã lưu tin nhắn 💌" });
 });
 
-// API lấy danh sách tin nhắn
+// API: lấy tin nhắn
 app.get('/api/love-messages', (req, res) => {
-    res.json({ messages: loveMessages });
+  res.json({ messages: loveMessages });
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 Server love đang chạy trên port ${PORT}`);
-    console.log(`💝 Truy cập: http://localhost:${PORT}`);
+// API: upload ảnh
+app.post('/api/upload', upload.single('image'), (req, res) => {
+  loveImage = "/uploads/" + req.file.filename;
+  res.json({ success: true, image: loveImage });
 });
+
+// API: lấy ảnh
+app.get('/api/love-image', (req, res) => {
+  res.json({ image: loveImage });
+});
+
+app.listen(PORT, () => console.log(`🚀 Running on http://localhost:${PORT}`));
