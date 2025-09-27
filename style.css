@@ -5,98 +5,54 @@
 }
 
 body {
-    font-family: 'Playfair Display', serif;
-    background: linear-gradient(135deg, #ffafbd, #ffc3a0);
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #ffafbd, #ffc3a0, #ffdde1);
     min-height: 100vh;
     color: #8b0000;
+    line-height: 1.6;
 }
 
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
-}
-
-header {
-    text-align: center;
-    padding: 40px 0;
-    animation: fadeIn 2s ease-in;
+    animation: fadeIn 1s ease-in;
 }
 
 h1 {
-    font-size: 3.5em;
-    font-family: 'Dancing Script', cursive;
+    font-size: 3em;
     color: #dc143c;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    margin-bottom: 10px;
-}
-
-.subtitle {
-    font-size: 1.3em;
-    color: #8b0000;
-    font-style: italic;
-}
-
-.love-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 40px;
-    margin: 40px 0;
-}
-
-.heart-container {
     text-align: center;
-}
-
-.heart {
-    font-size: 8em;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    animation: heartbeat 1.5s infinite;
-}
-
-.heart:hover {
-    transform: scale(1.2);
-}
-
-.quote-section, .countdown, .love-message {
-    background: rgba(255, 255, 255, 0.9);
-    padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    text-align: center;
-    width: 100%;
-    max-width: 600px;
-}
-
-.quote {
-    font-size: 1.4em;
-    font-style: italic;
-    color: #8b0000;
     margin: 20px 0;
-    min-height: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1.6;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    font-weight: bold;
+}
+
+h2 {
+    color: #b33939;
+    margin: 20px 0 15px 0;
+    border-left: 4px solid #ff6b6b;
+    padding-left: 15px;
 }
 
 .btn {
     background: linear-gradient(45deg, #ff6b6b, #ee5a52);
     color: white;
     border: none;
-    padding: 12px 30px;
+    padding: 12px 25px;
     border-radius: 25px;
     font-size: 1.1em;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-family: 'Playfair Display', serif;
+    text-decoration: none;
+    display: inline-block;
+    margin: 5px;
+    font-weight: bold;
 }
 
 .btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
 .date-input, .message-input {
@@ -106,27 +62,34 @@ h1 {
     border: 2px solid #ff6b6b;
     border-radius: 10px;
     font-size: 1em;
-    font-family: 'Playfair Display', serif;
+    font-family: inherit;
 }
 
 .message-input {
     height: 100px;
     resize: vertical;
+    min-height: 80px;
 }
 
-.countdown-display {
-    font-size: 1.5em;
-    font-weight: bold;
-    color: #dc143c;
-    margin-top: 20px;
-}
-
-footer {
+.no-content {
     text-align: center;
+    color: #666;
+    font-style: italic;
     padding: 20px;
-    margin-top: 40px;
-    color: #8b0000;
-    font-size: 1.1em;
+    background: rgba(255,255,255,0.5);
+    border-radius: 10px;
+    margin: 10px 0;
+}
+
+.navigation {
+    margin: 30px 0;
+    text-align: center;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes heartbeat {
@@ -135,23 +98,38 @@ footer {
     100% { transform: scale(1); }
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
 /* Responsive */
 @media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
     h1 {
-        font-size: 2.5em;
+        font-size: 2.2em;
     }
     
-    .heart {
-        font-size: 6em;
+    .btn {
+        display: block;
+        width: 100%;
+        margin: 10px 0;
     }
-    
-    .quote-section, .countdown, .love-message {
-        padding: 20px;
-        margin: 0 10px;
-    }
+}
+
+/* Scrollbar custom */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(45deg, #ff4757, #ff3838);
 }
