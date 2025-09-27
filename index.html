@@ -1,59 +1,101 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Trang Người Yêu 💕</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>Trang Tình Yêu 💕</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .message-list {
+            list-style: none;
+            padding: 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .message-list li {
+            background: rgba(255, 182, 193, 0.3);
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #ff6b6b;
+        }
+        .love-image {
+            max-width: 100%;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            margin: 20px 0;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>💖 Dành riêng cho em 💖</h1>
-    <div id="loginUser">
-      <input type="password" id="userPass" placeholder="Nhập mật khẩu" class="date-input">
-      <button onclick="enterUser()" class="btn">Xem</button>
+    <div class="container">
+        <h1>💖 Trang Tình Yêu Của Chúng Ta 💖</h1>
+        
+        <!-- Hiển thị ảnh -->
+        <div id="imageSection">
+            <h2>📷 Kỷ niệm đáng nhớ</h2>
+            <div id="noImage" class="no-content">Chưa có ảnh nào được chia sẻ...</div>
+            <img id="loveImage" class="love-image" style="display:none;">
+        </div>
+
+        <!-- Hiển thị tin nhắn -->
+        <div id="messagesSection">
+            <h2>💌 Những lời yêu thương</h2>
+            <div id="noMessage" class="no-content">Chưa có tin nhắn nào...</div>
+            <ul id="messageList" class="message-list"></ul>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation" style="margin-top: 40px; text-align: center;">
+            <a href="/admin" class="btn" style="background: #ff4757;">🔐 Trang Admin (Riêng tư)</a>
+            <a href="/game" class="btn" style="background: #2ed573;">🎮 Chơi Game Tình Yêu</a>
+        </div>
     </div>
-    <div id="content" style="display:none;">
-      <h2>📷 Hình ảnh</h2>
-      <img id="loveImage" style="max-width:100%; border-radius:15px;">
-      <h2>💌 Lời nhắn</h2>
-      <ul id="userList" class="message-list"></ul>
-      
-      <!-- 🆕 THÊM LINK ĐẾN TRANG ADMIN VÀ GAME -->
-      <div style="margin-top: 20px;">
-        <a href="/admin" class="btn">Trang Admin</a>
-        <a href="/game" class="btn">Chơi Game</a>
-      </div>
-    </div>
-  </div>
 
-<script>
-const PASS = "admin123";
+    <script>
+        // Tải dữ liệu khi trang load
+        async function loadData() {
+            try {
+                // Tải tin nhắn
+                const msgResponse = await fetch('/api/love-messages');
+                const msgData = await msgResponse.json();
+                
+                const messageList = document.getElementById('messageList');
+                const noMessage = document.getElementById('noMessage');
+                
+                messageList.innerHTML = '';
+                if (msgData.messages && msgData.messages.length > 0) {
+                    noMessage.style.display = 'none';
+                    msgData.messages.forEach(msg => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `💝 ${msg}`;
+                        messageList.appendChild(li);
+                    });
+                } else {
+                    noMessage.style.display = 'block';
+                }
 
-async function enterUser() {
-  const input = document.getElementById('userPass').value;
-  if (input !== PASS) return alert("Sai mật khẩu!");
-  document.getElementById('loginUser').style.display = 'none';
-  document.getElementById('content').style.display = 'block';
-  loadData();
-}
+                // Tải ảnh
+                const imgResponse = await fetch('/api/love-image');
+                const imgData = await imgResponse.json();
+                
+                const loveImage = document.getElementById('loveImage');
+                const noImage = document.getElementById('noImage');
+                
+                if (imgData.image) {
+                    loveImage.src = imgData.image;
+                    loveImage.style.display = 'block';
+                    noImage.style.display = 'none';
+                } else {
+                    loveImage.style.display = 'none';
+                    noImage.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Lỗi tải dữ liệu:', error);
+            }
+        }
 
-async function loadData() {
-  const resMsg = await fetch('/api/love-messages');
-  const dataMsg = await resMsg.json();
-  const list = document.getElementById('userList');
-  list.innerHTML = '';
-  dataMsg.messages.forEach(m => {
-    const li = document.createElement('li');
-    li.textContent = m;
-    list.appendChild(li);
-  });
-
-  const resImg = await fetch('/api/love-image');
-  const dataImg = await resImg.json();
-  if (dataImg.image) {
-    document.getElementById('loveImage').src = dataImg.image;
-  }
-}
-</script>
+        // Tải dữ liệu khi trang được mở
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
 </body>
 </html>
