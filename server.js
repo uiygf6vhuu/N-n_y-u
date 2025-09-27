@@ -113,7 +113,7 @@ app.post('/api/admin-login', (req, res) => {
     }
 });
 
-// 🆕 API: Lấy mật khẩu hiện tại (chỉ admin)
+// API: Lấy mật khẩu hiện tại (chỉ admin)
 app.get('/api/passwords', requireAdminAuth, (req, res) => {
     res.json({
         sitePassword: passwords.sitePassword,
@@ -121,7 +121,7 @@ app.get('/api/passwords', requireAdminAuth, (req, res) => {
     });
 });
 
-// 🆕 API: Đổi mật khẩu trang chính (chỉ admin)
+// API: Đổi mật khẩu trang chính (chỉ admin)
 app.post('/api/change-site-password', requireAdminAuth, (req, res) => {
     const { newPassword } = req.body;
     
@@ -138,7 +138,7 @@ app.post('/api/change-site-password', requireAdminAuth, (req, res) => {
     }
 });
 
-// 🆕 API: Đổi mật khẩu admin (chỉ admin, không cần currentPassword)
+// API: Đổi mật khẩu admin (chỉ admin, không cần currentPassword)
 app.post('/api/change-admin-password', requireAdminAuth, (req, res) => {
     const { newPassword } = req.body;
     
