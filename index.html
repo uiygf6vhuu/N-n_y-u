@@ -5,6 +5,7 @@
     <title>Trang Tình Yêu Bí Mật 💕</title>
     <link rel="stylesheet" href="style.css">
     <style>
+        /* CSS Cũ: Giữ nguyên để hiển thị form đăng nhập */
         .login-container {
             max-width: 400px;
             margin: 100px auto;
@@ -23,13 +24,6 @@
             border-radius: 10px;
             text-align: center;
         }
-        .love-image {
-            max-width: 100%;
-            max-height: 400px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            margin: 20px 0;
-        }
         .message-list {
             list-style: none;
             padding: 0;
@@ -43,10 +37,112 @@
             border-radius: 10px;
             border-left: 4px solid #ff6b6b;
         }
+
+        /* -------------------------------------------------------------------
+         * CSS MỚI: Khung Trái Tim và Slideshow
+         * ------------------------------------------------------------------- */
+
+        .heart-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+            color: #dc143c;
+            font-size: 1.1em;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        #heart-select {
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #ff6b6b;
+            background-color: #fff;
+            color: #dc143c;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .heart-container {
+            position: relative;
+            height: 350px; /* Điều chỉnh kích thước trái tim */
+            width: 350px;
+            animation: heart-beat 1.3s infinite;
+        }
+
+        /* Khối chính tạo hình trái tim bằng CSS */
+        #heart-frame {
+            position: relative;
+            margin: auto;
+            height: 100%;
+            width: 100%;
+        }
+        #heart-frame:before, #heart-frame:after {
+            content: '';
+            position: absolute;
+            background: var(--heart-color, #dc143c); /* Màu viền */
+            width: 175px; /* 350px / 2 */
+            height: 280px; /* 350px * 0.8 */
+            border-top-left-radius: 87.5px;
+            border-top-right-radius: 87.5px;
+        }
+
+        #heart-frame:before {
+            left: 175px;
+            transform: rotate(-45deg);
+            transform-origin: 0 100%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        #heart-frame:after {
+            left: 0;
+            transform: rotate(45deg);
+            transform-origin: 100% 100%;
+        }
+
+        /* Tên animation đã thay đổi để không trùng với CSS gốc */
+        @keyframes heart-beat {
+            0% { transform: scale(1); }
+            30% { transform: scale(.9); }
+            60% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Khối chứa ảnh (Slideshow) */
+        .image-slideshow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 180px; /* Kích thước ảnh nhỏ hơn 350px để chừa viền */
+            height: 180px;
+            background: #fff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        .slideshow-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            position: absolute;
+        }
+
+        .slideshow-img.active {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
-    <!-- Màn hình đăng nhập -->
     <div id="loginScreen" class="login-container">
         <h1>💖 Trang Tình Yêu Bí Mật</h1>
         <p>Vui lòng nhập mật khẩu để xem nội dung đặc biệt:</p>
@@ -57,26 +153,35 @@
         </p>
     </div>
 
-    <!-- Nội dung chính (ẩn ban đầu) -->
     <div id="mainContent" style="display: none;">
         <div class="container">
             <h1>💖 Trang Tình Yêu Của Chúng Ta 💖</h1>
             
-            <!-- Hiển thị ảnh -->
-            <div id="imageSection">
+            <div id="imageSection" class="heart-section">
                 <h2>📷 Kỷ niệm đáng nhớ</h2>
-                <div id="noImage" class="no-content">Chưa có ảnh nào được chia sẻ...</div>
-                <img id="loveImage" class="love-image" style="display:none;">
+
+                <div class="controls">
+                    <label for="heart-select">Chọn kiểu viền động:</label>
+                    <select id="heart-select" onchange="changeHeartStyle()">
+                        <option value="style1">Viền 1 (Mạnh mẽ - Đỏ)</option>
+                        <option value="style2">Viền 2 (Bay nhẹ - Hồng)</option>
+                        <option value="style3" selected>Viền 3 (Cổ điển - Hồng Tím)</option>
+                    </select>
+                </div>
+
+                <div class="heart-container">
+                    <div class="image-slideshow" id="slideshow">
+                        </div>
+                    <div id="heart-frame"></div>
+                </div>
             </div>
 
-            <!-- Hiển thị tin nhắn -->
             <div id="messagesSection">
                 <h2>💌 Những lời yêu thương</h2>
                 <div id="noMessage" class="no-content">Chưa có tin nhắn nào...</div>
                 <ul id="messageList" class="message-list"></ul>
             </div>
 
-            <!-- Navigation (Ẩn link admin) -->
             <div class="navigation" style="margin-top: 40px; text-align: center;">
                 <a href="/game" class="btn" style="background: #2ed573;">🎮 Chơi Game Tình Yêu</a>
                 <button onclick="logout()" class="btn" style="background: #ff4757;">🚪 Khóa Trang</button>
@@ -87,6 +192,16 @@
     <script>
         let isAuthenticated = false;
         let sitePassword = '';
+        let slideshowInterval;
+        let currentImageIndex = 0;
+        const intervalTime = 4000; // 4 giây
+
+        // Dữ liệu ảnh: Kết hợp ảnh được Admin upload và ảnh mẫu
+        let allImages = [];
+
+        // =========================================================
+        // LOGIC ĐĂNG NHẬP
+        // =========================================================
 
         async function login() {
             const password = document.getElementById('sitePassword').value;
@@ -115,63 +230,160 @@
             }
         }
 
+        // =========================================================
+        // LOGIC TẢI DỮ LIỆU VÀ SLIDESHOW
+        // =========================================================
+
         async function loadData() {
             if (!isAuthenticated) return;
 
             try {
                 // Tải tin nhắn
-                const msgResponse = await fetch('/api/love-messages', {
-                    headers: { 'Authorization': sitePassword }
-                });
+                await loadMessages();
                 
-                if (!msgResponse.ok) {
-                    throw new Error('Lỗi tải tin nhắn');
-                }
+                // Tải ảnh Admin
+                await loadAdminImage();
                 
-                const msgData = await msgResponse.json();
-                const messageList = document.getElementById('messageList');
-                const noMessage = document.getElementById('noMessage');
+                // Khởi tạo Slideshow
+                createSlideshow();
                 
-                messageList.innerHTML = '';
-                if (msgData.messages && msgData.messages.length > 0) {
-                    noMessage.style.display = 'none';
-                    msgData.messages.forEach(msg => {
-                        const li = document.createElement('li');
-                        li.innerHTML = `💝 ${msg}`;
-                        messageList.appendChild(li);
-                    });
-                } else {
-                    noMessage.style.display = 'block';
-                }
+                // Áp dụng style mặc định cho viền
+                changeHeartStyle();
 
-                // Tải ảnh
+            } catch (error) {
+                console.error('Lỗi tải dữ liệu:', error);
+                alert('Lỗi tải dữ liệu! Vui lòng thử lại.');
+            }
+        }
+        
+        async function loadAdminImage() {
+            try {
                 const imgResponse = await fetch('/api/love-image', {
                     headers: { 'Authorization': sitePassword }
                 });
                 
                 if (imgResponse.ok) {
                     const imgData = await imgResponse.json();
-                    const loveImage = document.getElementById('loveImage');
-                    const noImage = document.getElementById('noImage');
                     
+                    // Nếu Admin đã upload ảnh, thêm nó vào đầu danh sách
                     if (imgData.image) {
-                        loveImage.src = imgData.image;
-                        loveImage.style.display = 'block';
-                        noImage.style.display = 'none';
-                    } else {
-                        loveImage.style.display = 'none';
-                        noImage.style.display = 'block';
+                        allImages = [imgData.image];
                     }
                 }
             } catch (error) {
-                console.error('Lỗi tải dữ liệu:', error);
-                alert('Lỗi tải dữ liệu! Vui lòng thử lại.');
+                console.error('Lỗi tải ảnh Admin:', error);
+            }
+            
+            // Nếu không có ảnh Admin, sử dụng ảnh mẫu (Slideshow không hoạt động nếu không có ảnh)
+            if (allImages.length === 0) {
+                 allImages = [
+                    'https://picsum.photos/seed/love1/180/180',
+                    'https://picsum.photos/seed/love2/180/180',
+                    'https://picsum.photos/seed/love3/180/180'
+                ];
             }
         }
+
+        function createSlideshow() {
+            const slideshowEl = document.getElementById('slideshow');
+            slideshowEl.innerHTML = '';
+            
+            // Xóa thông báo "Chưa có ảnh" (đã bị loại bỏ)
+            
+            allImages.forEach((url, index) => {
+                const img = document.createElement('img');
+                img.src = url;
+                img.classList.add('slideshow-img');
+                if (index === 0) {
+                    img.classList.add('active');
+                }
+                slideshowEl.appendChild(img);
+            });
+            
+            // Chỉ khởi động Interval nếu có nhiều hơn 1 ảnh
+            if (allImages.length > 1) {
+                if (slideshowInterval) clearInterval(slideshowInterval);
+                slideshowInterval = setInterval(nextImage, intervalTime);
+            }
+        }
+
+        function nextImage() {
+            const images = document.querySelectorAll('#slideshow .slideshow-img');
+            if (images.length === 0) return;
+            
+            images[currentImageIndex].classList.remove('active');
+            currentImageIndex = (currentImageIndex + 1) % images.length;
+            images[currentImageIndex].classList.add('active');
+        }
+
+        async function loadMessages() {
+            const msgResponse = await fetch('/api/love-messages', {
+                headers: { 'Authorization': sitePassword }
+            });
+            
+            if (!msgResponse.ok) {
+                throw new Error('Lỗi tải tin nhắn');
+            }
+            
+            const msgData = await msgResponse.json();
+            const messageList = document.getElementById('messageList');
+            const noMessage = document.getElementById('noMessage');
+            
+            messageList.innerHTML = '';
+            if (msgData.messages && msgData.messages.length > 0) {
+                noMessage.style.display = 'none';
+                msgData.messages.forEach(msg => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `💝 ${msg}`;
+                    messageList.appendChild(li);
+                });
+            } else {
+                noMessage.style.display = 'block';
+            }
+        }
+
+        // =========================================================
+        // LOGIC CHỌN KIỂU VIỀN ĐỘNG
+        // =========================================================
+        
+        // Cài đặt cho từng kiểu viền (tương ứng với các file gốc)
+        const heartStyles = {
+            'style1': { 
+                color: '#dc143c', 
+                animation: 'heart-beat 1s infinite' // Mạnh mẽ
+            }, 
+            'style2': { 
+                color: '#ff69b4', // Hồng nhẹ
+                animation: 'heart-beat 2s infinite linear' // Bay nhẹ
+            },
+            'style3': { 
+                color: '#9370db', // Tím nhạt
+                animation: 'heart-beat 1.3s infinite' // Cổ điển
+            }
+        };
+
+        function changeHeartStyle() {
+            const style = document.getElementById('heart-select').value;
+            const styleData = heartStyles[style];
+            const heartContainer = document.querySelector('.heart-container');
+            
+            if (styleData) {
+                // Áp dụng màu cho viền CSS
+                document.documentElement.style.setProperty('--heart-color', styleData.color);
+                
+                // Áp dụng tốc độ/kiểu animation
+                heartContainer.style.animation = styleData.animation;
+            }
+        }
+
+        // =========================================================
+        // LOGIC CHUNG
+        // =========================================================
 
         function logout() {
             isAuthenticated = false;
             sitePassword = '';
+            if (slideshowInterval) clearInterval(slideshowInterval);
             document.getElementById('loginScreen').style.display = 'block';
             document.getElementById('mainContent').style.display = 'none';
             document.getElementById('sitePassword').value = '';
