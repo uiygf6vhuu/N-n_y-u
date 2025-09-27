@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin 💻</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🔑 Trang Admin</h1>
+
+    <div id="loginBox">
+      <input type="password" id="password" placeholder="Nhập mật khẩu" class="date-input">
+      <button onclick="login()" class="btn">Đăng nhập</button>
+    </div>
+
+    <div id="adminBox" style="display:none;">
+      <h2>📷 Upload ảnh</h2>
+      <input type="file" id="imageFile">
+      <button onclick="uploadImage()" class="btn">Tải ảnh</button>
+
+      <h2>💌 Thêm tin nhắn</h2>
+      <textarea id="adminMessage" placeholder="Nhập tin nhắn..." class="message-input"></textarea>
+      <button onclick="addMessage()" class="btn">Lưu tin nhắn</button>
+      <ul id="adminList" class="message-list"></ul>
+
+      <a href="/" class="btn">Xem Trang Người Dùng</a>
+      <a href="/game.html" class="btn">Chơi Game</a>
+    </div>
+  </div>
+
+<script>
+async function login() {
+  const password = document.getElementById('password').value;
+  const res = await fetch('/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password })
+  });
+  if (res.ok) {
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('adminBox').style.display = 'block';
+    loadMessages();
+  } else {
+    alert("Sai mật khẩu!");
+  }
+}
+
+async function addMessage() {
+  const msg = document.getElementById('adminMessage').value;
+  const res = await fetch('/api/love-messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: msg })
+  });
+  const data = await res.json();
+  alert(data.message);
+  loadMessages();
+}
+
+async function loadMessages() {
+  const res = await fetch('/api/love-messages');
+  const data = await res.json();
+  const list = document.getElementById('adminList');
+  list.innerHTML = '';
+  data.messages.forEach(m => {
+    const li = document.createElement('li');
+    li.textContent = m;
+    list.appendChild(li);
+  });
+}
+
+async function uploadImage() {
+  const file = document.getElementById('imageFile').files[0];
+  if (!file) return alert("Chọn ảnh trước!");
+  const formData = new FormData();
+  formData.append('image', file);
+  const res = await fetch('/api/upload', { method: 'POST', body: formData });
+  const data = await res.json();
+  alert("Đã upload ảnh!");
+}
+</script>
+</body>
+</html>
