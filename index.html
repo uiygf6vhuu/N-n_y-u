@@ -43,7 +43,6 @@
          * ------------------------------------------------------------------- */
 
         .container {
-            /* Tăng chiều rộng để khối trái tim và tin nhắn không quá sát nhau */
             max-width: 1000px; 
             margin: 0 auto;
             padding: 20px;
@@ -78,7 +77,7 @@
 
         .heart-container {
             position: relative;
-            height: 350px;
+            height: 350px; 
             width: 350px;
             /* Animation sẽ được set qua JS */
         }
@@ -250,12 +249,9 @@
 
             try {
                 await loadMessages();
-                await loadAdminImage(); // Tải ảnh từ Admin
+                await loadAdminImage(); 
 
-                // Khởi tạo Slideshow
                 createSlideshow();
-                
-                // Áp dụng style mặc định cho viền
                 changeHeartStyle();
 
             } catch (error) {
@@ -272,7 +268,6 @@
                 if (imgResponse.ok) {
                     const imgData = await imgResponse.json();
                     
-                    // Nếu Admin đã upload ảnh, sử dụng ảnh đó và thêm ảnh mẫu để tạo hiệu ứng slideshow
                     if (imgData.image) {
                         allImages = [imgData.image];
                     }
@@ -281,11 +276,7 @@
                 console.error('Lỗi tải ảnh Admin:', error);
             }
             
-            // Nếu không có ảnh Admin, hoặc chỉ có 1 ảnh, thêm ảnh mẫu (ảnh giả) để đảm bảo slideshow hoạt động
-            // Nếu bạn muốn hiển thị nhiều ảnh được Admin upload, bạn sẽ cần thay đổi API trong server.js.
-            // Hiện tại chỉ có API cho 1 ảnh, nên ta dùng ảnh mẫu
-            
-            // Thêm các ảnh mẫu vào danh sách
+            // Thêm các ảnh mẫu vào danh sách để tạo hiệu ứng slideshow
             allImages.push(
                 'https://picsum.photos/seed/love4/180/180',
                 'https://picsum.photos/seed/love5/180/180',
@@ -310,7 +301,6 @@
                 slideshowEl.appendChild(img);
             });
             
-            // Chỉ khởi động Interval nếu có nhiều hơn 1 ảnh
             if (allImages.length > 1) {
                 if (slideshowInterval) clearInterval(slideshowInterval);
                 slideshowInterval = setInterval(nextImage, intervalTime);
@@ -356,7 +346,6 @@
         // LOGIC CHỌN KIỂU VIỀN ĐỘNG (Mô phỏng 3 file gốc)
         // =========================================================
         
-        // Cài đặt cho từng kiểu viền 
         const heartStyles = {
             'style1': { // Mạnh mẽ (Mô phỏng index.html)
                 color: '#dc143c', 
@@ -378,10 +367,7 @@
             const heartContainer = document.querySelector('.heart-container');
             
             if (styleData) {
-                // Áp dụng màu cho viền CSS
                 document.documentElement.style.setProperty('--heart-color', styleData.color);
-                
-                // Áp dụng tốc độ/kiểu animation
                 heartContainer.style.animation = styleData.animation;
             }
         }
@@ -404,11 +390,7 @@
             if (e.key === 'Enter') login();
         });
 
-        // Áp dụng style mặc định khi tải trang lần đầu
         document.addEventListener('DOMContentLoaded', () => {
-             // Chọn kiểu mặc định để animation chạy
-            document.getElementById('heart-select').value = 'style3';
-            // Không gọi changeHeartStyle() ở đây vì nó sẽ được gọi sau khi loadData() hoàn tất đăng nhập.
         });
     </script>
 </body>
