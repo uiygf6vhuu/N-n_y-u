@@ -2,9 +2,34 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Trang Tình Yêu 💕</title>
+    <title>Trang Tình Yêu Bí Mật 💕</title>
     <link rel="stylesheet" href="style.css">
     <style>
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .password-input {
+            font-size: 1.2em;
+            padding: 15px;
+            width: 100%;
+            margin: 20px 0;
+            border: 2px solid #ff6b6b;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .love-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            margin: 20px 0;
+        }
         .message-list {
             list-style: none;
             padding: 0;
@@ -18,47 +43,92 @@
             border-radius: 10px;
             border-left: 4px solid #ff6b6b;
         }
-        .love-image {
-            max-width: 100%;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            margin: 20px 0;
-        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>💖 Trang Tình Yêu Của Chúng Ta 💖</h1>
-        
-        <!-- Hiển thị ảnh -->
-        <div id="imageSection">
-            <h2>📷 Kỷ niệm đáng nhớ</h2>
-            <div id="noImage" class="no-content">Chưa có ảnh nào được chia sẻ...</div>
-            <img id="loveImage" class="love-image" style="display:none;">
-        </div>
+    <!-- Màn hình đăng nhập -->
+    <div id="loginScreen" class="login-container">
+        <h1>💖 Trang Tình Yêu Bí Mật</h1>
+        <p>Vui lòng nhập mật khẩu để xem nội dung đặc biệt:</p>
+        <input type="password" id="sitePassword" class="password-input" placeholder="Nhập mật khẩu">
+        <button onclick="login()" class="btn" style="width: 100%;">🔑 Mở Khóa Trái Tim</button>
+        <p style="margin-top: 20px; font-size: 0.9em; color: #666;">
+            💡 Liên hệ người tạo để lấy mật khẩu
+        </p>
+    </div>
 
-        <!-- Hiển thị tin nhắn -->
-        <div id="messagesSection">
-            <h2>💌 Những lời yêu thương</h2>
-            <div id="noMessage" class="no-content">Chưa có tin nhắn nào...</div>
-            <ul id="messageList" class="message-list"></ul>
-        </div>
+    <!-- Nội dung chính (ẩn ban đầu) -->
+    <div id="mainContent" style="display: none;">
+        <div class="container">
+            <h1>💖 Trang Tình Yêu Của Chúng Ta 💖</h1>
+            
+            <!-- Hiển thị ảnh -->
+            <div id="imageSection">
+                <h2>📷 Kỷ niệm đáng nhớ</h2>
+                <div id="noImage" class="no-content">Chưa có ảnh nào được chia sẻ...</div>
+                <img id="loveImage" class="love-image" style="display:none;">
+            </div>
 
-        <!-- Navigation -->
-        <div class="navigation" style="margin-top: 40px; text-align: center;">
-            <a href="/admin" class="btn" style="background: #ff4757;">🔐 Trang Admin (Riêng tư)</a>
-            <a href="/game" class="btn" style="background: #2ed573;">🎮 Chơi Game Tình Yêu</a>
+            <!-- Hiển thị tin nhắn -->
+            <div id="messagesSection">
+                <h2>💌 Những lời yêu thương</h2>
+                <div id="noMessage" class="no-content">Chưa có tin nhắn nào...</div>
+                <ul id="messageList" class="message-list"></ul>
+            </div>
+
+            <!-- Navigation (Ẩn link admin) -->
+            <div class="navigation" style="margin-top: 40px; text-align: center;">
+                <a href="/game" class="btn" style="background: #2ed573;">🎮 Chơi Game Tình Yêu</a>
+                <button onclick="logout()" class="btn" style="background: #ff4757;">🚪 Khóa Trang</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // Tải dữ liệu khi trang load
+        let isAuthenticated = false;
+        let sitePassword = '';
+
+        async function login() {
+            const password = document.getElementById('sitePassword').value;
+            if (!password) return alert('Vui lòng nhập mật khẩu!');
+
+            try {
+                const response = await fetch('/api/check-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    isAuthenticated = true;
+                    sitePassword = password;
+                    document.getElementById('loginScreen').style.display = 'none';
+                    document.getElementById('mainContent').style.display = 'block';
+                    loadData();
+                } else {
+                    alert('Sai mật khẩu! Vui lòng thử lại.');
+                }
+            } catch (error) {
+                alert('Lỗi kết nối! Vui lòng thử lại.');
+            }
+        }
+
         async function loadData() {
+            if (!isAuthenticated) return;
+
             try {
                 // Tải tin nhắn
-                const msgResponse = await fetch('/api/love-messages');
-                const msgData = await msgResponse.json();
+                const msgResponse = await fetch('/api/love-messages', {
+                    headers: { 'Authorization': sitePassword }
+                });
                 
+                if (!msgResponse.ok) {
+                    throw new Error('Lỗi tải tin nhắn');
+                }
+                
+                const msgData = await msgResponse.json();
                 const messageList = document.getElementById('messageList');
                 const noMessage = document.getElementById('noMessage');
                 
@@ -75,27 +145,42 @@
                 }
 
                 // Tải ảnh
-                const imgResponse = await fetch('/api/love-image');
-                const imgData = await imgResponse.json();
+                const imgResponse = await fetch('/api/love-image', {
+                    headers: { 'Authorization': sitePassword }
+                });
                 
-                const loveImage = document.getElementById('loveImage');
-                const noImage = document.getElementById('noImage');
-                
-                if (imgData.image) {
-                    loveImage.src = imgData.image;
-                    loveImage.style.display = 'block';
-                    noImage.style.display = 'none';
-                } else {
-                    loveImage.style.display = 'none';
-                    noImage.style.display = 'block';
+                if (imgResponse.ok) {
+                    const imgData = await imgResponse.json();
+                    const loveImage = document.getElementById('loveImage');
+                    const noImage = document.getElementById('noImage');
+                    
+                    if (imgData.image) {
+                        loveImage.src = imgData.image;
+                        loveImage.style.display = 'block';
+                        noImage.style.display = 'none';
+                    } else {
+                        loveImage.style.display = 'none';
+                        noImage.style.display = 'block';
+                    }
                 }
             } catch (error) {
                 console.error('Lỗi tải dữ liệu:', error);
+                alert('Lỗi tải dữ liệu! Vui lòng thử lại.');
             }
         }
 
-        // Tải dữ liệu khi trang được mở
-        document.addEventListener('DOMContentLoaded', loadData);
+        function logout() {
+            isAuthenticated = false;
+            sitePassword = '';
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('sitePassword').value = '';
+        }
+
+        // Enter để đăng nhập
+        document.getElementById('sitePassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') login();
+        });
     </script>
 </body>
 </html>
