@@ -6,7 +6,9 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+
+// Phục vụ file tĩnh từ thư mục HIỆN TẠI (ngang hàng với server.js)
+app.use(express.static(path.join(__dirname))); 
 
 // Bộ nhớ tạm
 let loveMessages = [];
@@ -14,7 +16,8 @@ let loveImage = null;
 
 // Thiết lập upload ảnh
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'public/uploads/'),
+  // Lưu ảnh vào thư mục 'uploads' ngang hàng server.js
+  destination: (req, file, cb) => cb(null, 'uploads/'), 
   filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
 });
 const upload = multer({ storage });
@@ -52,6 +55,12 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
 // API: lấy ảnh
 app.get('/api/love-image', (req, res) => {
   res.json({ image: loveImage });
+});
+
+// Route chính
+app.get('/', (req, res) => {
+    // Trả về index.html nằm ngang hàng
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.listen(PORT, () => console.log(`🚀 Running on http://localhost:${PORT}`));
