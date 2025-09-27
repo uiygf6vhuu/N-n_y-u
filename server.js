@@ -55,7 +55,8 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 // Cấu hình multer để upload file
-const storage = multer.diskorage({
+// ĐÚNG:
+const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const uploadDir = path.join(__dirname, 'uploads');
         if (!fs.existsSync(uploadDir)) {
