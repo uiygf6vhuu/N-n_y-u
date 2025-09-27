@@ -44,7 +44,7 @@
         }
 
         /* -------------------------------------------------------------------
-         * CSS MỚI: Hiệu ứng Bắt đầu (TYM 4)
+         * CSS MỚI: Hiệu ứng Bắt đầu (TYM 4) - Sửa màu viền, thêm animation khi thu nhỏ
          * ------------------------------------------------------------------- */
         #tym4-frame {
             position: fixed;
@@ -53,9 +53,10 @@
             width: 100%;
             height: 100vh;
             z-index: 10; 
-            transition: all 1.5s ease-in-out; /* Hiệu ứng thu nhỏ mượt */
+            transition: all 1.5s ease-in-out; 
             overflow: hidden;
-            pointer-events: none; /* Không chặn click */
+            pointer-events: none; 
+            background: #000; /* Nền đen cho hiệu ứng tym4 */
         }
         #tym4-canvas {
             position: absolute;
@@ -71,127 +72,24 @@
             left: 10px;
             border-radius: 50%;
             opacity: 0.8;
-            /* Giữ nguyên tỉ lệ Canvas bên trong */
+            /* Animation pulse nhẹ cho khung tym4 đã thu nhỏ */
+            animation: pulse-small 1.5s infinite; 
         }
 
-        /* -------------------------------------------------------------------
-         * CSS MỚI: Khung Trái Tim và Slideshow (Nội dung chính)
-         * ------------------------------------------------------------------- */
-
-        .container {
-            max-width: 1000px; 
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .heart-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 40px;
-        }
-        
-        .controls {
-            margin-bottom: 20px;
-            color: #dc143c;
-            font-size: 1.1em;
-            font-weight: bold;
-            background: rgba(255, 255, 255, 0.7);
-            padding: 10px;
-            border-radius: 10px;
-        }
-
-        #heart-select {
-            padding: 5px 10px;
-            border-radius: 5px;
-            border: 1px solid #ff6b6b;
-            background-color: #fff;
-            color: #dc143c;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-
-        .heart-container {
-            position: relative;
-            height: 350px; 
-            width: 350px;
-            /* Animation sẽ được set qua JS */
-        }
-
-        /* Khối chính tạo hình trái tim bằng CSS */
-        #heart-frame {
-            position: relative;
-            margin: auto;
-            height: 100%;
-            width: 100%;
-        }
-        #heart-frame:before, #heart-frame:after {
-            content: '';
-            position: absolute;
-            background: var(--heart-color, #dc143c); 
-            width: 175px; 
-            height: 280px;
-            border-top-left-radius: 87.5px;
-            border-top-right-radius: 87.5px;
-        }
-
-        #heart-frame:before {
-            left: 175px;
-            transform: rotate(-45deg);
-            transform-origin: 0 100%;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        #heart-frame:after {
-            left: 0;
-            transform: rotate(45deg);
-            transform-origin: 100% 100%;
-        }
-
-        /* Animation của trái tim */
-        @keyframes heart-beat-strong {
+        /* Keyframes mới cho hiệu ứng thu nhỏ */
+        @keyframes pulse-small {
             0% { transform: scale(1); }
-            30% { transform: scale(.9); }
-            60% { transform: scale(1.1); }
+            50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
-        @keyframes heart-beat-light {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.03); }
-            100% { transform: scale(1); }
-        }
-        
-        .image-slideshow {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 180px; 
-            height: 180px;
-            background: #fff;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            overflow: hidden;
-            z-index: 10;
-        }
 
-        .slideshow-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0;
-            transition: opacity 1s ease-in-out;
-            position: absolute;
-        }
-
-        .slideshow-img.active {
-            opacity: 1;
-        }
-
+        /* Thêm style cho các liên kết ở trang chính */
         .tym-links {
             margin-top: 30px;
             padding: 15px;
             background: rgba(255, 255, 255, 0.8);
             border-radius: 10px;
+            text-align: center;
         }
         .tym-links a {
             margin: 0 8px;
@@ -206,6 +104,7 @@
     <div id="tym4-frame">
         <canvas id="tym4-canvas"></canvas>
     </div>
+
     <div id="loginScreen" class="login-container">
         <h1>💖 Trang Tình Yêu Bí Mật</h1>
         <p>Vui lòng nhập mật khẩu để xem nội dung đặc biệt:</p>
@@ -220,37 +119,18 @@
         <div class="container">
             <h1>💖 Trang Tình Yêu Của Chúng Ta 💖</h1>
             
-            <div id="imageSection" class="heart-section">
-                <h2>📷 Kỷ niệm đáng nhớ</h2>
-
-                <div class="controls">
-                    <label for="heart-select">Chọn kiểu viền động:</label>
-                    <select id="heart-select" onchange="changeHeartStyle()">
-                        <option value="style1">Viền 1 (Mạnh mẽ - Đỏ)</option>
-                        <option value="style2">Viền 2 (Bay nhẹ - Hồng)</option>
-                        <option value="style3" selected>Viền 3 (Cổ điển - Tím)</option>
-                    </select>
-                </div>
-
-                <div class="heart-container">
-                    <div class="image-slideshow" id="slideshow">
-                        </div>
-                    <div id="heart-frame"></div>
-                </div>
-            </div>
-            
-            <div class="tym-links" style="text-align: center;">
-                👉 Xem toàn bộ các hiệu ứng gốc:
-                <a href="/tym1" target="_blank">Tym 1</a> | 
-                <a href="/tym2" target="_blank">Tym 2</a> | 
-                <a href="/tym3" target="_blank">Tym 3</a> | 
-                <a href="/tym4" target="_blank">Tym 4 (Gốc)</a>
-            </div>
-
-            <div id="messagesSection">
+            <div id="messagesSection" style="margin-top: 50px;">
                 <h2>💌 Những lời yêu thương</h2>
                 <div id="noMessage" class="no-content">Chưa có tin nhắn nào...</div>
                 <ul id="messageList" class="message-list"></ul>
+            </div>
+            
+            <div class="tym-links">
+                <h2>✨ Khám Phá Các Kỷ Niệm (Chọn Kiểu Trái Tim)</h2>
+                <p>Chọn một kiểu trái tim để xem ảnh kỷ niệm:</p>
+                <a href="/tym1" class="btn" target="_blank" style="background: #dc143c;">Viền 1 (Mạnh mẽ)</a>
+                <a href="/tym2" class="btn" target="_blank" style="background: #ff69b4;">Viền 2 (Bay nhẹ)</a>
+                <a href="/tym3" class="btn" target="_blank" style="background: #9370db;">Viền 3 (Cổ điển)</a>
             </div>
 
             <div class="navigation" style="margin-top: 40px; text-align: center;">
@@ -263,20 +143,11 @@
     <script>
         let isAuthenticated = false;
         let sitePassword = '';
-        let slideshowInterval;
-        let currentImageIndex = 0;
-        const intervalTime = 4000; 
-        let allImages = []; 
-        let tym4LoopRef; // Tham chiếu cho vòng lặp animation tym4
-
-        // =========================================================
-        // LOGIC TYM 4 GỐC (Được trích xuất từ index_tym4.html)
-        // =========================================================
-
+        
+        // ... (Logic tym4 gốc) ...
         const tym4Canvas = document.getElementById('tym4-canvas');
         
         function initTym4() {
-            // Logic TYM 4 (đã thu gọn và điều chỉnh cho canvas mới)
             window.isDevice = (/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(((navigator.userAgent || navigator.vendor || window.opera)).toLowerCase()));
             var koef = window.isDevice ? 0.5 : 1;
             var ctx = tym4Canvas.getContext('2d');
@@ -321,7 +192,8 @@
                     q: ~~(rand() * heartPointsCount),
                     D: 2 * (i % 2) - 1,
                     force: 0.2 * rand() + 0.7,
-                    f: "hsla(0," + ~~(40 * rand() + 60) + "%," + ~~(60 * rand() + 20) + "%,.3)",
+                    // Thay đổi màu viền gốc TYM4 (vốn xấu) bằng màu đẹp hơn (hồng tím)
+                    f: "hsla(330," + ~~(40 * rand() + 60) + "%," + ~~(60 * rand() + 50) + "%,.3)",
                     trace: []
                 };
                 for (var k = 0; k < traceCount; k++) e[i].trace[k] = {x: x, y: y};
@@ -339,7 +211,8 @@
                 pulse((1 + n) * .5, (1 + n) * .5);
                 time += ((Math.sin(time)) < 0 ? 9 : (n > 0.8) ? .2 : 1) * config.timeDelta;
                 
-                ctx.fillStyle = "rgba(0,0,0,.1)";
+                // Giảm độ mờ để hiệu ứng rõ nét hơn
+                ctx.fillStyle = "rgba(0,0,0,.08)"; 
                 ctx.fillRect(0, 0, tym4Canvas.width, tym4Canvas.height);
                 
                 for (i = e.length; i--;) {
@@ -380,7 +253,7 @@
                         ctx.fillRect(u.trace[k].x, u.trace[k].y, 1, 1);
                     }
                 }
-                tym4LoopRef = window.requestAnimationFrame(loopTym4, tym4Canvas);
+                window.requestAnimationFrame(loopTym4, tym4Canvas);
             };
 
             window.addEventListener('resize', function () {
@@ -390,16 +263,14 @@
                 ctx.fillRect(0, 0, width, height);
             });
             
+            // Khởi tạo Canvas size
             tym4Canvas.width = innerWidth;
             tym4Canvas.height = innerHeight;
             loopTym4();
         }
+        // ... (end Logic tym4 gốc) ...
 
-
-        // =========================================================
-        // LOGIC ĐĂNG NHẬP & THU NHỎ HIỆU ỨNG
-        // =========================================================
-
+        
         async function login() {
             const password = document.getElementById('sitePassword').value;
             if (!password) return alert('Vui lòng nhập mật khẩu!');
@@ -417,13 +288,12 @@
                     isAuthenticated = true;
                     sitePassword = password;
                     
-                    // 1. THU NHỎ HIỆU ỨNG TYM 4
+                    // THU NHỎ HIỆU ỨNG TYM 4
                     document.getElementById('tym4-frame').classList.add('shrink'); 
                     
                     document.getElementById('loginScreen').style.display = 'none';
                     document.getElementById('mainContent').style.display = 'block';
                     
-                    // 2. KHỞI TẠO DỮ LIỆU & SLIDESHOW
                     loadData();
                 } else {
                     alert('Sai mật khẩu! Vui lòng thử lại.');
@@ -433,91 +303,19 @@
             }
         }
         
-        // ... (Các hàm loadData, loadAdminImage, nextImage, loadMessages, logout giữ nguyên) ...
-        
-        // ----------------------------------------------------------------------------------
-        // CHỈNH SỬA CÁC HÀM CŨ: Bắt đầu lại code JS cho các hàm dưới đây
-        // ----------------------------------------------------------------------------------
-        
+        // Chỉ tải tin nhắn, không tải ảnh hay slideshow trên trang chính
         async function loadData() {
             if (!isAuthenticated) return;
-
-            try {
-                await loadMessages();
-                await loadAdminImage(); 
-
-                createSlideshow();
-                // Chọn Style 1 làm mặc định sau khi đăng nhập (theo yêu cầu)
-                document.getElementById('heart-select').value = 'style1';
-                changeHeartStyle();
-
-            } catch (error) {
-                console.error('Lỗi tải dữ liệu:', error);
-            }
+            await loadMessages();
         }
         
-        async function loadAdminImage() {
-            try {
-                const imgResponse = await fetch('/api/love-image', {
-                    headers: { 'Authorization': sitePassword }
-                });
-                
-                if (imgResponse.ok) {
-                    const imgData = await imgResponse.json();
-                    
-                    if (imgData.image) {
-                        allImages = [imgData.image];
-                    }
-                }
-            } catch (error) {
-                console.error('Lỗi tải ảnh Admin:', error);
-            }
-            
-            allImages.push(
-                'https://picsum.photos/seed/love4/180/180',
-                'https://picsum.photos/seed/love5/180/180',
-                'https://picsum.photos/seed/love6/180/180'
-            );
-
-             allImages = [...new Set(allImages)].slice(0, 3);
-        }
-
-        function createSlideshow() {
-            const slideshowEl = document.getElementById('slideshow');
-            slideshowEl.innerHTML = '';
-            
-            allImages.forEach((url, index) => {
-                const img = document.createElement('img');
-                img.src = url;
-                img.classList.add('slideshow-img');
-                if (index === 0) {
-                    img.classList.add('active');
-                }
-                slideshowEl.appendChild(img);
-            });
-            
-            if (allImages.length > 1) {
-                if (slideshowInterval) clearInterval(slideshowInterval);
-                slideshowInterval = setInterval(nextImage, intervalTime);
-            }
-        }
-
-        function nextImage() {
-            const images = document.querySelectorAll('#slideshow .slideshow-img');
-            if (images.length === 0) return;
-            
-            images[currentImageIndex].classList.remove('active');
-            currentImageIndex = (currentImageIndex + 1) % images.length;
-            images[currentImageIndex].classList.add('active');
-        }
-
         async function loadMessages() {
             const msgResponse = await fetch('/api/love-messages', {
                 headers: { 'Authorization': sitePassword }
             });
             
             if (!msgResponse.ok) {
-                throw new Error('Lỗi tải tin nhắn');
+                return; 
             }
             
             const msgData = await msgResponse.json();
@@ -537,36 +335,9 @@
             }
         }
         
-        const heartStyles = {
-            'style1': { // Mạnh mẽ (Mô phỏng index.html)
-                color: '#dc143c', 
-                animation: 'heart-beat-strong 1s infinite' 
-            }, 
-            'style2': { // Bay nhẹ (Mô phỏng index2.html)
-                color: '#ff69b4', 
-                animation: 'heart-beat-light 2s infinite linear' 
-            },
-            'style3': { // Cổ điển (Mô phỏng index3.html)
-                color: '#9370db', 
-                animation: 'heart-beat-strong 1.3s infinite' 
-            }
-        };
-
-        function changeHeartStyle() {
-            const style = document.getElementById('heart-select').value;
-            const styleData = heartStyles[style];
-            const heartContainer = document.querySelector('.heart-container');
-            
-            if (styleData) {
-                document.documentElement.style.setProperty('--heart-color', styleData.color);
-                heartContainer.style.animation = styleData.animation;
-            }
-        }
-
         function logout() {
             isAuthenticated = false;
             sitePassword = '';
-            if (slideshowInterval) clearInterval(slideshowInterval);
             document.getElementById('loginScreen').style.display = 'block';
             document.getElementById('mainContent').style.display = 'none';
             document.getElementById('sitePassword').value = '';
@@ -580,11 +351,7 @@
             if (e.key === 'Enter') login();
         });
 
-        // =========================================================
-        // KHỞI TẠO
-        // =========================================================
         document.addEventListener('DOMContentLoaded', () => {
-             // Khởi chạy ngay hiệu ứng tym4 khi tải trang
              initTym4();
         });
         
