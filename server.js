@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-const multer = require('multer');
+// const multer = require('multer'); <--- Đã xóa Multer
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -10,20 +10,12 @@ app.use(express.json());
 // Phục vụ file tĩnh từ thư mục HIỆN TẠI (ngang hàng với server.js)
 app.use(express.static(path.join(__dirname))); 
 
-// Bộ nhớ tạm
+// Bộ nhớ tạm (Lưu trữ dữ liệu chỉ tồn tại khi server chạy)
 let loveMessages = [];
-let loveImage = null;
-
-// Thiết lập upload ảnh
-const storage = multer.diskStorage({
-  // Lưu ảnh vào thư mục 'uploads' ngang hàng server.js
-  destination: (req, file, cb) => cb(null, 'uploads/'), 
-  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
-});
-const upload = multer({ storage });
+let loveImage = null; // Sẽ lưu trữ URL ảnh, không phải file
 
 // API: đăng nhập admin
-const ADMIN_PASSWORD = "admin123"; // đổi mật khẩu tại đây
+const ADMIN_PASSWORD = "admin123"; // Đổi mật khẩu tại đây
 app.post('/api/login', (req, res) => {
   const { password } = req.body;
   if (password === ADMIN_PASSWORD) {
@@ -46,10 +38,14 @@ app.get('/api/love-messages', (req, res) => {
   res.json({ messages: loveMessages });
 });
 
-// API: upload ảnh
-app.post('/api/upload', upload.single('image'), (req, res) => {
-  loveImage = "/uploads/" + req.file.filename;
-  res.json({ success: true, image: loveImage });
+// API MỚI: Nhận URL ảnh từ Admin
+app.post('/api/upload-url', (req, res) => {
+  const { imageUrl } = req.body;
+  if (!imageUrl || !imageUrl.startsWith('http')) {
+      return res.status(400).json({ success: false, error: "URL ảnh không hợp lệ" });
+  }
+  loveImage = imageUrl; // Lưu trữ URL
+  res.json({ success: true, image: loveImage, message: "Đã lưu URL ảnh thành công!" });
 });
 
 // API: lấy ảnh
@@ -63,4 +59,4 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(PORT, () => console.log(`🚀 Running on http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server love đang chạy trên port http://localhost:${PORT}`));
