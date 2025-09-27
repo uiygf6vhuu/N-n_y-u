@@ -6,10 +6,11 @@ const mongoose = require('mongoose');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Kết nối MongoDB từ Railway
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/lovewebsite';
+// 1. SỬA LỖI KẾT NỐI MONGODB: Sử dụng chuỗi kết nối nội bộ để tránh lỗi ECONNREFUSED
+const MONGODB_INTERNAL_URI = 'mongodb://mongo:wWPlkzITyPVoFQblQyVwjrOEGCGYGkhI@mongodb.railway.internal:27017/lovewebsite';
+const MONGODB_URI = process.env.MONGODB_URI || MONGODB_INTERNAL_URI;
 
-// 1. Khởi tạo kết nối Mongoose (KHÔNG CHẶN SERVER)
+// Khởi tạo kết nối Mongoose (KHÔNG CHẶN SERVER)
 mongoose.connect(MONGODB_URI, {
     serverSelectionTimeoutMS: 30000, // Tăng thời gian chờ kết nối lên 30 giây
 })
@@ -228,44 +229,6 @@ app.post('/api/message', requireSiteAuth, async (req, res) => {
     }
 });
 
-// 💌 API Quản lý tin nhắn (admin)
-app.get('/api/love-messages', requireAdminAuth, async (req, res) => {
-    try {
-        const messages = await Message.find().sort({ timestamp: -1 });
-        res.json({ messages: messages.map(m => m.content) });
-    } catch (error) {
-        res.status(500).json({ error: 'Lỗi server' });
-    }
-});
-
-app.post('/api/love-messages', requireAdminAuth, async (req, res) => {
-    try {
-        const { message } = req.body;
-        if (!message) {
-            return res.status(400).json({ error: 'Tin nhắn không được để trống' });
-        }
-        
-        const newMessage = new Message({ 
-            content: message, 
-            date: new Date().toLocaleDateString('vi-VN') 
-        });
-        await newMessage.save();
-        
-        res.json({ success: true, message: 'Đã thêm tin nhắn thành công!' });
-    } catch (error) {
-        res.status(500).json({ error: 'Lỗi server' });
-    }
-});
-
-app.delete('/api/messages', requireAdminAuth, async (req, res) => {
-    try {
-        await Message.deleteMany({});
-        res.json({ success: true, message: 'Đã xóa toàn bộ tin nhắn.' });
-    } catch (error) {
-        res.status(500).json({ error: 'Lỗi server' });
-    }
-});
-
 // 🖼️ API Upload từ URL
 app.post('/api/upload-url', requireAdminAuth, async (req, res) => {
     try {
@@ -318,36 +281,6 @@ app.get('/api/love-image', requireSiteAuth, async (req, res) => {
     try {
         const image = await LoveImage.findOne().sort({ timestamp: -1 });
         res.json({ image: image ? image.imageUrl : '' });
-    } catch (error) {
-        res.status(500).json({ error: 'Lỗi server' });
-    }
-});
-
-// 🎮 API Game - Lưu điểm số
-app.post('/api/game-score', requireSiteAuth, async (req, res) => {
-    try {
-        const { score, level, clicksPerMinute, playerName = 'Người chơi' } = req.body;
-        
-        const newScore = new GameScore({
-            playerName,
-            score,
-            level,
-            clicksPerMinute,
-            timestamp: new Date()
-        });
-        
-        await newScore.save();
-        res.json({ success: true, message: 'Đã lưu điểm số!' });
-    } catch (error) {
-        res.status(500).json({ error: 'Lỗi server' });
-    }
-});
-
-// 🎮 API Game - Lấy bảng xếp hạng
-app.get('/api/game-scores', requireSiteAuth, async (req, res) => {
-    try {
-        const scores = await GameScore.find().sort({ score: -1 }).limit(10);
-        res.json({ scores });
     } catch (error) {
         res.status(500).json({ error: 'Lỗi server' });
     }
