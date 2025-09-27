@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const mongoose = require('mongoose'); // Import Mongoose
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -36,41 +37,72 @@ const upload = multer({
     }
 });
 
-// 🔐 QUẢN LÝ MẬT KHẨU ĐỘNG
-const PASSWORDS_FILE = path.join(__dirname, 'passwords.json');
+// 🔐 QUẢN LÝ MẬT KHẨU BỀN VỮNG (Sử dụng MongoDB)
 
-// Hàm đọc mật khẩu từ file
-function readPasswords() {
+// 1. KẾT NỐI MONGODB
+// Sử dụng MONGO_URI (tự động cung cấp bởi Railway) hoặc fallback cho local
+const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/love_site";
+mongoose.connect(MONGO_URI)
+    .then(() => console.log('✅ Connected to MongoDB'))
+    .catch(err => console.error('❌ MongoDB connection error:', err));
+
+// 2. ĐỊNH NGHĨA SCHEMA VÀ MODEL
+// Schema để lưu Mật khẩu Trang Chính và Mật khẩu Admin
+const PasswordSchema = new mongoose.Schema({
+    key: { type: String, required: true, unique: true }, // 'site' hoặc 'admin'
+    value: { type: String, required: true }
+});
+const PasswordModel = mongoose.model('Password', PasswordSchema);
+
+// 3. BIẾN GLOBAL TẠM THỜI (được tải từ DB khi khởi động)
+let passwords = { sitePassword: "love123", adminPassword: "admin123" };
+let loveMessages = []; // Vẫn dùng bộ nhớ tạm
+let loveImage = null; // Vẫn dùng bộ nhớ tạm
+
+// 4. HÀM TẢI MẬT KHẨU TỪ DB
+async function loadPasswords() {
     try {
-        if (fs.existsSync(PASSWORDS_FILE)) {
-            return JSON.parse(fs.readFileSync(PASSWORDS_FILE, 'utf8'));
+        const site = await PasswordModel.findOne({ key: 'site' });
+        const admin = await PasswordModel.findOne({ key: 'admin' });
+        
+        // Tạo mặc định nếu chưa tồn tại trong DB
+        if (!site) {
+            await PasswordModel.create({ key: 'site', value: 'love123' });
+            passwords.sitePassword = 'love123';
+        } else {
+            passwords.sitePassword = site.value;
         }
+
+        if (!admin) {
+            await PasswordModel.create({ key: 'admin', value: 'admin123' });
+            passwords.adminPassword = 'admin123';
+        } else {
+            passwords.adminPassword = admin.value;
+        }
+
+        console.log('Database passwords loaded successfully.');
     } catch (error) {
-        console.error('Lỗi đọc file mật khẩu:', error);
+        console.error('Error loading passwords from DB:', error);
     }
-    
-    // Mật khẩu mặc định nếu file không tồn tại
-    return {
-        sitePassword: "love123",
-        adminPassword: "admin123"
-    };
 }
 
-// Hàm ghi mật khẩu vào file
-function writePasswords(passwords) {
+// 5. HÀM LƯU MẬT KHẨU VÀO DB
+async function savePassword(key, newPassword) {
     try {
-        fs.writeFileSync(PASSWORDS_FILE, JSON.stringify(passwords, null, 2));
+        await PasswordModel.findOneAndUpdate(
+            { key: key },
+            { value: newPassword },
+            { upsert: true, new: true } // upsert: tạo nếu chưa có
+        );
         return true;
     } catch (error) {
-        console.error('Lỗi ghi file mật khẩu:', error);
+        console.error('Error saving password to DB:', error);
         return false;
     }
 }
 
-// Đọc mật khẩu khi khởi động
-let passwords = readPasswords();
 
-// 🔒 MIDDLEWARE BẢO MẬT
+// 🔒 MIDDLEWARE BẢO MẬT (Sử dụng biến 'passwords' đã được tải)
 const requireSiteAuth = (req, res, next) => {
     const auth = req.headers.authorization;
     if (auth === passwords.sitePassword) {
@@ -89,9 +121,7 @@ const requireAdminAuth = (req, res, next) => {
     }
 };
 
-// Bộ nhớ tạm cho tin nhắn và ảnh
-let loveMessages = [];
-let loveImage = null;
+// ... (API Kiểm tra/Đăng nhập giữ nguyên) ...
 
 // API: Kiểm tra mật khẩu trang chính
 app.post('/api/check-password', (req, res) => {
@@ -121,41 +151,40 @@ app.get('/api/passwords', requireAdminAuth, (req, res) => {
     });
 });
 
-// API: Đổi mật khẩu trang chính (chỉ admin)
-app.post('/api/change-site-password', requireAdminAuth, (req, res) => {
+// API: Đổi mật khẩu trang chính (Sử dụng DB)
+app.post('/api/change-site-password', requireAdminAuth, async (req, res) => {
     const { newPassword } = req.body;
     
     if (!newPassword || newPassword.length < 3) {
         return res.status(400).json({ success: false, error: "Mật khẩu phải có ít nhất 3 ký tự" });
     }
     
-    passwords.sitePassword = newPassword;
-    
-    if (writePasswords(passwords)) {
+    if (await savePassword('site', newPassword)) {
+        passwords.sitePassword = newPassword; // Cập nhật biến tạm
         res.json({ success: true, message: "✅ Đã thay đổi mật khẩu trang chính thành công!" });
     } else {
         res.status(500).json({ success: false, error: "Lỗi khi lưu mật khẩu" });
     }
 });
 
-// API: Đổi mật khẩu admin (chỉ admin, không cần currentPassword)
-app.post('/api/change-admin-password', requireAdminAuth, (req, res) => {
+// API: Đổi mật khẩu admin (Sử dụng DB)
+app.post('/api/change-admin-password', requireAdminAuth, async (req, res) => {
     const { newPassword } = req.body;
     
     if (!newPassword || newPassword.length < 3) {
         return res.status(400).json({ success: false, error: "Mật khẩu mới phải có ít nhất 3 ký tự" });
     }
     
-    passwords.adminPassword = newPassword;
-    
-    if (writePasswords(passwords)) {
+    if (await savePassword('admin', newPassword)) {
+        passwords.adminPassword = newPassword; // Cập nhật biến tạm
         res.json({ success: true, message: "✅ Đã thay đổi mật khẩu admin thành công!" });
     } else {
         res.status(500).json({ success: false, error: "Lỗi khi lưu mật khẩu" });
     }
 });
 
-// API: lưu tin nhắn (chỉ admin)
+// ... (Các API khác giữ nguyên) ...
+
 app.post('/api/love-messages', requireAdminAuth, (req, res) => {
     const { message } = req.body;
     if (!message || !message.trim()) return res.status(400).json({ error: "Tin nhắn không hợp lệ" });
@@ -163,12 +192,10 @@ app.post('/api/love-messages', requireAdminAuth, (req, res) => {
     res.json({ success: true, message: "Đã lưu tin nhắn 💌" });
 });
 
-// API: lấy tin nhắn (cần mật khẩu trang chính)
 app.get('/api/love-messages', requireSiteAuth, (req, res) => {
     res.json({ messages: loveMessages });
 });
 
-// API: Upload ảnh từ URL (chỉ admin)
 app.post('/api/upload-url', requireAdminAuth, (req, res) => {
     const { imageUrl } = req.body;
     if (!imageUrl || !imageUrl.startsWith('http')) {
@@ -178,7 +205,6 @@ app.post('/api/upload-url', requireAdminAuth, (req, res) => {
     res.json({ success: true, image: loveImage, message: "Đã lưu URL ảnh thành công!" });
 });
 
-// API: Upload ảnh từ thiết bị (chỉ admin)
 app.post('/api/upload-file', requireAdminAuth, upload.single('image'), (req, res) => {
     try {
         if (!req.file) {
@@ -199,32 +225,26 @@ app.post('/api/upload-file', requireAdminAuth, upload.single('image'), (req, res
     }
 });
 
-// API: lấy ảnh (cần mật khẩu trang chính)
 app.get('/api/love-image', requireSiteAuth, (req, res) => {
     res.json({ image: loveImage });
 });
 
-// Phục vụ file upload
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// 🎯 ROUTING (Tuyến đường)
-
-// Trang chính (đã tích hợp đăng nhập và slideshow)
+// 🎯 ROUTING
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Trang Admin
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
-// Trang Game
 app.get('/game', (req, res) => {
     res.sendFile(path.join(__dirname, 'game.html'));
 });
 
-// Tuyến đường cho các file trái tim gốc (Không cần mật khẩu)
+// Tuyến đường cho các file trái tim gốc
 app.get('/tym1', (req, res) => {
     res.sendFile(path.join(__dirname, 'index_tym1.html'));
 });
@@ -248,12 +268,18 @@ app.use((error, req, res, next) => {
             return res.status(400).json({ error: 'File quá lớn! Tối đa 5MB.' });
         }
     }
-    // Lỗi chung (bao gồm lỗi fileFilter)
     res.status(500).json({ error: error.message });
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 Server chạy trên port ${PORT}`);
-    console.log(`🔐 Mật khẩu trang chính hiện tại: ${passwords.sitePassword}`);
-    console.log(`🔐 Mật khẩu admin hiện tại: ${passwords.adminPassword}`);
-});
+// 6. KHỞI ĐỘNG SERVER (phải chờ tải mật khẩu)
+const startServer = async () => {
+    await loadPasswords(); // Chờ tải mật khẩu từ DB
+    
+    app.listen(PORT, () => {
+        console.log(`🚀 Server chạy trên port ${PORT}`);
+        console.log(`🔐 Mật khẩu trang chính hiện tại: ${passwords.sitePassword}`);
+        console.log(`🔐 Mật khẩu admin hiện tại: ${passwords.adminPassword}`);
+    });
+};
+
+startServer(); // Khởi động ứng dụng
