@@ -2,53 +2,52 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trang Web Tình Yêu 💖</title>
+  <title>Trang Người Yêu 💕</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="container">
-    <header>
-      <h1>💖 Tình Yêu Đích Thực 💖</h1>
-      <p class="subtitle">Nơi trái tim tìm thấy nhau</p>
-    </header>
-
-    <section class="love-section">
-      <div class="heart-container">
-        <div class="heart" onclick="showLoveMessage()">💝</div>
-      </div>
-      
-      <div class="quote-section">
-        <h2>Quote Tình Yêu Ngẫu Nhiên</h2>
-        <div id="loveQuote" class="quote">
-          Nhấn trái tim để nhận quote tình yêu 💕
-        </div>
-        <button onclick="getLoveQuote()" class="btn">Quote Mới</button>
-      </div>
-
-      <div class="countdown">
-        <h2>Đếm ngược ngày đặc biệt</h2>
-        <input type="date" id="specialDate" class="date-input">
-        <button onclick="startCountdown()" class="btn">Bắt đầu đếm ngược</button>
-        <div id="countdownDisplay" class="countdown-display"></div>
-      </div>
-
-      <div class="love-message">
-        <h2>Gửi lời yêu thương</h2>
-        <textarea id="loveMessage" placeholder="Viết lời yêu thương... 💌" class="message-input"></textarea>
-        <button onclick="saveMessage()" class="btn">Lưu tin nhắn</button>
-        <button onclick="loadMessages()" class="btn">Xem tin nhắn đã lưu</button>
-        <ul id="messageList" class="message-list"></ul>
-      </div>
-    </section>
-
-    <footer>
-      <p>Made with 💕 by Your Love | © 2025 Love Forever</p>
-    </footer>
+    <h1>💖 Dành riêng cho em 💖</h1>
+    <div id="loginUser">
+      <input type="password" id="userPass" placeholder="Nhập mật khẩu" class="date-input">
+      <button onclick="enterUser()" class="btn">Xem</button>
+    </div>
+    <div id="content" style="display:none;">
+      <h2>📷 Hình ảnh</h2>
+      <img id="loveImage" style="max-width:100%; border-radius:15px;">
+      <h2>💌 Lời nhắn</h2>
+      <ul id="userList" class="message-list"></ul>
+    </div>
   </div>
 
-  <script src="script.js"></script>
+<script>
+const PASS = "admin123"; // phải trùng với server
+
+async function enterUser() {
+  const input = document.getElementById('userPass').value;
+  if (input !== PASS) return alert("Sai mật khẩu!");
+  document.getElementById('loginUser').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+  loadData();
+}
+
+async function loadData() {
+  const resMsg = await fetch('/api/love-messages');
+  const dataMsg = await resMsg.json();
+  const list = document.getElementById('userList');
+  list.innerHTML = '';
+  dataMsg.messages.forEach(m => {
+    const li = document.createElement('li');
+    li.textContent = m;
+    list.appendChild(li);
+  });
+
+  const resImg = await fetch('/api/love-image');
+  const dataImg = await resImg.json();
+  if (dataImg.image) {
+    document.getElementById('loveImage').src = dataImg.image;
+  }
+}
+</script>
 </body>
 </html>
