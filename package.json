@@ -1,7 +1,7 @@
 {
   "name": "love-website",
   "version": "1.1.0",
-  "description": "Website tình yêu lãng mạn, có quotes, đếm ngược và lưu tin nhắn",
+  "description": "Website tình yêu lãng mạn",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -9,7 +9,7 @@
   "dependencies": {
     "express": "^4.18.2"
   },
-  "keywords": ["love", "romantic", "website"],
+  "keywords": ["love", "website"],
   "author": "Your Love",
   "license": "MIT"
 }
