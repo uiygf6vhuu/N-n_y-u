@@ -1,5 +1,3 @@
-[file name]: package.json
-[file content begin]
 {
   "name": "love-website",
   "version": "2.0.0",
@@ -18,4 +16,3 @@
   "author": "Your Love",
   "license": "MIT"
 }
-[file content end]
