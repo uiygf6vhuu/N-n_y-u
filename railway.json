@@ -1,6 +1,9 @@
 {
   "build": {
-    "builder": "nixpacks"
+    "builder": "RAILPACK",
+    "environment": {
+      "NODE_VERSION": "20"
+    }
   },
   "deploy": {
     "startCommand": "npm start",
