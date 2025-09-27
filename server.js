@@ -235,7 +235,7 @@ app.get('/tym3', (req, res) => {
     res.sendFile(path.join(__dirname, 'index_tym3.html'));
 });
 
-// 🆕 Tuyến đường cho index4.html
+// Tuyến đường cho index4.html
 app.get('/tym4', (req, res) => {
     res.sendFile(path.join(__dirname, 'index_tym4.html'));
 });
