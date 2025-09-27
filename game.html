@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Mini Game 💘</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .heart { font-size: 4em; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💘 Mini Game: Click Trái Tim 💘</h1>
+    <p>Click vào trái tim càng nhiều càng tốt!</p>
+    <div class="heart" onclick="clickHeart()">💖</div>
+    <p>Điểm: <span id="score">0</span></p>
+    <p id="msg"></p>
+    <a href="/" class="btn">Quay lại Trang chính</a>
+  </div>
+<script>
+let score = 0;
+function clickHeart() {
+  score++;
+  document.getElementById('score').textContent = score;
+  if (score === 10) document.getElementById('msg').textContent = "Em đã nhận được nhiều yêu thương rồi 💝";
+  if (score === 20) document.getElementById('msg').textContent = "Anh yêu em nhiều vô kể 💞";
+}
+</script>
+</body>
+</html>
