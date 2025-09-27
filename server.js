@@ -1,5 +1,3 @@
-[file name]: server.js
-[file content begin]
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
@@ -386,4 +384,3 @@ app.listen(PORT, () => {
     console.log(`🔗 Truy cập: http://localhost:${PORT}`);
     console.log(`🗄️ Database: ${MONGODB_URI}`);
 });
-[file content end]
