@@ -1,173 +1,55 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+/* style.css */
 
 body {
-    font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #ffafbd, #ffc3a0, #ffdde1);
-    min-height: 100vh;
-    color: #8b0000;
-    line-height: 1.6;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    animation: fadeIn 1s ease-in;
-}
-
-h1 {
-    font-size: 3em;
-    color: #dc143c;
+    font-family: Arial, sans-serif;
+    background-color: #fce4ec; /* Màu nền hồng nhạt */
     text-align: center;
-    margin: 20px 0;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-    font-weight: bold;
+    padding: 20px;
 }
 
-h2 {
-    color: #b33939;
-    margin: 20px 0 15px 0;
-    border-left: 4px solid #ff6b6b;
-    padding-left: 15px;
+/* Thiết lập cơ bản cho ảnh */
+#loveImage {
+    display: block;
+    margin: 20px auto;
+    width: 100%; 
+    max-width: 400px;
+    height: auto; 
+    border-radius: 15px; /* Bo góc nhẹ nhàng */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform, filter; 
 }
 
-.btn {
-    background: linear-gradient(45deg, #ff6b6b, #ee5a52);
-    color: white;
-    border: none;
-    padding: 12px 25px;
-    border-radius: 25px;
-    font-size: 1.1em;
+/* Hiệu ứng khi Di chuột vào */
+#loveImage:hover {
+    transform: scale(1.05) rotate(-2deg); /* Phóng to và xoay nhẹ */
+    filter: brightness(1.1);
+    box-shadow: 0 10px 30px rgba(255, 105, 180, 0.9); /* Bóng đổ hồng rực rỡ */
     cursor: pointer;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    display: inline-block;
-    margin: 5px;
-    font-weight: bold;
 }
 
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-}
-
-.date-input, .message-input {
-    width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    border: 2px solid #ff6b6b;
-    border-radius: 10px;
-    font-size: 1em;
-    font-family: inherit;
-}
-
-.message-input {
-    height: 100px;
-    resize: vertical;
-    min-height: 80px;
-}
-
-.no-content {
-    text-align: center;
-    color: #666;
-    font-style: italic;
-    padding: 20px;
-    background: rgba(255,255,255,0.5);
-    border-radius: 10px;
-    margin: 10px 0;
-}
-
-.navigation {
-    margin: 30px 0;
-    text-align: center;
-}
-
-/* Animations */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
+/* Keyframes: Hình động "Heartbeat" (Nhịp tim) */
 @keyframes heartbeat {
     0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
+    15% { transform: scale(1.02); }
+    30% { transform: scale(1); }
+    45% { transform: scale(1.01); }
+    60% { transform: scale(1); }
     100% { transform: scale(1); }
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .container {
-        padding: 10px;
-    }
-    
-    h1 {
-        font-size: 2.2em;
-    }
-    
-    .btn {
-        display: block;
-        width: 100%;
-        margin: 10px 0;
-    }
+/* Áp dụng hình động */
+.image-animated {
+    animation: heartbeat 3s infinite ease-out;
 }
 
-/* Scrollbar custom */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: linear-gradient(45deg, #ff6b6b, #ee5a52);
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(45deg, #ff4757, #ff3838);
-}
-
-/* Additional styles for tym pages */
-.love-image-container {
-    position: relative;
+/* Các kiểu dáng khác (Ví dụ cho khu vực tin nhắn) */
+#messages-container {
+    max-width: 600px;
     margin: 20px auto;
-}
-
-.love-image-tym {
-    border-radius: 50%;
-    object-fit: cover;
-    box-shadow: 0 0 20px rgba(255, 105, 180, 0.7);
-    border: 5px solid white;
-}
-
-.image-frame {
-    pointer-events: none;
-    z-index: 5;
-}
-
-/* Error message styling */
-.error-message {
-    color: #ff4757;
-    background: rgba(255, 71, 87, 0.1);
     padding: 10px;
-    border-radius: 5px;
-    margin: 10px 0;
-    text-align: center;
-}
-
-/* Success message styling */
-.success-message {
-    color: #2ed573;
-    background: rgba(46, 213, 115, 0.1);
-    padding: 10px;
-    border-radius: 5px;
-    margin: 10px 0;
-    text-align: center;
+    border: 1px solid #ff80a0;
+    border-radius: 8px;
+    background-color: #fff;
+    text-align: left;
 }
