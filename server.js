@@ -207,18 +207,39 @@ app.get('/api/love-image', requireSiteAuth, (req, res) => {
 // Phục vụ file upload
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// 🎯 ROUTING
+// 🎯 ROUTING (Tuyến đường)
+
+// Trang chính (đã tích hợp đăng nhập và slideshow)
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Trang Admin
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
+// Trang Game
 app.get('/game', (req, res) => {
     res.sendFile(path.join(__dirname, 'game.html'));
 });
+
+// Tuyến đường cho các file trái tim gốc (Không cần mật khẩu)
+app.get('/tym1', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index_tym1.html'));
+});
+app.get('/tym2', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index_tym2.html'));
+});
+app.get('/tym3', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index_tym3.html'));
+});
+
+// 🆕 Tuyến đường cho index4.html
+app.get('/tym4', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index_tym4.html'));
+});
+
 
 // Xử lý lỗi upload (lỗi Multer)
 app.use((error, req, res, next) => {
