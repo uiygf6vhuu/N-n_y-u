@@ -7,47 +7,23 @@
     <style>
         /* Biến CSS cho màu trái tim */
         :root {
-            --heart-color: #dc143c; /* Màu mặc định: Đỏ */
+            --heart-color: #dc143c; 
         }
         
-        /* Cấu trúc Heart Container (Chỉ dùng cho mục đích định nghĩa CSS) */
-        .heart-container {
-            position: relative;
-            width: 200px;
-            height: 180px;
-            margin: 40px auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transform-origin: center;
+        /* CSS CŨ/TỐI GIẢN */
+        .login-container {
+            /* ... (CSS giữ nguyên) ... */
+            z-index: 101; /* Luôn nổi trên Tym 4 */
+            position: fixed; /* Dùng fixed để nó luôn ở trung tâm */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
-
-        .heart-border {
-            position: absolute;
-            width: 100px;
-            height: 100px;
-            background-color: transparent;
-            border-radius: 50%;
-            transform: rotate(-45deg);
-            box-shadow: 0 0 0 5px var(--heart-color);
+        .message-list { 
+            list-style: none; padding: 0; max-height: 300px; overflow-y: auto; border: 1px solid #ffafbd; border-radius: 10px; background: rgba(255, 255, 255, 0.7);
         }
-        .heart-border:before, .heart-border:after {
-            content: "";
-            position: absolute;
-            width: 100px;
-            height: 100px;
-            background-color: transparent;
-            border-radius: 50%;
-            box-shadow: 0 0 0 5px var(--heart-color);
-        }
-        .heart-border:before { top: -50px; left: 0; }
-        .heart-border:after { left: 50px; top: 0; }
-        
-        /* Dữ liệu cũ */
-        .login-container { /* ... (CSS giữ nguyên) ... */ }
-        .password-input { /* ... (CSS giữ nguyên) ... */ }
-        .message-list { /* ... (CSS giữ nguyên) ... */ }
-        .message-list li { /* ... (CSS giữ nguyên) ... */ }
+        .message-list li { padding: 15px; border-bottom: 1px solid #ffc3a0; font-size: 1.1em; }
+        .message-list li:last-child { border-bottom: none; }
 
         /* -------------------------------------------------------------------
          * CSS CHO TYM 4 (Splash Screen)
@@ -58,17 +34,24 @@
             left: 0;
             width: 100%;
             height: 100vh;
-            z-index: 10; 
+            z-index: 100; /* Đủ cao để che mọi thứ */
             transition: all 1.5s ease-in-out; 
             overflow: hidden;
-            pointer-events: none; 
+            pointer-events: none; /* Mặc định không chặn click */
             background: #000; 
         }
+        #tym4-frame.clickable {
+            pointer-events: auto; /* Bật click khi đăng nhập xong */
+            cursor: pointer;
+        }
+
         #tym4-canvas {
             position: absolute;
             width: 100%;
             height: 100%;
         }
+        
+        /* Trạng thái THU NHỎ sau khi bấm */
         #tym4-frame.shrink {
             width: 150px;
             height: 150px;
@@ -85,7 +68,7 @@
         }
 
         /* -------------------------------------------------------------------
-         * CSS CHO KHU VỰC THÔNG BÁO VÀ NÚT MỞ
+         * KHU VỰC THÔNG BÁO VÀ NỘI DUNG CHÍNH
          * ------------------------------------------------------------------- */
         .notification-box {
             text-align: center;
@@ -94,6 +77,11 @@
             background: rgba(255, 255, 255, 0.9);
             border-radius: 15px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            z-index: 101; /* Nổi trên Tym 4 */
+            position: fixed; /* Dùng fixed để nó luôn ở trung tâm */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
         .tym-links a {
             margin: 0 8px;
@@ -101,12 +89,11 @@
             color: #dc143c;
             font-weight: bold;
         }
-
     </style>
 </head>
 <body>
     
-    <div id="tym4-frame">
+    <div id="tym4-frame" onclick="handleTym4Click()">
         <canvas id="tym4-canvas"></canvas>
     </div>
 
@@ -119,10 +106,10 @@
 
     <div id="authScreen" style="display:none;" class="notification-box">
         <h2>✅ Đăng nhập thành công!</h2>
-        <p>Hiệu ứng trái tim đã sẵn sàng. Hãy bấm nút để mở nội dung chính và thu nhỏ hiệu ứng nền.</p>
-        <button id="openContentBtn" class="btn" onclick="activateContent()" style="font-size: 1.3em; margin-top: 20px;">
-            ✨ Mở Kỷ Niệm
-        </button>
+        <p>Bấm vào bất kỳ đâu trên hiệu ứng trái tim để mở kỷ niệm và thu nhỏ nền.</p>
+        <p style="margin-top: 15px; font-weight: bold; color: #dc143c;">
+            (Click vào màn hình nền trái tim đang chạy)
+        </p>
     </div>
 
     <div id="mainContent" class="container" style="display:none;">
@@ -140,8 +127,8 @@
         <div class="tym-links">
             <h2>✨ Khám Phá Các Kỷ Niệm (Có Ảnh)</h2>
             <p>Chọn một kiểu trái tim để xem ảnh kỷ niệm:</p>
-            <a href="index_tym1.html" class="btn" target="_blank" style="background: linear-gradient(45deg, #dc143c, #b3002d);">Viền 1 (Mạnh mẽ)</a>
-            <a href="index_tym2.html" class="btn" target="_blank" style="background: linear-gradient(45deg, #ff69b4, #e84c8e);">Viền 2 (Bay nhẹ)</a>
+            <a href="index_tym1.html" class="btn" style="background: linear-gradient(45deg, #dc143c, #b3002d);">Viền 1 (Mạnh mẽ)</a>
+            <a href="index_tym2.html" class="btn" style="background: linear-gradient(45deg, #ff69b4, #e84c8e);">Viền 2 (Bay nhẹ)</a>
             <a href="index_tym3.html" class="btn" target="_blank" style="background: linear-gradient(45deg, #9370db, #7b59bf);">Viền 3 (Cổ điển)</a>
         </div>
 
@@ -157,20 +144,16 @@
 
         let isAuthenticated = false;
         let sitePassword = localStorage.getItem('sitePassword');
+        let authCompleted = false; // Biến cờ mới: Đã đăng nhập nhưng chưa mở nội dung
 
         // =========================================================
-        // LOGIC TYM 4 GỐC (Trích xuất từ index_tym4.html)
+        // LOGIC TYM 4 GỐC (Được trích xuất từ index_tym4.html)
         // =========================================================
         const tym4Canvas = document.getElementById('tym4-canvas');
         
         function initTym4() {
-            // ... (Hàm initTym4 và loopTym4 giữ nguyên, tôi lược bớt ở đây cho ngắn gọn) ...
-            // Đảm bảo code tym4 gốc (vòng lặp và logic) vẫn được đặt vào đây.
-        }
-        
-        // ... (Đặt code Tym 4 gốc vào đây) ...
-        
-        function initTym4() {
+             // ... (Đặt code Tym 4 gốc vào đây) ...
+             // (Tôi đã lược bớt code Tym4 để tránh lặp lại, hãy dùng code Tym4 gốc từ câu trả lời trước)
             window.isDevice = (/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(((navigator.userAgent || navigator.vendor || window.opera)).toLowerCase()));
             var koef = window.isDevice ? 0.5 : 1;
             var ctx = tym4Canvas.getContext('2d');
@@ -260,9 +243,7 @@
                     u.vx += -dx / length * u.speed;
                     u.vy += -dy / length * u.speed;
                     u.trace[0].x += u.vx;
-                    u.trace[0].y += u.vy;
-                    u.vx *= u.force;
-                    u.vy *= u.force;
+                    u.vy += u.force;
                     for (k = 0; k < u.trace.length - 1;) {
                         var T = u.trace[k];
                         var N = u.trace[++k];
@@ -309,30 +290,30 @@
                     element.__lastTime = currTime + timeToCall;
                 };
             })();
+
         
         // ========================================================
-        // LOGIC MỞ NỘI DUNG VÀ THU NHỎ TYM 4 (MỚI)
+        // LOGIC KÍCH HOẠT VÀ THU NHỎ TYM 4
         // ========================================================
-        
-        function activateContent() {
+
+        function handleTym4Click() {
+            if (!authCompleted) return; // Chỉ xử lý khi đã đăng nhập
+            
             // 1. THU NHỎ HIỆU ỨNG TYM 4
             document.getElementById('tym4-frame').classList.add('shrink'); 
-
+            document.getElementById('tym4-frame').classList.remove('clickable');
+            
             // 2. ẨN MÀN HÌNH CHỜ VÀ HIỆN NỘI DUNG CHÍNH
             document.getElementById('authScreen').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
         }
-
-
-        // --- LOGIC ĐĂNG NHẬP VÀ LOAD DỮ LIỆU ---
-
+        
         async function login() {
             const passwordInput = document.getElementById('sitePassword');
             const password = passwordInput.value;
 
             try {
-                // Thay đổi endpoint thành /api/check-password nếu bạn chưa sửa server.js
-                // Hoặc giữ nguyên nếu đã sửa server.js theo logic MongoDB tôi cung cấp
+                // Giả định API check-password hoạt động (như trong server.js)
                 const response = await fetch('/api/check-password', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -343,12 +324,14 @@
 
                 if (data.success) {
                     isAuthenticated = true;
+                    authCompleted = true; // Đánh dấu đã đăng nhập thành công
                     sitePassword = password;
                     localStorage.setItem('sitePassword', password);
                     document.getElementById('loginScreen').style.display = 'none';
                     
-                    // HIỆN MÀN HÌNH CHỜ/NÚT MỞ
+                    // HIỆN MÀN HÌNH CHỜ (CÙNG LÚC BẬT CHẾ ĐỘ BẤM)
                     document.getElementById('authScreen').style.display = 'block'; 
+                    document.getElementById('tym4-frame').classList.add('clickable');
                     
                     loadContent();
                 } else {
@@ -361,15 +344,17 @@
 
         function logout() {
             isAuthenticated = false;
+            authCompleted = false;
             sitePassword = '';
             localStorage.removeItem('sitePassword');
-            document.getElementById('authScreen').style.display = 'none'; // Ẩn màn hình chờ
+            document.getElementById('authScreen').style.display = 'none';
             document.getElementById('mainContent').style.display = 'none';
             document.getElementById('loginScreen').style.display = 'block';
             document.getElementById('sitePassword').value = '';
             
             // Phục hồi hiệu ứng tym4 về full màn hình
             document.getElementById('tym4-frame').classList.remove('shrink'); 
+            document.getElementById('tym4-frame').classList.remove('clickable');
         }
         
         function updateCountdown() { /* ... (Hàm giữ nguyên) ... */ }
@@ -411,15 +396,17 @@
         // --- KHỞI TẠO ---
         document.addEventListener('DOMContentLoaded', () => {
             initTym4();
+            // ... (Phần khởi tạo countdown và tự động đăng nhập giữ nguyên) ...
             updateCountdown();
             setInterval(updateCountdown, 1000);
 
             if (sitePassword) {
                 document.getElementById('sitePassword').value = sitePassword;
                 
-                // Trực tiếp hiện màn hình chờ nếu đã có mật khẩu (tạm thời)
+                // Trực tiếp hiện màn hình chờ nếu đã có mật khẩu 
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('authScreen').style.display = 'block';
+                document.getElementById('tym4-frame').classList.add('clickable');
                 loadContent();
             } else {
                  document.getElementById('loginScreen').style.display = 'block';
