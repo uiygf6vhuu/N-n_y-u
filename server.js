@@ -8,13 +8,13 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
-const DATA_FILE = path.join(__dirname, 'data.json'); // <-- Tên file dữ liệu
+const DATA_FILE = path.join(__dirname, 'data.json'); 
 
 // --------------------------------------------------------------------------------
 // HÀM XỬ LÝ DỮ LIỆU BỀN VỮNG (PERSISTENCE)
 // --------------------------------------------------------------------------------
 
-let inMemoryDB = {}; // Dữ liệu sẽ được load từ file
+let inMemoryDB = {}; 
 
 /**
  * Mẫu dữ liệu mặc định ban đầu
@@ -22,7 +22,7 @@ let inMemoryDB = {}; // Dữ liệu sẽ được load từ file
 const DEFAULT_DATA = {
     passwords: {
         site: "tinhyeu123",
-        admin: "admin456"
+        admin: "newadmin123" // <-- MẬT KHẨU ADMIN ĐÃ ĐỔI ĐỂ KHẮC PHỤC LỖI
     },
     messages: [
         { date: '2025-01-01', message: 'Chào mừng đến với trang bí mật!' }
@@ -45,7 +45,7 @@ const loadData = () => {
             console.log('✅ Dữ liệu đã được tải thành công từ data.json.');
         } else {
             inMemoryDB = DEFAULT_DATA;
-            saveData(); // Tạo file mới với dữ liệu mặc định
+            saveData(); 
             console.log('⚠️ Không tìm thấy data.json. Đã tạo dữ liệu mặc định.');
         }
     } catch (error) {
@@ -60,7 +60,6 @@ const loadData = () => {
 const saveData = () => {
     try {
         fs.writeFileSync(DATA_FILE, JSON.stringify(inMemoryDB, null, 2), 'utf8');
-        // console.log('Dữ liệu đã được lưu vào data.json.');
     } catch (error) {
         console.error('❌ Lỗi khi lưu dữ liệu:', error.message);
     }
@@ -84,10 +83,7 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname))); 
 app.use('/uploads', express.static(UPLOADS_DIR)); 
 
-
-/**
- * Xác thực cho Trang Chính (Site)
- */
+/** Xác thực cho Trang Chính (Site) */
 const requireSiteAuth = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     if (!authHeader) return res.status(401).json({ error: 'Authorization header required.' });
@@ -98,9 +94,7 @@ const requireSiteAuth = (req, res, next) => {
     next();
 };
 
-/**
- * Xác thực cho Admin
- */
+/** Xác thực cho Admin */
 const requireAdminAuth = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     if (!authHeader) return res.status(401).json({ error: 'Authorization header required.' });
@@ -113,9 +107,10 @@ const requireAdminAuth = (req, res, next) => {
 
 
 // --------------------------------------------------------------------------------
-// ENDPOINTS PHỤC VỤ FILE
+// ENDPOINTS VÀ API (CHỈ CẬP NHẬT saveData() KHI CẦN)
 // --------------------------------------------------------------------------------
-// (GIỮ NGUYÊN)
+
+// ENDPOINTS PHỤC VỤ FILE
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 app.get('/game', (req, res) => res.sendFile(path.join(__dirname, 'game.html')));
@@ -131,35 +126,21 @@ app.get('/game', (req, res) => res.sendFile(path.join(__dirname, 'game.html')));
     });
 });
 
-
-// --------------------------------------------------------------------------------
-// API CHO TRANG CHÍNH (SITE API) - ĐÃ THÊM saveData()
-// --------------------------------------------------------------------------------
-
-// GET /api/messages - Tải tin nhắn + Dùng để xác thực Trang Chính
+// API CHO TRANG CHÍNH
 app.get('/api/messages', requireSiteAuth, (req, res) => {
     const formattedMessages = [...inMemoryDB.messages].reverse().map(m => `${m.date}: ${m.message}`);
     res.json({ messages: formattedMessages });
 });
 
-// POST /api/messages-with-date - Gửi tin nhắn từ Trang Chính
 app.post('/api/messages-with-date', requireSiteAuth, (req, res) => {
     const { date, message } = req.body;
-    if (!date || !message) {
-        return res.status(400).json({ error: 'Date and message are required.' });
-    }
-    
+    if (!date || !message) return res.status(400).json({ error: 'Date and message are required.' });
     inMemoryDB.messages.push({ date, message: message.substring(0, 500) });
-    saveData(); // <-- LƯU DỮ LIỆU
+    saveData(); 
     res.json({ message: 'Message posted successfully.' });
 });
 
-
-// --------------------------------------------------------------------------------
-// API CHO TRANG ADMIN (ADMIN API) - ĐÃ THÊM saveData()
-// --------------------------------------------------------------------------------
-
-// GET /api/passwords - Lấy mật khẩu hiện tại (GIỮ NGUYÊN)
+// API CHO TRANG ADMIN
 app.get('/api/passwords', requireAdminAuth, (req, res) => {
     res.json({ 
         sitePassword: inMemoryDB.passwords.site,
@@ -167,107 +148,72 @@ app.get('/api/passwords', requireAdminAuth, (req, res) => {
     });
 });
 
-// POST /api/change-site-password - Đổi mật khẩu trang chính
 app.post('/api/change-site-password', requireAdminAuth, (req, res) => {
     const { newPassword } = req.body;
-    if (!newPassword || newPassword.length < 3) {
-        return res.status(400).json({ error: 'Mật khẩu phải có ít nhất 3 ký tự.' });
-    }
-    
+    if (!newPassword || newPassword.length < 3) return res.status(400).json({ error: 'Mật khẩu phải có ít nhất 3 ký tự.' });
     inMemoryDB.passwords.site = newPassword;
-    saveData(); // <-- LƯU DỮ LIỆU
+    saveData(); 
     res.json({ message: 'Đã đổi mật khẩu trang chính thành công!' });
 });
 
-// POST /api/change-admin-password - Đổi mật khẩu admin
 app.post('/api/change-admin-password', requireAdminAuth, (req, res) => {
     const { newPassword } = req.body;
-    if (!newPassword || newPassword.length < 3) {
-        return res.status(400).json({ error: 'Mật khẩu phải có ít nhất 3 ký tự.' });
-    }
-    
+    if (!newPassword || newPassword.length < 3) return res.status(400).json({ error: 'Mật khẩu phải có ít nhất 3 ký tự.' });
     inMemoryDB.passwords.admin = newPassword;
-    saveData(); // <-- LƯU DỮ LIỆU
+    saveData(); 
     res.json({ message: 'Đã đổi mật khẩu Admin thành công!' });
 });
 
-// GET /api/love-image - Lấy URL ảnh tình yêu (GIỮ NGUYÊN)
 app.get('/api/love-image', (req, res) => {
     const authHeader = req.headers['authorization'];
     if (authHeader !== inMemoryDB.passwords.site && authHeader !== inMemoryDB.passwords.admin) {
         return res.status(403).json({ error: 'Invalid password.' });
     }
-    
     res.json({ image: inMemoryDB.loveImage });
 });
 
-// POST /api/upload-url - Upload ảnh từ URL
 app.post('/api/upload-url', requireAdminAuth, (req, res) => {
     const { imageUrl } = req.body;
     if (!imageUrl) return res.status(400).json({ error: 'URL ảnh là bắt buộc.' });
-
     inMemoryDB.loveImage = imageUrl;
-    saveData(); // <-- LƯU DỮ LIỆU
+    saveData(); 
     res.json({ message: 'URL ảnh đã được cập nhật.', image: imageUrl });
 });
 
-// POST /api/upload-file - Upload ảnh từ file
 app.post('/api/upload-file', requireAdminAuth, upload.single('image'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'File ảnh là bắt buộc.' });
-    
     const fileExtension = path.extname(req.file.originalname).toLowerCase();
     const fileName = req.file.filename + fileExtension;
     const filePath = path.join(UPLOADS_DIR, fileName);
-    
     fs.renameSync(req.file.path, filePath);
-
-    // Lưu đường dẫn cục bộ
     inMemoryDB.loveImage = `/uploads/${fileName}`;
-    saveData(); // <-- LƯU DỮ LIỆU
-
+    saveData(); 
     res.json({ message: 'File ảnh đã được upload thành công (tạm thời).', image: inMemoryDB.loveImage });
 });
 
-// GET /api/love-messages - Lấy danh sách tin nhắn (GIỮ NGUYÊN)
 app.get('/api/love-messages', requireAdminAuth, (req, res) => {
     const formattedMessages = [...inMemoryDB.messages].reverse().map(m => `${m.date}: ${m.message}`);
     res.json({ messages: formattedMessages });
 });
 
-// POST /api/love-messages - Thêm tin nhắn
 app.post('/api/love-messages', requireAdminAuth, (req, res) => {
     const { message } = req.body;
     if (!message) return res.status(400).json({ error: 'Tin nhắn là bắt buộc.' });
-    
     const today = new Date().toISOString().split('T')[0];
     inMemoryDB.messages.push({ date: today, message: message.substring(0, 500) });
-    saveData(); // <-- LƯU DỮ LIỆU
-
+    saveData(); 
     res.json({ message: 'Tin nhắn đã được thêm thành công.' });
 });
 
-
-// --------------------------------------------------------------------------------
-// API CHO TRANG GAME (GAME API) - ĐÃ THÊM saveData()
-// --------------------------------------------------------------------------------
-
-// GET /api/game-scores - Lấy bảng xếp hạng (GIỮ NGUYÊN)
+// API CHO TRANG GAME
 app.get('/api/game-scores', requireSiteAuth, (req, res) => {
-    const sortedScores = [...inMemoryDB.gameScores]
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 10);
-        
+    const sortedScores = [...inMemoryDB.gameScores].sort((a, b) => b.score - a.score).slice(0, 10);
     res.json({ scores: sortedScores });
 });
 
-// POST /api/game-score - Lưu điểm mới
 app.post('/api/game-score', requireSiteAuth, (req, res) => {
     const { score, level, clicksPerMinute, playerName } = req.body;
-    
-    if (typeof score !== 'number' || score < 1) {
-        return res.status(400).json({ error: 'Điểm không hợp lệ.' });
-    }
-
+    if (typeof score !== 'number' || score < 1) return res.status(400).json({ error: 'Điểm không hợp lệ.' });
     const newScore = {
         playerName: playerName || 'Người chơi bí mật',
         score,
@@ -275,10 +221,8 @@ app.post('/api/game-score', requireSiteAuth, (req, res) => {
         clicksPerMinute: clicksPerMinute || 0,
         date: new Date().toISOString()
     };
-    
     inMemoryDB.gameScores.push(newScore);
-    saveData(); // <-- LƯU DỮ LIỆU
-
+    saveData(); 
     res.json({ message: 'Điểm đã được lưu thành công.' });
 });
 
@@ -291,7 +235,5 @@ app.listen(PORT, () => {
     console.log(`Server is running at http://localhost:${PORT}`);
     console.log(`Site password: ${inMemoryDB.passwords.site}`);
     console.log(`Admin password: ${inMemoryDB.passwords.admin}`);
-    console.log("----------------------------------------------------------");
-    console.log("LƯU Ý: Dữ liệu được lưu trong file data.json.");
-    console.log("Nếu deploy lên cloud, hãy đảm bảo data.json được lưu trữ.");
+    console.log("LƯU Ý: Dữ liệu được lưu trong data.json.");
 });
