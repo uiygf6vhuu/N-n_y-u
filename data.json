@@ -1,0 +1,40 @@
+{
+  "passwords": {
+    "site": "tinhyeu123",
+    "admin": "admin456"
+  },
+  "messages": [
+    {
+      "date": "2025-01-01",
+      "message": "Chào mừng đến với trang bí mật!"
+    },
+    {
+      "date": "2025-09-28",
+      "message": "Phiên bản này đang dùng data.json để lưu trữ! ✨"
+    }
+  ],
+  "loveImage": "https://picsum.photos/seed/defaultlove/400/400",
+  "gameScores": [
+    {
+      "playerName": "Top Player",
+      "score": 180,
+      "level": 6,
+      "clicksPerMinute": 320,
+      "date": "2025-09-28T00:00:00.000Z"
+    },
+    {
+      "playerName": "Medium",
+      "score": 85,
+      "level": 4,
+      "clicksPerMinute": 200,
+      "date": "2025-09-28T00:00:00.000Z"
+    },
+    {
+      "playerName": "Newbie",
+      "score": 40,
+      "level": 2,
+      "clicksPerMinute": 150,
+      "date": "2025-09-28T00:00:00.000Z"
+    }
+  ]
+}
