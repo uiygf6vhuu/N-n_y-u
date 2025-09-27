@@ -17,11 +17,17 @@
       <img id="loveImage" style="max-width:100%; border-radius:15px;">
       <h2>💌 Lời nhắn</h2>
       <ul id="userList" class="message-list"></ul>
+      
+      <!-- 🆕 THÊM LINK ĐẾN TRANG ADMIN VÀ GAME -->
+      <div style="margin-top: 20px;">
+        <a href="/admin" class="btn">Trang Admin</a>
+        <a href="/game" class="btn">Chơi Game</a>
+      </div>
     </div>
   </div>
 
 <script>
-const PASS = "admin123"; // phải trùng với server
+const PASS = "admin123";
 
 async function enterUser() {
   const input = document.getElementById('userPass').value;
