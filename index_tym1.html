@@ -126,6 +126,8 @@
         
         <div class="navigation">
             <a href="/" class="btn">🏠 Trang Chính</a>
+            <a href="/tym2" class="btn">💖 Hiệu Ứng 2</a>
+            <a href="/tym3" class="btn">💖 Hiệu Ứng 3</a>
             <button onclick="logout()" class="btn">🚪 Đăng Xuất</button>
         </div>
     </div>
@@ -199,12 +201,13 @@
                 var point = to(t);
                 context.moveTo(point.x, point.y);
                 while (t < Math.PI) {
-                    t += 0.01;
+                    t += 0.01; // baby steps!
                     point = to(t);
                     context.lineTo(point.x, point.y);
                 }
                 context.closePath();
-                context.fillStyle = '#ea80b0';
+                // SỬA: Chỉnh màu tim để khớp với tông màu đỏ/hồng nóng
+                context.fillStyle = '#ff69b4'; 
                 context.fill();
                 var image = new Image();
                 image.src = canvas.toDataURL();
