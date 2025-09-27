@@ -13,12 +13,14 @@ app.use(express.static(__dirname));
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const uploadDir = path.join(__dirname, 'uploads');
+        // Tạo thư mục nếu chưa tồn tại
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir);
         }
         cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
+        // Tạo tên file duy nhất dựa trên thời gian và số ngẫu nhiên
         const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
         cb(null, uniqueName);
     }
@@ -26,7 +28,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ 
     storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 },
+    limits: { fileSize: 5 * 1024 * 1024 }, // Giới hạn 5MB
     fileFilter: function (req, file, cb) {
         if (file.mimetype.startsWith('image/')) {
             cb(null, true);
@@ -37,153 +39,171 @@ const upload = multer({
 });
 
 // 🔐 QUẢN LÝ MẬT KHẨU ĐỘNG
+
 const PASSWORDS_FILE = path.join(__dirname, 'passwords.json');
+let loveImage = null;
 
 // Hàm đọc mật khẩu từ file
 function readPasswords() {
     try {
         if (fs.existsSync(PASSWORDS_FILE)) {
-            return JSON.parse(fs.readFileSync(PASSWORDS_FILE, 'utf8'));
+            const data = fs.readFileSync(PASSWORDS_FILE, 'utf8');
+            return JSON.parse(data);
         }
-    } catch (error) {
-        console.error('Lỗi đọc file mật khẩu:', error);
+        // Khởi tạo mặc định nếu file không tồn tại
+        const defaultPasswords = {
+            sitePassword: 'love',
+            adminPassword: 'admin',
+            messages: [],
+            countdownDate: '2024-02-14' // Ngày mặc định
+        };
+        savePasswords(defaultPasswords);
+        return defaultPasswords;
+    } catch (e) {
+        console.error("Lỗi khi đọc file passwords:", e);
+        return { sitePassword: 'love', adminPassword: 'admin', messages: [], countdownDate: '2024-02-14' };
     }
-    
-    // Mật khẩu mặc định nếu file không tồn tại
-    return {
-        sitePassword: "love123",
-        adminPassword: "admin123"
-    };
 }
 
 // Hàm ghi mật khẩu vào file
-function writePasswords(passwords) {
+function savePasswords(passwords) {
     try {
-        fs.writeFileSync(PASSWORDS_FILE, JSON.stringify(passwords, null, 2));
-        return true;
-    } catch (error) {
-        console.error('Lỗi ghi file mật khẩu:', error);
-        return false;
+        fs.writeFileSync(PASSWORDS_FILE, JSON.stringify(passwords, null, 4), 'utf8');
+    } catch (e) {
+        console.error("Lỗi khi ghi file passwords:", e);
     }
 }
 
-// Đọc mật khẩu khi khởi động
 let passwords = readPasswords();
 
-// 🔒 MIDDLEWARE BẢO MẬT
-const requireSiteAuth = (req, res, next) => {
-    const auth = req.headers.authorization;
-    if (auth === passwords.sitePassword) {
+// 🔒 MIDDLEWARE KIỂM TRA MẬT KHẨU
+
+// Kiểm tra mật khẩu trang chính (index.html)
+function requireSiteAuth(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader === passwords.sitePassword) {
         next();
     } else {
-        res.status(401).json({ error: 'Unauthorized' });
+        res.status(401).json({ error: 'Mật khẩu trang chính không đúng!' });
     }
-};
+}
 
-const requireAdminAuth = (req, res, next) => {
-    const auth = req.headers.authorization;
-    if (auth === passwords.adminPassword) {
+// Kiểm tra mật khẩu Admin
+function requireAdminAuth(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader === passwords.adminPassword) {
         next();
     } else {
-        res.status(401).json({ error: 'Unauthorized' });
+        res.status(401).json({ error: 'Mật khẩu Admin không đúng!' });
     }
-};
+}
 
-// Bộ nhớ tạm cho tin nhắn và ảnh
-let loveMessages = [];
-let loveImage = null;
+// 🔑 API: ĐĂNG NHẬP
 
-// API: Kiểm tra mật khẩu trang chính
-app.post('/api/check-password', (req, res) => {
+app.post('/api/login/site', (req, res) => {
     const { password } = req.body;
     if (password === passwords.sitePassword) {
-        res.json({ success: true });
+        res.json({ success: true, message: 'Đăng nhập thành công!' });
     } else {
-        res.status(401).json({ success: false, error: "Sai mật khẩu!" });
+        res.status(401).json({ success: false, error: 'Mật khẩu không đúng.' });
     }
 });
 
-// API: đăng nhập admin
-app.post('/api/admin-login', (req, res) => {
+app.post('/api/login/admin', (req, res) => {
     const { password } = req.body;
     if (password === passwords.adminPassword) {
-        res.json({ success: true });
+        res.json({ success: true, message: 'Đăng nhập Admin thành công!' });
     } else {
-        res.status(401).json({ success: false, error: "Sai mật khẩu!" });
+        res.status(401).json({ success: false, error: 'Mật khẩu Admin không đúng.' });
     }
 });
 
-// 🆕 API: Đổi mật khẩu trang chính (chỉ admin)
-app.post('/api/change-site-password', requireAdminAuth, (req, res) => {
-    const { newPassword } = req.body;
-    
-    if (!newPassword || newPassword.length < 3) {
-        return res.status(400).json({ success: false, error: "Mật khẩu phải có ít nhất 3 ký tự" });
-    }
-    
-    passwords.sitePassword = newPassword;
-    
-    if (writePasswords(passwords)) {
-        res.json({ success: true, message: "✅ Đã thay đổi mật khẩu trang chính thành công!" });
-    } else {
-        res.status(500).json({ success: false, error: "Lỗi khi lưu mật khẩu" });
-    }
+
+// ⚙️ API: CẤU HÌNH & DỮ LIỆU CHUNG (Cần mật khẩu Admin)
+
+// API: Lấy mật khẩu và ngày đếm ngược
+app.get('/api/config', requireAdminAuth, (req, res) => {
+    res.json({ 
+        sitePassword: passwords.sitePassword,
+        adminPassword: passwords.adminPassword,
+        countdownDate: passwords.countdownDate
+    });
 });
 
-// 🆕 API: Đổi mật khẩu admin (chỉ admin)
-app.post('/api/change-admin-password', requireAdminAuth, (req, res) => {
-    const { currentPassword, newPassword } = req.body;
-    
-    if (currentPassword !== passwords.adminPassword) {
-        return res.status(401).json({ success: false, error: "Mật khẩu admin hiện tại không đúng" });
+// API: Cập nhật mật khẩu và ngày đếm ngược
+app.post('/api/config', requireAdminAuth, (req, res) => {
+    const { newSitePassword, newAdminPassword, newCountdownDate } = req.body;
+
+    if (newSitePassword && newSitePassword.trim() !== '') {
+        passwords.sitePassword = newSitePassword.trim();
+    }
+
+    if (newAdminPassword && newAdminPassword.trim() !== '') {
+        passwords.adminPassword = newAdminPassword.trim();
     }
     
-    if (!newPassword || newPassword.length < 3) {
-        return res.status(400).json({ success: false, error: "Mật khẩu mới phải có ít nhất 3 ký tự" });
+    if (newCountdownDate && newCountdownDate.trim() !== '') {
+        passwords.countdownDate = newCountdownDate.trim();
     }
-    
-    passwords.adminPassword = newPassword;
-    
-    if (writePasswords(passwords)) {
-        res.json({ success: true, message: "✅ Đã thay đổi mật khẩu admin thành công!" });
-    } else {
-        res.status(500).json({ success: false, error: "Lỗi khi lưu mật khẩu" });
-    }
+
+    savePasswords(passwords);
+    res.json({ success: true, message: 'Cấu hình đã được cập nhật thành công.' });
 });
 
-// API: lưu tin nhắn (chỉ admin)
-app.post('/api/love-messages', requireAdminAuth, (req, res) => {
+// 💌 API: TIN NHẮN YÊU THƯƠNG
+
+// API: Thêm tin nhắn (Cần mật khẩu trang chính)
+app.post('/api/message', requireSiteAuth, (req, res) => {
     const { message } = req.body;
-    if (!message || !message.trim()) return res.status(400).json({ error: "Tin nhắn không hợp lệ" });
-    loveMessages.push(message);
-    res.json({ success: true, message: "Đã lưu tin nhắn 💌" });
-});
-
-// API: lấy tin nhắn (cần mật khẩu trang chính)
-app.get('/api/love-messages', requireSiteAuth, (req, res) => {
-    res.json({ messages: loveMessages });
-});
-
-// API: Upload ảnh từ URL (chỉ admin)
-app.post('/api/upload-url', requireAdminAuth, (req, res) => {
-    const { imageUrl } = req.body;
-    if (!imageUrl || !imageUrl.startsWith('http')) {
-        return res.status(400).json({ success: false, error: "URL ảnh không hợp lệ" });
+    if (!message || message.trim() === '') {
+        return res.status(400).json({ error: 'Tin nhắn không được để trống.' });
     }
-    loveImage = imageUrl;
-    res.json({ success: true, image: loveImage, message: "Đã lưu URL ảnh thành công!" });
+    
+    // Giới hạn tin nhắn để tránh quá tải file
+    if (passwords.messages.length >= 100) {
+        passwords.messages.shift(); // Xóa tin nhắn cũ nhất
+    }
+
+    passwords.messages.push(message.trim());
+    savePasswords(passwords);
+    res.json({ success: true, message: 'Tin nhắn của bạn đã được lưu lại! Cảm ơn bạn ❤️' });
 });
 
-// API: Upload ảnh từ thiết bị (chỉ admin)
-app.post('/api/upload-file', requireAdminAuth, upload.single('image'), (req, res) => {
+// API: Lấy danh sách tin nhắn (Cần mật khẩu Admin)
+app.get('/api/messages', requireAdminAuth, (req, res) => {
+    res.json({ messages: passwords.messages });
+});
+
+// API: Xóa tất cả tin nhắn (Cần mật khẩu Admin)
+app.post('/api/messages/clear', requireAdminAuth, (req, res) => {
+    passwords.messages = [];
+    savePasswords(passwords);
+    res.json({ success: true, message: 'Đã xóa tất cả tin nhắn.' });
+});
+
+// 📅 API: LẤY DỮ LIỆU CHUNG (Cần mật khẩu trang chính)
+
+// API: Lấy ngày đếm ngược và tin nhắn
+app.get('/api/data', requireSiteAuth, (req, res) => {
+    res.json({ 
+        countdownDate: passwords.countdownDate, 
+        messages: passwords.messages 
+    });
+});
+
+
+// 🖼️ API: QUẢN LÝ ẢNH
+
+// API: Upload ảnh (Cần mật khẩu Admin)
+app.post('/api/upload', requireAdminAuth, upload.single('love-image'), (req, res) => {
     try {
         if (!req.file) {
-            return res.status(400).json({ success: false, error: "Không có file được chọn" });
+            return res.status(400).json({ success: false, error: "Không có file nào được chọn" });
         }
         
         const imagePath = '/uploads/' + req.file.filename;
-        loveImage = imagePath;
-        
+        loveImage = imagePath; // Cập nhật đường dẫn ảnh hiện tại
+
         res.json({ 
             success: true, 
             image: loveImage, 
@@ -204,6 +224,7 @@ app.get('/api/love-image', requireSiteAuth, (req, res) => {
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // 🎯 ROUTING
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -223,10 +244,15 @@ app.use((error, req, res, next) => {
             return res.status(400).json({ error: 'File quá lớn! Tối đa 5MB.' });
         }
     }
+    // Lỗi chung (bao gồm lỗi fileFilter)
     res.status(500).json({ error: error.message });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
+// 🚀 Khởi động Server
+
+// 👇 CHỖ ĐƯỢC SỬA: Bỏ '0.0.0.0' để tăng khả năng tương thích khi deploy
+
+app.listen(PORT, () => {
     console.log(`🚀 Server chạy trên port ${PORT}`);
     console.log(`🔐 Mật khẩu trang chính hiện tại: ${passwords.sitePassword}`);
     console.log(`🔐 Mật khẩu admin hiện tại: ${passwords.adminPassword}`);
