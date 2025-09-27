@@ -133,3 +133,41 @@ h2 {
 ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(45deg, #ff4757, #ff3838);
 }
+
+/* Additional styles for tym pages */
+.love-image-container {
+    position: relative;
+    margin: 20px auto;
+}
+
+.love-image-tym {
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 0 20px rgba(255, 105, 180, 0.7);
+    border: 5px solid white;
+}
+
+.image-frame {
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* Error message styling */
+.error-message {
+    color: #ff4757;
+    background: rgba(255, 71, 87, 0.1);
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
+    text-align: center;
+}
+
+/* Success message styling */
+.success-message {
+    color: #2ed573;
+    background: rgba(46, 213, 115, 0.1);
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
+    text-align: center;
+}
