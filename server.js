@@ -1,239 +1,341 @@
-// server.js (Phiên bản sử dụng File System để lưu dữ liệu)
 const express = require('express');
-const bodyParser = require('body-parser');
 const path = require('path');
-const multer = require('multer');
 const fs = require('fs');
-
+const multer = require('multer');
+const mongoose = require('mongoose');
 const app = express();
 const PORT = process.env.PORT || 3000;
-const UPLOADS_DIR = path.join(__dirname, 'uploads');
-const DATA_FILE = path.join(__dirname, 'data.json'); 
 
-// --------------------------------------------------------------------------------
-// HÀM XỬ LÝ DỮ LIỆU BỀN VỮNG (PERSISTENCE)
-// --------------------------------------------------------------------------------
+// 1. SỬA LỖI KẾT NỐI MONGODB: Sử dụng chuỗi kết nối từ biến môi trường
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/lovewebsite';
 
-let inMemoryDB = {}; 
+// Khởi tạo kết nối Mongoose
+mongoose.connect(MONGODB_URI, {
+    serverSelectionTimeoutMS: 30000, // Tăng thời gian chờ kết nối lên 30 giây
+})
+.then(() => console.log('✅ Đã khởi tạo kết nối MongoDB.')) 
+.catch(err => console.error('❌ Lỗi kết nối MongoDB:', err));
 
-/**
- * Mẫu dữ liệu mặc định ban đầu
- */
-const DEFAULT_DATA = {
-    passwords: {
-        site: "tinhyeu123",
-        admin: "newadmin123" // <-- MẬT KHẨU ADMIN ĐÃ ĐỔI ĐỂ KHẮC PHỤC LỖI
-    },
-    messages: [
-        { date: '2025-01-01', message: 'Chào mừng đến với trang bí mật!' }
-    ],
-    loveImage: 'https://picsum.photos/seed/defaultlove/400/400',
-    gameScores: [
-        { playerName: "Top Player", score: 180, level: 6, clicksPerMinute: 320, date: new Date().toISOString() },
-        { playerName: "Medium", score: 85, level: 4, clicksPerMinute: 200, date: new Date().toISOString() }
-    ]
-};
+// Schema cho mật khẩu
+const passwordSchema = new mongoose.Schema({
+    sitePassword: { type: String, default: '611181' },
+    adminPassword: { type: String, default: '611181' }
+});
+const Password = mongoose.model('Password', passwordSchema);
 
-/**
- * Tải dữ liệu từ file JSON. Nếu file không tồn tại, dùng dữ liệu mặc định.
- */
-const loadData = () => {
-    try {
-        if (fs.existsSync(DATA_FILE)) {
-            const data = fs.readFileSync(DATA_FILE, 'utf8');
-            inMemoryDB = JSON.parse(data);
-            console.log('✅ Dữ liệu đã được tải thành công từ data.json.');
-        } else {
-            inMemoryDB = DEFAULT_DATA;
-            saveData(); 
-            console.log('⚠️ Không tìm thấy data.json. Đã tạo dữ liệu mặc định.');
-        }
-    } catch (error) {
-        console.error('❌ Lỗi khi tải dữ liệu:', error.message);
-        inMemoryDB = DEFAULT_DATA;
-    }
-};
+// Schema cho tin nhắn
+const messageSchema = new mongoose.Schema({
+    content: String,
+    date: String,
+    timestamp: { type: Date, default: Date.now }
+});
+const Message = mongoose.model('Message', messageSchema);
 
-/**
- * Lưu dữ liệu vào file JSON.
- */
-const saveData = () => {
-    try {
-        fs.writeFileSync(DATA_FILE, JSON.stringify(inMemoryDB, null, 2), 'utf8');
-    } catch (error) {
-        console.error('❌ Lỗi khi lưu dữ liệu:', error.message);
-    }
-};
+// Schema cho ảnh
+const imageSchema = new mongoose.Schema({
+    imageUrl: String,
+    filename: String,
+    timestamp: { type: Date, default: Date.now }
+});
+const LoveImage = mongoose.model('LoveImage', imageSchema);
 
-// --------------------------------------------------------------------------------
-// CẤU HÌNH SERVER VÀ MIDDLEWARE
-// --------------------------------------------------------------------------------
-
-// Cấu hình Multer để lưu file tạm thời
-const upload = multer({ dest: UPLOADS_DIR });
-if (!fs.existsSync(UPLOADS_DIR)) {
-    fs.mkdirSync(UPLOADS_DIR);
-}
-
-// Tải dữ liệu ngay khi server khởi động
-loadData(); 
+// Schema cho điểm game
+const scoreSchema = new mongoose.Schema({
+    playerName: String,
+    score: Number,
+    level: Number,
+    clicksPerMinute: Number,
+    timestamp: { type: Date, default: Date.now }
+});
+const GameScore = mongoose.model('GameScore', scoreSchema);
 
 // Middleware
-app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname))); 
-app.use('/uploads', express.static(UPLOADS_DIR)); 
+app.use(express.json());
+app.use(express.static(__dirname));
 
-/** Xác thực cho Trang Chính (Site) */
-const requireSiteAuth = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    if (!authHeader) return res.status(401).json({ error: 'Authorization header required.' });
-    
-    if (authHeader !== inMemoryDB.passwords.site) {
-        return res.status(403).json({ error: 'Invalid site password.' });
+// Cấu hình multer để upload file
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadDir = path.join(__dirname, 'uploads');
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir);
+        }
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
+        cb(null, uniqueName);
     }
-    next();
+});
+
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: function (req, file, cb) {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Chỉ được upload file ảnh!'), false);
+        }
+    }
+});
+
+// 🔐 Hàm đọc mật khẩu từ database
+async function readPasswords() {
+    try {
+        let passwords = await Password.findOne();
+        if (!passwords) {
+            passwords = new Password();
+            await passwords.save();
+        }
+        return passwords;
+    } catch (error) {
+        console.error('Lỗi đọc mật khẩu từ database:', error);
+        return { sitePassword: 'love', adminPassword: 'admin' };
+    }
+}
+
+// Middleware xác thực (Site)
+const requireAuth = (passwordType) => async (req, res, next) => {
+    try {
+        const password = req.headers['authorization'];
+        const passwords = await readPasswords();
+        
+        if (!password) {
+            return res.status(401).json({ error: 'Thiếu mật khẩu' });
+        }
+
+        if (password === passwords[passwordType]) {
+            next();
+        } else {
+            res.status(401).json({ error: 'Mật khẩu không hợp lệ' });
+        }
+    } catch (error) {
+        console.error('Lỗi xác thực:', error);
+        res.status(500).json({ error: 'Lỗi xác thực' });
+    }
 };
 
-/** Xác thực cho Admin */
+// ❌ BỎ MẬT KHẨU ADMIN: Luôn cho phép truy cập
 const requireAdminAuth = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    if (!authHeader) return res.status(401).json({ error: 'Authorization header required.' });
-    
-    if (authHeader !== inMemoryDB.passwords.admin) {
-        return res.status(403).json({ error: 'Invalid admin password.' });
-    }
     next();
 };
 
+const requireSiteAuth = requireAuth('sitePassword');
 
-// --------------------------------------------------------------------------------
-// ENDPOINTS VÀ API (CHỈ CẬP NHẬT saveData() KHI CẦN)
-// --------------------------------------------------------------------------------
-
-// ENDPOINTS PHỤC VỤ FILE
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
-app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
-app.get('/game', (req, res) => res.sendFile(path.join(__dirname, 'game.html')));
-['/tym1', '/tym2', '/tym3', '/tym4'].forEach(route => {
-    app.get(route, (req, res) => {
-        const fileMap = {
-            '/tym1': 'index_tym1.html',
-            '/tym2': 'index_tym2.html',
-            '/tym3': 'index_tym3.html',
-            '/tym4': 'index_tym4.html',
-        };
-        res.sendFile(path.join(__dirname, fileMap[route]));
-    });
-});
-
-// API CHO TRANG CHÍNH
-app.get('/api/messages', requireSiteAuth, (req, res) => {
-    const formattedMessages = [...inMemoryDB.messages].reverse().map(m => `${m.date}: ${m.message}`);
-    res.json({ messages: formattedMessages });
-});
-
-app.post('/api/messages-with-date', requireSiteAuth, (req, res) => {
-    const { date, message } = req.body;
-    if (!date || !message) return res.status(400).json({ error: 'Date and message are required.' });
-    inMemoryDB.messages.push({ date, message: message.substring(0, 500) });
-    saveData(); 
-    res.json({ message: 'Message posted successfully.' });
-});
-
-// API CHO TRANG ADMIN
-app.get('/api/passwords', requireAdminAuth, (req, res) => {
-    res.json({ 
-        sitePassword: inMemoryDB.passwords.site,
-        adminPassword: inMemoryDB.passwords.admin
-    });
-});
-
-app.post('/api/change-site-password', requireAdminAuth, (req, res) => {
-    const { newPassword } = req.body;
-    if (!newPassword || newPassword.length < 3) return res.status(400).json({ error: 'Mật khẩu phải có ít nhất 3 ký tự.' });
-    inMemoryDB.passwords.site = newPassword;
-    saveData(); 
-    res.json({ message: 'Đã đổi mật khẩu trang chính thành công!' });
-});
-
-app.post('/api/change-admin-password', requireAdminAuth, (req, res) => {
-    const { newPassword } = req.body;
-    if (!newPassword || newPassword.length < 3) return res.status(400).json({ error: 'Mật khẩu phải có ít nhất 3 ký tự.' });
-    inMemoryDB.passwords.admin = newPassword;
-    saveData(); 
-    res.json({ message: 'Đã đổi mật khẩu Admin thành công!' });
-});
-
-app.get('/api/love-image', (req, res) => {
-    const authHeader = req.headers['authorization'];
-    if (authHeader !== inMemoryDB.passwords.site && authHeader !== inMemoryDB.passwords.admin) {
-        return res.status(403).json({ error: 'Invalid password.' });
+// 🔐 API Đăng nhập Admin
+app.post('/api/admin-login', async (req, res) => {
+    try {
+        const { password } = req.body;
+        const passwords = await readPasswords();
+        
+        if (password === passwords.adminPassword) {
+            res.json({ success: true });
+        } else {
+            res.status(401).json({ success: false, error: 'Sai mật khẩu' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Lỗi server' });
     }
-    res.json({ image: inMemoryDB.loveImage });
 });
 
-app.post('/api/upload-url', requireAdminAuth, (req, res) => {
-    const { imageUrl } = req.body;
-    if (!imageUrl) return res.status(400).json({ error: 'URL ảnh là bắt buộc.' });
-    inMemoryDB.loveImage = imageUrl;
-    saveData(); 
-    res.json({ message: 'URL ảnh đã được cập nhật.', image: imageUrl });
+// 🔐 API Kiểm tra mật khẩu trang chính (Dùng cho index.html)
+app.post('/api/check-password', async (req, res) => {
+    try {
+        const { password } = req.body;
+        const passwords = await readPasswords();
+        
+        if (password === passwords.sitePassword) {
+            res.json({ success: true });
+        } else {
+            res.status(401).json({ success: false, error: 'Sai mật khẩu' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Lỗi server' });
+    }
 });
 
-app.post('/api/upload-file', requireAdminAuth, upload.single('image'), (req, res) => {
-    if (!req.file) return res.status(400).json({ error: 'File ảnh là bắt buộc.' });
-    const fileExtension = path.extname(req.file.originalname).toLowerCase();
-    const fileName = req.file.filename + fileExtension;
-    const filePath = path.join(UPLOADS_DIR, fileName);
-    fs.renameSync(req.file.path, filePath);
-    inMemoryDB.loveImage = `/uploads/${fileName}`;
-    saveData(); 
-    res.json({ message: 'File ảnh đã được upload thành công (tạm thời).', image: inMemoryDB.loveImage });
+// 🔐 API Lấy thông tin mật khẩu
+app.get('/api/passwords', requireAdminAuth, async (req, res) => {
+    try {
+        const passwords = await readPasswords();
+        res.json(passwords);
+    } catch (error) {
+        res.status(500).json({ error: 'Lỗi server' });
+    }
 });
 
-app.get('/api/love-messages', requireAdminAuth, (req, res) => {
-    const formattedMessages = [...inMemoryDB.messages].reverse().map(m => `${m.date}: ${m.message}`);
-    res.json({ messages: formattedMessages });
+// 🔐 API Đổi mật khẩu trang chính
+app.post('/api/change-site-password', requireAdminAuth, async (req, res) => {
+    try {
+        const { newPassword } = req.body;
+        if (!newPassword || newPassword.length < 3) {
+            return res.status(400).json({ error: 'Mật khẩu phải có ít nhất 3 ký tự' });
+        }
+        
+        let passwords = await Password.findOne();
+        if (!passwords) {
+            passwords = new Password();
+        }
+        passwords.sitePassword = newPassword;
+        await passwords.save();
+        
+        res.json({ success: true, message: 'Đã đổi mật khẩu trang chính thành công!' });
+    } catch (error) {
+        res.status(500).json({ error: 'Lỗi server' });
+    }
 });
 
-app.post('/api/love-messages', requireAdminAuth, (req, res) => {
-    const { message } = req.body;
-    if (!message) return res.status(400).json({ error: 'Tin nhắn là bắt buộc.' });
-    const today = new Date().toISOString().split('T')[0];
-    inMemoryDB.messages.push({ date: today, message: message.substring(0, 500) });
-    saveData(); 
-    res.json({ message: 'Tin nhắn đã được thêm thành công.' });
+// 🔐 API Đổi mật khẩu admin
+app.post('/api/change-admin-password', requireAdminAuth, async (req, res) => {
+    try {
+        const { newPassword } = req.body;
+        if (!newPassword || newPassword.length < 3) {
+            return res.status(400).json({ error: 'Mật khẩu phải có ít nhất 3 ký tự' });
+        }
+        
+        let passwords = await Password.findOne();
+        if (!passwords) {
+            passwords = new Password();
+        }
+        passwords.adminPassword = newPassword;
+        await passwords.save();
+        
+        res.json({ success: true, message: 'Đã đổi mật khẩu admin thành công!' });
+    } catch (error) {
+        res.status(500).json({ error: 'Lỗi server' });
+    }
 });
 
-// API CHO TRANG GAME
-app.get('/api/game-scores', requireSiteAuth, (req, res) => {
-    const sortedScores = [...inMemoryDB.gameScores].sort((a, b) => b.score - a.score).slice(0, 10);
-    res.json({ scores: sortedScores });
+// 💌 API Tin nhắn (Cần Site Auth)
+app.get('/api/messages', requireSiteAuth, async (req, res) => {
+    try {
+        const messages = await Message.find().sort({ timestamp: -1 }).limit(50);
+        res.json({ messages: messages.map(m => `[${m.date}] ${m.content}`) });
+    } catch (error) {
+        res.status(500).json({ error: 'Lỗi server' });
+    }
 });
 
-app.post('/api/game-score', requireSiteAuth, (req, res) => {
-    const { score, level, clicksPerMinute, playerName } = req.body;
-    if (typeof score !== 'number' || score < 1) return res.status(400).json({ error: 'Điểm không hợp lệ.' });
-    const newScore = {
-        playerName: playerName || 'Người chơi bí mật',
-        score,
-        level: level || 1,
-        clicksPerMinute: clicksPerMinute || 0,
-        date: new Date().toISOString()
-    };
-    inMemoryDB.gameScores.push(newScore);
-    saveData(); 
-    res.json({ message: 'Điểm đã được lưu thành công.' });
+app.post('/api/message', requireSiteAuth, async (req, res) => {
+    try {
+        const { date, message } = req.body;
+        if (!message || !date) {
+            return res.status(400).json({ error: 'Vui lòng điền đủ thông tin.' });
+        }
+        
+        const newMessage = new Message({ content: message, date });
+        await newMessage.save();
+        
+        res.json({ success: true, message: 'Đã lưu tin nhắn thành công!' });
+    } catch (error) {
+        res.status(500).json({ error: 'Lỗi server' });
+    }
 });
 
+// 🖼️ API Upload từ URL
+app.post('/api/upload-url', requireAdminAuth, async (req, res) => {
+    try {
+        const { imageUrl } = req.body;
+        if (!imageUrl) {
+            return res.status(400).json({ error: 'URL ảnh không được để trống' });
+        }
+        
+        await LoveImage.deleteMany({});
+        
+        const newImage = new LoveImage({ imageUrl });
+        await newImage.save();
+        
+        res.json({ success: true, message: 'Đã lưu ảnh từ URL thành công!', image: imageUrl });
+    } catch (error) {
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
 
-// --------------------------------------------------------------------------------
-// KHỞI ĐỘNG SERVER
-// --------------------------------------------------------------------------------
+// 🖼️ API Upload file
+app.post('/api/upload-file', requireAdminAuth, upload.single('image'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, error: "Không có file nào được chọn" });
+        }
+        
+        const imagePath = '/uploads/' + req.file.filename;
+        
+        await LoveImage.deleteMany({});
+        
+        const newImage = new LoveImage({ 
+            imageUrl: imagePath,
+            filename: req.file.filename
+        });
+        await newImage.save();
+        
+        res.json({ 
+            success: true, 
+            image: imagePath, 
+            message: "Đã upload ảnh thành công!",
+            filename: req.file.filename
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message || "Lỗi khi upload ảnh" });
+    }
+});
 
+// 🖼️ API lấy ảnh
+app.get('/api/love-image', requireSiteAuth, async (req, res) => {
+    try {
+        const image = await LoveImage.findOne().sort({ timestamp: -1 });
+        res.json({ image: image ? image.imageUrl : '' });
+    } catch (error) {
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
+// Phục vụ file upload
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// 🎯 ROUTING CHÍNH
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+app.get('/game', (req, res) => {
+    res.sendFile(path.join(__dirname, 'game.html'));
+});
+
+// Tuyến đường cho các trang kỷ niệm
+app.get('/tym1', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index_tym1.html'));
+});
+
+app.get('/tym2', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index_tym2.html'));
+});
+
+app.get('/tym3', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index_tym3.html'));
+});
+
+// Xử lý lỗi upload
+app.use((error, req, res, next) => {
+    if (error instanceof multer.MulterError) {
+        if (error.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ error: 'File quá lớn! Tối đa 5MB.' });
+        }
+    }
+    next(error);
+});
+
+// Route mặc định
+app.use((req, res) => {
+    res.status(404).send('Trang không tồn tại');
+});
+
+// Khởi động server
 app.listen(PORT, () => {
-    console.log(`Server is running at http://localhost:${PORT}`);
-    console.log(`Site password: ${inMemoryDB.passwords.site}`);
-    console.log(`Admin password: ${inMemoryDB.passwords.admin}`);
-    console.log("LƯU Ý: Dữ liệu được lưu trong data.json.");
+    console.log(`🚀 Server đang chạy trên port ${PORT}`);
+    console.log(`🔗 Truy cập: http://localhost:${PORT}`);
 });
