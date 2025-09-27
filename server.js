@@ -1,21 +1,18 @@
 const express = require('express');
 const path = require('path');
-// const multer = require('multer'); <--- Đã xóa Multer
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
-
-// Phục vụ file tĩnh từ thư mục HIỆN TẠI (ngang hàng với server.js)
-app.use(express.static(path.join(__dirname))); 
+app.use(express.static(path.join(__dirname)));
 
 // Bộ nhớ tạm (Lưu trữ dữ liệu chỉ tồn tại khi server chạy)
 let loveMessages = [];
-let loveImage = null; // Sẽ lưu trữ URL ảnh, không phải file
+let loveImage = null;
 
 // API: đăng nhập admin
-const ADMIN_PASSWORD = "admin123"; // Đổi mật khẩu tại đây
+const ADMIN_PASSWORD = "admin123";
 app.post('/api/login', (req, res) => {
   const { password } = req.body;
   if (password === ADMIN_PASSWORD) {
@@ -38,13 +35,13 @@ app.get('/api/love-messages', (req, res) => {
   res.json({ messages: loveMessages });
 });
 
-// API MỚI: Nhận URL ảnh từ Admin
+// API: Nhận URL ảnh từ Admin
 app.post('/api/upload-url', (req, res) => {
   const { imageUrl } = req.body;
   if (!imageUrl || !imageUrl.startsWith('http')) {
-      return res.status(400).json({ success: false, error: "URL ảnh không hợp lệ" });
+    return res.status(400).json({ success: false, error: "URL ảnh không hợp lệ" });
   }
-  loveImage = imageUrl; // Lưu trữ URL
+  loveImage = imageUrl;
   res.json({ success: true, image: loveImage, message: "Đã lưu URL ảnh thành công!" });
 });
 
@@ -55,8 +52,18 @@ app.get('/api/love-image', (req, res) => {
 
 // Route chính
 app.get('/', (req, res) => {
-    // Trả về index.html nằm ngang hàng
-    res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(PORT, () => console.log(`🚀 Server love đang chạy trên port http://localhost:${PORT}`));
+app.get('/game.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'game.html'));
+});
+
+app.get('/admin.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+// SỬA: Lắng nghe trên 0.0.0.0 để hoạt động trên Railway
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server love đang chạy trên port ${PORT}`);
+});
