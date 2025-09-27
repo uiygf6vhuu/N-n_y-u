@@ -5,12 +5,12 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-// Phục vụ file tĩnh từ thư mục public
-app.use(express.static(path.join(__dirname, 'public')));
+// Phục vụ file tĩnh ngay trong thư mục gốc
+app.use(express.static(__dirname));
 
 // Route chính
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // API trả về quotes tình yêu
