@@ -9,17 +9,18 @@ const PORT = process.env.PORT || 3000;
 // Kết nối MongoDB từ Railway
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/lovewebsite';
 
+// 1. CHỈNH SỬA TẠI ĐÂY: Tăng thời gian chờ và bỏ tùy chọn không cần thiết
 mongoose.connect(MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 30000, // Tăng thời gian chờ kết nối lên 30 giây
+    // use* options không còn cần thiết trong Mongoose 6+
 })
-.then(() => console.log('✅ Đã kết nối MongoDB thành công!'))
+.then(() => console.log('✅ Đã khởi tạo kết nối MongoDB.')) // Chữ "khởi tạo" sẽ giúp phân biệt
 .catch(err => console.error('❌ Lỗi kết nối MongoDB:', err));
 
 // Schema cho mật khẩu
 const passwordSchema = new mongoose.Schema({
-    sitePassword: { type: String, default: 'love' },
-    adminPassword: { type: String, default: 'admin' }
+    sitePassword: { type: String, default: '611181' },
+    adminPassword: { type: String, default: '611181' }
 });
 const Password = mongoose.model('Password', passwordSchema);
 
@@ -54,7 +55,7 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 // Cấu hình multer để upload file
-const storage = multer.diskStorage({
+const storage = multer.diskorage({
     destination: function (req, file, cb) {
         const uploadDir = path.join(__dirname, 'uploads');
         if (!fs.existsSync(uploadDir)) {
@@ -91,6 +92,7 @@ async function readPasswords() {
         return passwords;
     } catch (error) {
         console.error('Lỗi đọc mật khẩu từ database:', error);
+        // Trả về mặc định cứng nếu DB lỗi (để server không crash)
         return { sitePassword: 'love', adminPassword: 'admin' };
     }
 }
@@ -121,6 +123,22 @@ app.post('/api/admin-login', async (req, res) => {
         const passwords = await readPasswords();
         
         if (password === passwords.adminPassword) {
+            res.json({ success: true });
+        } else {
+            res.status(401).json({ success: false, error: 'Sai mật khẩu' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
+// 🔐 API Kiểm tra mật khẩu trang chính (Dùng cho index.html)
+app.post('/api/check-password', async (req, res) => {
+    try {
+        const { password } = req.body;
+        const passwords = await readPasswords();
+        
+        if (password === passwords.sitePassword) {
             res.json({ success: true });
         } else {
             res.status(401).json({ success: false, error: 'Sai mật khẩu' });
@@ -254,7 +272,6 @@ app.post('/api/upload-url', requireAdminAuth, async (req, res) => {
             return res.status(400).json({ error: 'URL ảnh không được để trống' });
         }
         
-        // Xóa ảnh cũ
         await LoveImage.deleteMany({});
         
         const newImage = new LoveImage({ imageUrl });
@@ -275,7 +292,6 @@ app.post('/api/upload-file', requireAdminAuth, upload.single('image'), async (re
         
         const imagePath = '/uploads/' + req.file.filename;
         
-        // Xóa ảnh cũ
         await LoveImage.deleteMany({});
         
         const newImage = new LoveImage({ 
@@ -351,7 +367,7 @@ app.get('/game', (req, res) => {
     res.sendFile(path.join(__dirname, 'game.html'));
 });
 
-// Hiệu ứng tim với ảnh
+// Tuyến đường cho các trang kỷ niệm
 app.get('/tym1', (req, res) => {
     res.sendFile(path.join(__dirname, 'index_tym1.html'));
 });
@@ -379,8 +395,24 @@ app.use((req, res) => {
     res.status(404).send('Trang không tồn tại');
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 Server đang chạy trên port ${PORT}`);
-    console.log(`🔗 Truy cập: http://localhost:${PORT}`);
-    console.log(`🗄️ Database: ${MONGODB_URI}`);
-});
+// 2. CHỈNH SỬA CUỐI CÙNG: Buộc server chờ kết nối DB
+const startServer = async () => {
+    // Chờ Mongoose báo hiệu kết nối DB đã mở thành công
+    await mongoose.connection.once('open', async () => {
+        console.log("MongoDB đã sẵn sàng. Khởi động Server...");
+        
+        // Server lắng nghe request chỉ sau khi DB đã sẵn sàng
+        app.listen(PORT, () => {
+            console.log(`🚀 Server đang chạy trên port ${PORT}`);
+            console.log(`🔗 Truy cập: http://localhost:${PORT}`);
+            console.log(`🗄️ Database: ${MONGODB_URI}`);
+        });
+    });
+    
+    // Nếu kết nối bị lỗi trong quá trình chạy
+    mongoose.connection.on('error', (err) => {
+        console.error('MongoDB connection error (Event):', err);
+    });
+};
+
+startServer();
