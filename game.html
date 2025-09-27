@@ -1,57 +1,117 @@
+[file name]: game.html
+[file content begin]
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Game Tình Yêu 💘</title>
+    <title>Game Tình Yêu Nâng Cao 💘</title>
     <link rel="stylesheet" href="style.css">
     <style>
         .game-container {
             text-align: center;
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
             padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
+        
         .heart-game {
-            font-size: 80px;
+            font-size: 100px;
             cursor: pointer;
             transition: all 0.2s;
             animation: heartbeat 1.5s infinite;
             margin: 20px 0;
+            position: relative;
         }
+        
         .heart-game:active {
             transform: scale(1.3);
         }
+        
         .score-display {
-            font-size: 2.5em;
+            font-size: 3em;
             color: #ff4757;
             font-weight: bold;
             margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
+        
         .timer-display {
-            font-size: 1.5em;
+            font-size: 1.8em;
             color: #3742fa;
             margin: 10px 0;
-        }
-        .game-message {
-            font-size: 1.3em;
-            margin: 15px 0;
-            min-height: 40px;
             font-weight: bold;
         }
-        .game-btn {
-            font-size: 1.2em;
-            padding: 12px 30px;
-            margin: 10px;
+        
+        .game-info {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
         }
-        .level-indicator {
+        
+        .info-box {
             background: linear-gradient(45deg, #ff9ff3, #f368e0);
-            padding: 5px 15px;
-            border-radius: 20px;
+            padding: 15px;
+            border-radius: 15px;
             color: white;
-            display: inline-block;
+            min-width: 150px;
             margin: 10px;
         }
-
+        
+        .game-message {
+            font-size: 1.4em;
+            margin: 20px 0;
+            min-height: 60px;
+            font-weight: bold;
+            color: #2f3542;
+        }
+        
+        .game-btn {
+            font-size: 1.3em;
+            padding: 15px 40px;
+            margin: 15px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .start-btn {
+            background: linear-gradient(45deg, #2ed573, #1dd1a1);
+            color: white;
+        }
+        
+        .restart-btn {
+            background: linear-gradient(45deg, #ff9ff3, #f368e0);
+            color: white;
+        }
+        
+        .leaderboard {
+            background: #f1f2f6;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .leaderboard h3 {
+            text-align: center;
+            color: #dc143c;
+            margin-bottom: 15px;
+        }
+        
+        .score-item {
+            background: white;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 8px;
+            border-left: 4px solid #ff6b6b;
+        }
+        
         @keyframes heartbeat {
             0% { transform: scale(1); }
             25% { transform: scale(1.1); }
@@ -59,42 +119,92 @@
             75% { transform: scale(1.1); }
             100% { transform: scale(1); }
         }
-
+        
         @keyframes pulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            50% { transform: scale(1.1); }
             100% { transform: scale(1); }
         }
-
+        
         .pulse {
-            animation: pulse 0.5s ease-in-out;
+            animation: pulse 0.3s ease-in-out;
+        }
+        
+        .combo-effect {
+            position: absolute;
+            font-size: 2em;
+            color: #ff4757;
+            font-weight: bold;
+            animation: floatUp 1s ease-out;
+        }
+        
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-100px); opacity: 0; }
+        }
+        
+        .difficulty-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .difficulty-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #ddd;
+        }
+        
+        .difficulty-dot.active {
+            background: #ff4757;
         }
     </style>
 </head>
 <body>
     <div class="game-container">
-        <h1>💘 Game Thử Thách Tình Yêu 💘</h1>
-        <p>Click thật nhanh vào trái tim để thể hiện tình yêu của bạn!</p>
+        <h1>💘 Game Thử Thách Tình Yêu Nâng Cao 💘</h1>
+        <p>Click thật nhanh vào trái tim để thể hiện tình yêu của bạn! Càng click nhiều, level càng cao!</p>
         
-        <div class="level-indicator" id="levelInfo">Cấp độ: ❤️ Mới bắt đầu</div>
-        <div class="timer-display">⏰ Thời gian: <span id="timer">30</span>s</div>
-        <div class="score-display">💝 Điểm: <span id="score">0</span></div>
+        <div class="game-info">
+            <div class="info-box">
+                <div>🎯 Level: <span id="level">1</span></div>
+                <div class="difficulty-indicator" id="difficultyIndicator"></div>
+            </div>
+            <div class="info-box">
+                <div>⏰ Thời gian: <span id="timer">30</span>s</div>
+            </div>
+            <div class="info-box">
+                <div>💝 Điểm: <span id="score">0</span></div>
+            </div>
+            <div class="info-box">
+                <div>⚡ Tốc độ: <span id="speed">0</span>/phút</div>
+            </div>
+        </div>
         
         <div class="heart-game" id="heart" onclick="clickHeart()">💖</div>
         
-        <div class="game-message" id="message">Chuẩn bị sẵn sàng...!</div>
+        <div class="game-message" id="message">Chuẩn bị sẵn sàng...! 🎮</div>
         
-        <button class="game-btn" id="startBtn" onclick="startGame()">🎮 Bắt Đầu Game</button>
-        <button class="game-btn" id="restartBtn" onclick="restartGame()" style="display:none;">🔁 Chơi Lại</button>
-        
-        <div class="game-stats" style="margin-top: 30px;">
-            <div>🏆 Điểm cao nhất: <span id="highScore">0</span></div>
-            <div>⚡ Tốc độ: <span id="speed">0</span> click/phút</div>
+        <div>
+            <button class="game-btn start-btn" id="startBtn" onclick="startGame()">🎮 Bắt Đầu Game</button>
+            <button class="game-btn restart-btn" id="restartBtn" onclick="restartGame()" style="display:none;">🔁 Chơi Lại</button>
         </div>
 
-        <div style="margin-top: 40px;">
+        <div class="leaderboard">
+            <h3>🏆 Bảng Xếp Hạng</h3>
+            <div id="leaderboardList">
+                <div class="score-item">Đang tải...</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px;">
             <a href="/" class="btn">🏠 Về Trang Chính</a>
             <a href="/admin" class="btn">🔐 Trang Admin</a>
+            <a href="/tym1" class="btn">💖 Xem Hiệu Ứng 1</a>
+            <a href="/tym2" class="btn">💖 Xem Hiệu Ứng 2</a>
+            <a href="/tym3" class="btn">💖 Xem Hiệu Ứng 3</a>
         </div>
     </div>
 
@@ -103,45 +213,124 @@
         let timeLeft = 30;
         let timer;
         let gameActive = false;
-        let highScore = localStorage.getItem('loveGameHighScore') || 0;
         let startTime;
         let clickCount = 0;
+        let currentLevel = 1;
+        let comboCount = 0;
+        let lastClickTime = 0;
+        let sitePassword = localStorage.getItem('sitePassword');
 
-        // Cấp độ và thông báo
+        // Cấp độ và độ khó
         const levels = [
-            { score: 0, name: "❤️ Mới bắt đầu", message: "Hãy bắt đầu thể hiện tình yêu!" },
-            { score: 10, name: "💖 Có cảm tình", message: "Tình yêu đang lớn dần!" },
-            { score: 25, name: "💘 Đang yêu", message: "Yêu nhau say đắm quá!" },
-            { score: 50, name: "💕 Yêu nhiều", message: "Tình yêu ngập tràn!" },
-            { score: 75, name: "💞 Yêu điên cuồng", message: "Yêu không thể kiểm soát!" },
-            { score: 100, name: "💓 Yêu vô đối", message: "Tình yêu của bạn thật tuyệt vời!" }
+            { score: 0, name: "❤️ Mới bắt đầu", speed: 1, message: "Hãy bắt đầu thể hiện tình yêu!" },
+            { score: 15, name: "💖 Có cảm tình", speed: 1.2, message: "Tình yêu đang lớn dần!" },
+            { score: 35, name: "💘 Đang yêu", speed: 1.5, message: "Yêu nhau say đắm quá!" },
+            { score: 60, name: "💕 Yêu nhiều", speed: 1.8, message: "Tình yêu ngập tràn!" },
+            { score: 90, name: "💞 Yêu điên cuồng", speed: 2.2, message: "Yêu không thể kiểm soát!" },
+            { score: 120, name: "💓 Yêu vô đối", speed: 2.5, message: "Tình yêu của bạn thật tuyệt vời!" }
         ];
 
-        document.getElementById('highScore').textContent = highScore;
+        // Khởi tạo indicator độ khó
+        function initDifficultyIndicator() {
+            const indicator = document.getElementById('difficultyIndicator');
+            indicator.innerHTML = '';
+            for (let i = 0; i < levels.length - 1; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'difficulty-dot';
+                indicator.appendChild(dot);
+            }
+        }
+
+        function updateDifficultyIndicator() {
+            const dots = document.querySelectorAll('.difficulty-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index < currentLevel - 1);
+            });
+        }
+
+        async function loadLeaderboard() {
+            if (!sitePassword) return;
+            
+            try {
+                const response = await fetch('/api/game-scores', {
+                    headers: { 'Authorization': sitePassword }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const leaderboard = document.getElementById('leaderboardList');
+                    leaderboard.innerHTML = '';
+                    
+                    if (data.scores && data.scores.length > 0) {
+                        data.scores.forEach((score, index) => {
+                            const item = document.createElement('div');
+                            item.className = 'score-item';
+                            item.innerHTML = `
+                                <strong>#${index + 1} ${score.playerName}</strong><br>
+                                Điểm: ${score.score} | Level: ${score.level} | Tốc độ: ${score.clicksPerMinute}/phút<br>
+                                <small>${new Date(score.date).toLocaleDateString('vi-VN')}</small>
+                            `;
+                            leaderboard.appendChild(item);
+                        });
+                    } else {
+                        leaderboard.innerHTML = '<div class="score-item">Chưa có điểm số nào!</div>';
+                    }
+                }
+            } catch (error) {
+                console.error('Lỗi tải leaderboard:', error);
+            }
+        }
+
+        async function saveScore() {
+            if (!sitePassword || score === 0) return;
+            
+            try {
+                await fetch('/api/game-score', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': sitePassword
+                    },
+                    body: JSON.stringify({
+                        score: score,
+                        level: currentLevel,
+                        clicksPerMinute: Math.round((clickCount / (30 - timeLeft)) * 60) || 0,
+                        playerName: 'Người chơi bí mật'
+                    })
+                });
+                loadLeaderboard();
+            } catch (error) {
+                console.error('Lỗi lưu điểm:', error);
+            }
+        }
 
         function startGame() {
             if (gameActive) return;
             
             score = 0;
             timeLeft = 30;
-            gameActive = true;
+            currentLevel = 1;
+            comboCount = 0;
             clickCount = 0;
+            gameActive = true;
             startTime = Date.now();
+            lastClickTime = Date.now();
             
             document.getElementById('score').textContent = score;
             document.getElementById('timer').textContent = timeLeft;
+            document.getElementById('level').textContent = currentLevel;
             document.getElementById('startBtn').style.display = 'none';
             document.getElementById('restartBtn').style.display = 'none';
             document.getElementById('message').textContent = "Click thật nhanh nào! 💕";
             document.getElementById('message').style.color = "#ff4757";
             
-            updateLevel();
+            initDifficultyIndicator();
+            updateDifficultyIndicator();
             
             timer = setInterval(() => {
                 timeLeft--;
                 document.getElementById('timer').textContent = timeLeft;
                 
-                // Đổi màu timer khi sắp hết giờ
                 if (timeLeft <= 10) {
                     document.getElementById('timer').style.color = "#ff4757";
                 }
@@ -158,37 +347,70 @@
                 return;
             }
             
+            const currentTime = Date.now();
+            const timeDiff = currentTime - lastClickTime;
+            
+            // Combo system
+            if (timeDiff < 300) { // Click trong vòng 300ms
+                comboCount++;
+                if (comboCount >= 3) {
+                    showComboEffect();
+                    score += 2; // Bonus điểm cho combo
+                }
+            } else {
+                comboCount = 0;
+            }
+            
             score++;
             clickCount++;
+            lastClickTime = currentTime;
+            
             document.getElementById('score').textContent = score;
             
             // Hiệu ứng
             const heart = document.getElementById('heart');
             heart.classList.add('pulse');
-            setTimeout(() => heart.classList.remove('pulse'), 500);
+            setTimeout(() => heart.classList.remove('pulse'), 300);
             
             // Tính tốc độ
-            const currentTime = Date.now();
-            const elapsedTime = (currentTime - startTime) / 1000; // giây
+            const elapsedTime = (currentTime - startTime) / 1000;
             const clicksPerMinute = Math.round((clickCount / elapsedTime) * 60);
             document.getElementById('speed').textContent = clicksPerMinute;
             
             updateLevel();
         }
 
+        function showComboEffect() {
+            const heart = document.getElementById('heart');
+            const effect = document.createElement('div');
+            effect.className = 'combo-effect';
+            effect.textContent = `COMBO x${comboCount}! +2`;
+            effect.style.left = '50%';
+            effect.style.top = '50%';
+            heart.appendChild(effect);
+            
+            setTimeout(() => {
+                heart.removeChild(effect);
+            }, 1000);
+        }
+
         function updateLevel() {
-            let currentLevel = levels[0];
+            let newLevel = 1;
             for (let level of levels) {
                 if (score >= level.score) {
-                    currentLevel = level;
+                    newLevel = levels.indexOf(level) + 1;
                 }
             }
             
-            document.getElementById('levelInfo').textContent = `Cấp độ: ${currentLevel.name}`;
-            
-            // Hiển thị thông báo đặc biệt ở một số mốc
-            if ([10, 25, 50, 75, 100].includes(score)) {
-                document.getElementById('message').textContent = currentLevel.message;
+            if (newLevel !== currentLevel) {
+                currentLevel = newLevel;
+                document.getElementById('level').textContent = currentLevel;
+                document.getElementById('message').textContent = levels[currentLevel - 1].message;
+                updateDifficultyIndicator();
+                
+                // Tăng độ khó
+                const heart = document.getElementById('heart');
+                heart.style.animationDuration = `${1.5 / levels[currentLevel - 1].speed}s`;
             }
         }
 
@@ -196,27 +418,21 @@
             clearInterval(timer);
             gameActive = false;
             
-            // Cập nhật điểm cao
-            if (score > highScore) {
-                highScore = score;
-                localStorage.setItem('loveGameHighScore', highScore);
-                document.getElementById('highScore').textContent = highScore;
-            }
+            saveScore();
             
-            // Thông báo kết quả
             let message = "";
-            if (score < 10) {
+            if (score < 20) {
                 message = "💔 Cố gắng hơn nhé! Tình yêu cần nhiều nỗ lực!";
-            } else if (score < 30) {
+            } else if (score < 50) {
                 message = "💖 Khá lắm! Tình yêu của bạn đang phát triển!";
-            } else if (score < 60) {
+            } else if (score < 100) {
                 message = "💘 Tuyệt vời! Bạn yêu thật chân thành!";
             } else {
                 message = "💕 Xuất sắc! Tình yêu của bạn thật mãnh liệt!";
             }
             
             document.getElementById('message').textContent = 
-                `Game kết thúc! ${message} Điểm: ${score}`;
+                `Game kết thúc! ${message} Điểm: ${score} | Level: ${currentLevel}`;
             document.getElementById('restartBtn').style.display = 'inline-block';
             document.getElementById('timer').style.color = "#3742fa";
         }
@@ -228,10 +444,14 @@
             document.getElementById('timer').textContent = "30";
             document.getElementById('score').textContent = "0";
             document.getElementById('speed').textContent = "0";
+            document.getElementById('level').textContent = "1";
             document.getElementById('timer').style.color = "#3742fa";
+            
+            const heart = document.getElementById('heart');
+            heart.style.animationDuration = '1.5s';
         }
 
-        // Hiệu ứng khi di chuột vào trái tim
+        // Hiệu ứng khi di chuột
         document.getElementById('heart').addEventListener('mouseover', function() {
             if (gameActive) {
                 this.style.cursor = 'pointer';
@@ -242,6 +462,17 @@
         document.getElementById('heart').addEventListener('mouseout', function() {
             this.style.transform = 'scale(1)';
         });
+
+        // Tải leaderboard khi trang load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadLeaderboard();
+            initDifficultyIndicator();
+            
+            if (!sitePassword) {
+                document.getElementById('message').textContent = '🔒 Vui lòng đăng nhập ở trang chính để lưu điểm!';
+            }
+        });
     </script>
 </body>
 </html>
+[file content end]
