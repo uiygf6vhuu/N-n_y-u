@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Kỷ Niệm Tình Yêu - [Tên Kiểu Trái Tim]</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #f0f2f5;
+            color: #333;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #dc143c;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .heart-container {
+            position: relative;
+            height: 350px; 
+            width: 350px;
+            animation: none; /* Sẽ được set bằng JS */
+            margin-bottom: 40px;
+        }
+
+        /* Khối chính tạo hình trái tim bằng CSS */
+        #heart-frame {
+            position: relative;
+            margin: auto;
+            height: 100%;
+            width: 100%;
+        }
+        #heart-frame:before, #heart-frame:after {
+            content: '';
+            position: absolute;
+            background: var(--heart-color, #dc143c); 
+            width: 175px; 
+            height: 280px;
+            border-top-left-radius: 87.5px;
+            border-top-right-radius: 87.5px;
+        }
+
+        #heart-frame:before {
+            left: 175px;
+            transform: rotate(-45deg);
+            transform-origin: 0 100%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        #heart-frame:after {
+            left: 0;
+            transform: rotate(45deg);
+            transform-origin: 100% 100%;
+        }
+
+        /* Animation của trái tim */
+        @keyframes heart-beat-strong {
+            0% { transform: scale(1); }
+            30% { transform: scale(.9); }
+            60% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        @keyframes heart-beat-light {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Khối chứa ảnh (Slideshow) */
+        .image-slideshow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 180px; 
+            height: 180px;
+            background: #fff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        .slideshow-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            position: absolute;
+            /* Animation phóng to/thu nhỏ theo nhịp tim */
+            animation: img-pulse 1s infinite; /* Sẽ được set bằng JS */
+        }
+
+        .slideshow-img.active {
+            opacity: 1;
+        }
+
+        /* Keyframes cho ảnh để đồng bộ với nhịp tim */
+        @keyframes img-pulse-strong {
+            0% { transform: scale(1); }
+            30% { transform: scale(.95); } /* Ảnh thu nhỏ nhẹ khi viền trái tim nở */
+            60% { transform: scale(1.05); } /* Ảnh phóng to nhẹ khi viền trái tim co */
+            100% { transform: scale(1); }
+        }
+        @keyframes img-pulse-light {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        
+        .back-button {
+            margin-top: 30px;
+            padding: 12px 25px;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: background 0.3s ease;
+        }
+        .back-button:hover {
+            background: #357bd8;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>💖 Kỷ Niệm Tình Yêu 💖</h1>
+    
+    <div class="heart-container" id="mainHeartContainer">
+        <div class="image-slideshow" id="slideshow">
+        </div>
+        <div id="heart-frame"></div>
+    </div>
+
+    <button class="back-button" onclick="goBackToMain()">Trở Về Trang Chính</button>
+
+    <script>
+        let slideshowInterval;
+        let currentImageIndex = 0;
+        const intervalTime = 4000; // 4 giây
+        let allImages = []; // Danh sách ảnh cho slideshow
+        let sitePassword = localStorage.getItem('sitePassword'); // Lấy mật khẩu từ localStorage
+
+        // Kiểm tra mật khẩu (đơn giản, không phải xác thực đầy đủ)
+        if (!sitePassword) {
+            alert('Bạn cần đăng nhập trước để xem các kỷ niệm!');
+            window.location.href = '/'; // Chuyển về trang đăng nhập
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadImages();
+            
+            // =========================================================
+            // THAY ĐỔI 3 DÒNG DƯỚI ĐÂY CHO TỪNG FILE TYM
+            // =========================================================
+            // Ví dụ cho index_tym1.html (Kiểu 1: Mạnh mẽ - Đỏ)
+            const heartColor = '#dc143c'; 
+            const heartAnimation = 'heart-beat-strong 1s infinite';
+            const imageAnimation = 'img-pulse-strong 1s infinite'; 
+            // ---------------------------------------------------------
+            
+            document.documentElement.style.setProperty('--heart-color', heartColor);
+            document.getElementById('mainHeartContainer').style.animation = heartAnimation;
+            document.querySelectorAll('.slideshow-img').forEach(img => {
+                img.style.animation = imageAnimation;
+            });
+        });
+
+        async function loadImages() {
+            try {
+                const imgResponse = await fetch('/api/love-image', {
+                    headers: { 'Authorization': sitePassword }
+                });
+                
+                if (imgResponse.ok) {
+                    const imgData = await imgResponse.json();
+                    
+                    if (imgData.image) {
+                        allImages = [imgData.image];
+                    }
+                }
+            } catch (error) {
+                console.error('Lỗi tải ảnh Admin:', error);
+            }
+            
+            // Thêm các ảnh mẫu vào danh sách để tạo hiệu ứng slideshow
+            allImages.push(
+                'https://picsum.photos/seed/love4/180/180',
+                'https://picsum.photos/seed/love5/180/180',
+                'https://picsum.photos/seed/love6/180/180'
+            );
+
+            // Loại bỏ trùng lặp và giữ 3 ảnh đầu tiên
+            allImages = [...new Set(allImages)].slice(0, 3);
+            createSlideshow();
+        }
+
+        function createSlideshow() {
+            const slideshowEl = document.getElementById('slideshow');
+            slideshowEl.innerHTML = '';
+            
+            allImages.forEach((url, index) => {
+                const img = document.createElement('img');
+                img.src = url;
+                img.classList.add('slideshow-img');
+                if (index === 0) {
+                    img.classList.add('active');
+                }
+                slideshowEl.appendChild(img);
+            });
+            
+            if (allImages.length > 1) {
+                if (slideshowInterval) clearInterval(slideshowInterval);
+                slideshowInterval = setInterval(nextImage, intervalTime);
+            }
+        }
+
+        function nextImage() {
+            const images = document.querySelectorAll('#slideshow .slideshow-img');
+            if (images.length === 0) return;
+            
+            images[currentImageIndex].classList.remove('active');
+            currentImageIndex = (currentImageIndex + 1) % images.length;
+            images[currentImageIndex].classList.add('active');
+        }
+
+        function goBackToMain() {
+            window.location.href = '/';
+        }
+
+    </script>
+</body>
+</html>
