@@ -45,18 +45,19 @@
             margin: 20px 0;
         }
         
-        /* 🔥 QUAN TRỌNG: Khung hình trái tim thay vì hình tròn */
+        /* 🔥 QUAN TRỌNG: Khung hình trái tim */
         .love-image-tym {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            /* HÌNH TRÁI TIM thay vì border-radius: 50% */
+            /* HÌNH TRÁI TIM */
             clip-path: path('M12 4.419c-2.826-5.695-11.999-4.064-11.999 3.27 0 7.27 9.903 10.938 11.999 15.311 2.096-4.373 12-8.041 12-15.311 0-7.327-9.17-8.972-12-3.27z');
-            transform: scale(1.1); /* Phóng to để lấp đầy hình trái tim */
+            transform: scale(1.1);
             box-shadow: 0 0 30px rgba(255, 105, 180, 0.8);
             border: 8px solid white;
             animation: heartbeat 1.5s infinite;
             display: none;
+            transition: opacity 1s ease-in-out;
         }
         
         .image-frame {
@@ -70,6 +71,33 @@
             clip-path: path('M12 4.419c-2.826-5.695-11.999-4.064-11.999 3.27 0 7.27 9.903 10.938 11.999 15.311 2.096-4.373 12-8.041 12-15.311 0-7.327-9.17-8.972-12-3.27z');
             animation: rotate 10s linear infinite;
             pointer-events: none;
+        }
+        
+        /* SLIDESHOW CONTROLS */
+        .slideshow-controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .slideshow-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .slideshow-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .slideshow-indicator {
+            color: white;
+            font-size: 0.9em;
         }
         
         @keyframes heartbeat {
@@ -124,6 +152,13 @@
             <div class="image-frame"></div>
         </div>
         
+        <div class="slideshow-controls">
+            <button class="slideshow-btn" onclick="previousImage()">⏮️</button>
+            <span class="slideshow-indicator" id="imageIndicator">1/1</span>
+            <button class="slideshow-btn" onclick="nextImage()">⏭️</button>
+            <button class="slideshow-btn" onclick="toggleSlideshow()" id="playPauseBtn">⏸️</button>
+        </div>
+        
         <p id="noImage" style="color: white; font-size: 1.2em;">
             Đang tải ảnh kỷ niệm...
         </p>
@@ -135,6 +170,13 @@
     </div>
 
     <script>
+        // Biến toàn cục cho slideshow
+        let loveImages = [];
+        let currentImageIndex = 0;
+        let slideshowInterval;
+        let isPlaying = true;
+        const slideshowDelay = 3000; // 3 giây
+
         // Code hiệu ứng trái tim gốc (giữ nguyên)
         var settings = {
             particles: {
@@ -245,17 +287,17 @@
             }, 10);
         })(document.getElementById('pinkboard'));
 
-        // 🔓 PHẦN TẢI ẢNH TỪ DATABASE
+        // 🔓 PHẦN TẢI ẢNH TỪ DATABASE - SLIDESHOW
         let sitePassword = localStorage.getItem('sitePassword');
 
-        async function loadLoveImage() {
+        async function loadLoveImages() {
             try {
                 if (!sitePassword) {
                     showError('Vui lòng đăng nhập từ trang chính!');
                     return;
                 }
 
-                const response = await fetch('/api/love-image', {
+                const response = await fetch('/api/love-images', {
                     headers: { 'Authorization': sitePassword }
                 });
 
@@ -264,18 +306,13 @@
                     const loveImage = document.getElementById('loveImage');
                     const noImage = document.getElementById('noImage');
 
-                    if (data.image) {
-                        loveImage.src = data.image;
+                    if (data.images && data.images.length > 0) {
+                        loveImages = data.images;
                         loveImage.style.display = 'block';
                         noImage.style.display = 'none';
                         
-                        loveImage.onload = function() {
-                            loveImage.style.opacity = '0';
-                            setTimeout(() => {
-                                loveImage.style.transition = 'opacity 1s ease-in-out';
-                                loveImage.style.opacity = '1';
-                            }, 100);
-                        };
+                        // Bắt đầu slideshow
+                        startSlideshow();
                     } else {
                         noImage.textContent = 'Chưa có ảnh nào được upload!';
                     }
@@ -293,12 +330,71 @@
             noImage.style.color = '#ff4757';
         }
 
+        function startSlideshow() {
+            if (loveImages.length === 0) return;
+            
+            // Hiển thị ảnh đầu tiên
+            showImage(0);
+            
+            // Bắt đầu tự động chuyển ảnh
+            if (isPlaying) {
+                slideshowInterval = setInterval(nextImage, slideshowDelay);
+            }
+        }
+
+        function showImage(index) {
+            const loveImage = document.getElementById('loveImage');
+            const indicator = document.getElementById('imageIndicator');
+            
+            // Ẩn ảnh hiện tại
+            loveImage.style.opacity = '0';
+            
+            setTimeout(() => {
+                // Thay đổi ảnh
+                loveImage.src = loveImages[index];
+                currentImageIndex = index;
+                indicator.textContent = `${index + 1}/${loveImages.length}`;
+                
+                // Hiển thị ảnh mới
+                setTimeout(() => {
+                    loveImage.style.opacity = '1';
+                }, 100);
+            }, 500);
+        }
+
+        function nextImage() {
+            if (loveImages.length === 0) return;
+            const nextIndex = (currentImageIndex + 1) % loveImages.length;
+            showImage(nextIndex);
+        }
+
+        function previousImage() {
+            if (loveImages.length === 0) return;
+            const prevIndex = (currentImageIndex - 1 + loveImages.length) % loveImages.length;
+            showImage(prevIndex);
+        }
+
+        function toggleSlideshow() {
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            
+            if (isPlaying) {
+                clearInterval(slideshowInterval);
+                playPauseBtn.textContent = '▶️';
+                isPlaying = false;
+            } else {
+                slideshowInterval = setInterval(nextImage, slideshowDelay);
+                playPauseBtn.textContent = '⏸️';
+                isPlaying = true;
+            }
+        }
+
         function logout() {
             localStorage.removeItem('sitePassword');
             window.location.href = '/';
         }
 
-        document.addEventListener('DOMContentLoaded', loadLoveImage);
+        // Tự động tải ảnh khi trang load
+        document.addEventListener('DOMContentLoaded', loadLoveImages);
     </script>
 </body>
 </html>
