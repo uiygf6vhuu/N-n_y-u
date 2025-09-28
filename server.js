@@ -6,15 +6,17 @@ const mongoose = require('mongoose');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Kết nối MongoDB đơn giản
+// Kết nối MongoDB
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/lovewebsite';
 
-// Kết nối MongoDB với xử lý lỗi tốt hơn
-mongoose.connect(MONGODB_URI)
+mongoose.connect(MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+})
 .then(() => console.log('✅ Đã kết nối MongoDB thành công'))
 .catch(err => {
     console.error('❌ Lỗi kết nối MongoDB:', err);
-    console.log('🔄 Sử dụng cơ sở dữ liệu tạm thời...');
+    // Không thoát process để chạy được mà không cần MongoDB
 });
 
 // Schema cho mật khẩu
@@ -51,14 +53,16 @@ const scoreSchema = new mongoose.Schema({
 const GameScore = mongoose.model('GameScore', scoreSchema);
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(express.static(__dirname));
 
 // Cấu hình multer
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const uploadDir = path.join(__dirname, 'uploads');
-        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
         cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
@@ -71,12 +75,15 @@ const upload = multer({
     storage: storage,
     limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter: function (req, file, cb) {
-        if (file.mimetype.startsWith('image/')) cb(null, true);
-        else cb(new Error('Chỉ được upload file ảnh!'), false);
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Chỉ được upload file ảnh!'), false);
+        }
     }
 });
 
-// 🔐 Hàm đọc mật khẩu từ database (ĐÃ SỬA)
+// Hàm đọc mật khẩu từ database
 async function readPasswords() {
     try {
         let passwords = await Password.findOne();
@@ -87,45 +94,46 @@ async function readPasswords() {
         }
         return passwords;
     } catch (error) {
-        console.log('⚠️ Sử dụng mật khẩu mặc định do lỗi database');
+        console.error('❌ Lỗi đọc mật khẩu, sử dụng mật khẩu mặc định:', error);
         return { sitePassword: '611181', adminPassword: '611181' };
     }
 }
 
-// 🔐 Middleware xác thực ĐƠN GIẢN (ĐÃ SỬA)
+// Middleware xác thực
 const requireAuth = (passwordType) => async (req, res, next) => {
     try {
         const password = req.headers['authorization'];
-        console.log(`🔐 Xác thực ${passwordType}:`, password ? 'Có mật khẩu' : 'Không có mật khẩu');
-        
+        if (!password) {
+            return res.status(401).json({ error: 'Thiếu mật khẩu' });
+        }
+
         const passwords = await readPasswords();
         const correctPassword = passwords[passwordType];
-        
+
         if (password === correctPassword) {
             next();
         } else {
-            console.log(`❌ Mật khẩu sai: Nhập "${password}", Đúng phải là "${correctPassword}"`);
             res.status(401).json({ error: 'Mật khẩu không hợp lệ' });
         }
     } catch (error) {
-        console.error('❌ Lỗi xác thực:', error);
+        console.error('Lỗi xác thực:', error);
         res.status(500).json({ error: 'Lỗi server' });
     }
 };
 
-// Middleware đơn giản cho admin
+// Middleware cho admin (tạm thời bỏ qua xác thực để dễ dàng debug)
 const requireAdminAuth = (req, res, next) => {
-    next(); // Tạm thời bỏ qua xác thực admin
+    next();
 };
 
 const requireSiteAuth = requireAuth('sitePassword');
 
-// 🔐 API Đăng nhập Admin (ĐÃ SỬA)
+// API Đăng nhập Admin
 app.post('/api/admin-login', async (req, res) => {
     try {
         const { password } = req.body;
         const passwords = await readPasswords();
-        
+
         if (password === passwords.adminPassword) {
             res.json({ success: true, message: 'Đăng nhập admin thành công' });
         } else {
@@ -136,12 +144,12 @@ app.post('/api/admin-login', async (req, res) => {
     }
 });
 
-// 🔐 API Kiểm tra mật khẩu trang chính (ĐÃ SỬA)
+// API Kiểm tra mật khẩu trang chính
 app.post('/api/check-password', async (req, res) => {
     try {
         const { password } = req.body;
         const passwords = await readPasswords();
-        
+
         if (password === passwords.sitePassword) {
             res.json({ success: true, message: 'Mật khẩu đúng' });
         } else {
@@ -152,7 +160,7 @@ app.post('/api/check-password', async (req, res) => {
     }
 });
 
-// 🔐 API Lấy thông tin mật khẩu (ĐÃ SỬA)
+// API Lấy thông tin mật khẩu
 app.get('/api/passwords', requireAdminAuth, async (req, res) => {
     try {
         const passwords = await readPasswords();
@@ -162,55 +170,49 @@ app.get('/api/passwords', requireAdminAuth, async (req, res) => {
     }
 });
 
-// 🔐 API Đổi mật khẩu trang chính (ĐÃ SỬA)
+// API Đổi mật khẩu trang chính
 app.post('/api/change-site-password', requireAdminAuth, async (req, res) => {
     try {
         const { newPassword } = req.body;
-        console.log('🔄 Đổi mật khẩu site:', newPassword);
-        
         if (!newPassword || newPassword.length < 3) {
             return res.status(400).json({ error: 'Mật khẩu phải có ít nhất 3 ký tự' });
         }
-        
+
         let passwords = await Password.findOne();
-        if (!passwords) passwords = new Password();
-        
+        if (!passwords) {
+            passwords = new Password();
+        }
         passwords.sitePassword = newPassword;
         await passwords.save();
-        
-        console.log('✅ Đã đổi mật khẩu site thành công');
+
         res.json({ success: true, message: 'Đã đổi mật khẩu trang chính thành công!' });
     } catch (error) {
-        console.error('❌ Lỗi đổi mật khẩu site:', error);
         res.status(500).json({ error: 'Lỗi server' });
     }
 });
 
-// 🔐 API Đổi mật khẩu admin (ĐÃ SỬA)
+// API Đổi mật khẩu admin
 app.post('/api/change-admin-password', requireAdminAuth, async (req, res) => {
     try {
         const { newPassword } = req.body;
-        console.log('🔄 Đổi mật khẩu admin:', newPassword);
-        
         if (!newPassword || newPassword.length < 3) {
             return res.status(400).json({ error: 'Mật khẩu phải có ít nhất 3 ký tự' });
         }
-        
+
         let passwords = await Password.findOne();
-        if (!passwords) passwords = new Password();
-        
+        if (!passwords) {
+            passwords = new Password();
+        }
         passwords.adminPassword = newPassword;
         await passwords.save();
-        
-        console.log('✅ Đã đổi mật khẩu admin thành công');
+
         res.json({ success: true, message: 'Đã đổi mật khẩu admin thành công!' });
     } catch (error) {
-        console.error('❌ Lỗi đổi mật khẩu admin:', error);
         res.status(500).json({ error: 'Lỗi server' });
     }
 });
 
-// 💌 API Tin nhắn (ĐÃ SỬA)
+// API Tin nhắn
 app.get('/api/messages', requireSiteAuth, async (req, res) => {
     try {
         const messages = await Message.find().sort({ timestamp: -1 }).limit(50);
@@ -229,57 +231,61 @@ app.post('/api/message', requireSiteAuth, async (req, res) => {
         if (!message || !date) {
             return res.status(400).json({ error: 'Vui lòng điền đủ thông tin.' });
         }
-        
+
         const newMessage = new Message({ content: message, date });
         await newMessage.save();
-        
+
         res.json({ success: true, message: 'Đã lưu tin nhắn thành công!' });
     } catch (error) {
         res.status(500).json({ error: 'Lỗi server' });
     }
 });
 
-// 🖼️ API Upload từ URL (ĐÃ SỬA)
+// API Upload từ URL
 app.post('/api/upload-url', requireAdminAuth, async (req, res) => {
     try {
         const { imageUrl } = req.body;
-        if (!imageUrl) return res.status(400).json({ error: 'URL ảnh không được để trống' });
-        
+        if (!imageUrl) {
+            return res.status(400).json({ error: 'URL ảnh không được để trống' });
+        }
+
         await LoveImage.deleteMany({});
         const newImage = new LoveImage({ imageUrl });
         await newImage.save();
-        
+
         res.json({ success: true, message: 'Đã lưu ảnh từ URL thành công!', image: imageUrl });
     } catch (error) {
         res.status(500).json({ error: 'Lỗi server' });
     }
 });
 
-// 🖼️ API Upload file (ĐÃ SỬA)
+// API Upload file
 app.post('/api/upload-file', requireAdminAuth, upload.single('image'), async (req, res) => {
     try {
-        if (!req.file) return res.status(400).json({ error: "Không có file nào được chọn" });
-        
+        if (!req.file) {
+            return res.status(400).json({ error: "Không có file nào được chọn" });
+        }
+
         const imagePath = '/uploads/' + req.file.filename;
         await LoveImage.deleteMany({});
-        
+
         const newImage = new LoveImage({ 
             imageUrl: imagePath,
             filename: req.file.filename
         });
         await newImage.save();
-        
+
         res.json({ 
             success: true, 
             image: imagePath, 
             message: "Đã upload ảnh thành công!"
         });
     } catch (error) {
-        res.status(500).json({ error: error.message || "Lỗi khi upload ảnh" });
+        res.status(500).json({ error: error.message });
     }
 });
 
-// 🖼️ API lấy ảnh (ĐÃ SỬA)
+// API lấy ảnh
 app.get('/api/love-image', requireSiteAuth, async (req, res) => {
     try {
         const image = await LoveImage.findOne().sort({ timestamp: -1 });
@@ -292,7 +298,7 @@ app.get('/api/love-image', requireSiteAuth, async (req, res) => {
     }
 });
 
-// 🎮 API Game scores
+// API Game scores
 app.get('/api/game-scores', requireSiteAuth, async (req, res) => {
     try {
         const scores = await GameScore.find().sort({ score: -1 }).limit(10);
@@ -316,25 +322,40 @@ app.post('/api/game-score', requireSiteAuth, async (req, res) => {
 // Phục vụ file upload
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// 🎯 ROUTING CHÍNH
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
-app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
-app.get('/game', (req, res) => res.sendFile(path.join(__dirname, 'game.html')));
-app.get('/tym1', (req, res) => res.sendFile(path.join(__dirname, 'index_tym1.html')));
-app.get('/tym2', (req, res) => res.sendFile(path.join(__dirname, 'index_tym2.html')));
-app.get('/tym3', (req, res) => res.sendFile(path.join(__dirname, 'index_tym3.html')));
-
-// Xử lý lỗi upload
-app.use((error, req, res, next) => {
-    if (error instanceof multer.MulterError) {
-        return res.status(400).json({ error: 'File quá lớn! Tối đa 5MB.' });
-    }
-    next(error);
+// Routing chính
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Route mặc định
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+app.get('/game', (req, res) => {
+    res.sendFile(path.join(__dirname, 'game.html'));
+});
+
+app.get('/tym1', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index_tym1.html'));
+});
+
+app.get('/tym2', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index_tym2.html'));
+});
+
+app.get('/tym3', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index_tym3.html'));
+});
+
+// Xử lý lỗi 404
 app.use((req, res) => {
     res.status(404).send('Trang không tồn tại');
+});
+
+// Xử lý lỗi tổng thể
+app.use((error, req, res, next) => {
+    console.error('Lỗi server:', error);
+    res.status(500).json({ error: 'Lỗi server nội bộ' });
 });
 
 // Khởi động server
