@@ -1,18 +1,10 @@
 {
-  "$schema": "https://docs.railway.app/schemas/railway.schema.json",
   "build": {
-    "builder": "nixpacks",
-    "buildCommand": "npm install",
-    "startCommand": "node server.js"
+    "builder": "NIXPACKS"
   },
   "deploy": {
-    "healthcheckPath": "/",
-    "restartPolicy": {
-      "maxRetries": 3,
-      "backoff": 5
-    }
-  },
-  "environment": {
-    "NODE_VERSION": "20"
+    "startCommand": "npm start",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
   }
 }
