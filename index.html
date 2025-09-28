@@ -298,10 +298,10 @@
         <p>Nơi lưu giữ những kỷ niệm đẹp nhất của tình yêu</p>
         
         <div class="menu">
-            <a href="tym1.html" class="menu-item">Trái Tim Đỏ (Cần bổ sung)</a>
-            <a href="index_tym2.html" class="menu-item">Trái Tim Hồng</a>
-            <a href="index_tym3 (1).html" class="menu-item">Trái Tim Xanh</a>
-            <a href="admin (2).html" class="menu-item">Cài Đặt</a>
+            <a href="tym1" class="menu-item">Trái Tim Đỏ (Cần bổ sung)</a>
+            <a href="index_tym2" class="menu-item">Trái Tim Hồng</a>
+            <a href="index_tym3 (1)" class="menu-item">Trái Tim Xanh</a>
+            <a href="admin (2)" class="menu-item">Cài Đặt</a>
         </div>
         
         <div class="love-info">
@@ -404,25 +404,28 @@
         function updateLoveInfo() {
             if (!loveStartDate) return;
             
-            // Tính số ngày yêu nhau (chính xác)
+            // Tính số ngày yêu nhau
             const today = new Date();
             const start = new Date(loveStartDate);
             
-            // Đặt cả hai về cùng thời điểm trong ngày (00:00:00)
+            // Đặt cả hai về cùng thời điểm trong ngày (00:00:00) để đảm bảo tính toán nhất quán
             today.setHours(0, 0, 0, 0);
             start.setHours(0, 0, 0, 0);
             
             // Tính chênh lệch thời gian (miligiây)
             const timeDiff = today.getTime() - start.getTime();
             
-            // Chuyển đổi thành ngày
+            // Chuyển đổi thành số ngày đã trôi qua
             const daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
+            
+            // Đã sửa đổi: Thêm 1 để tính ngày bắt đầu là Ngày thứ 1
+            const daysCount = daysDiff + 1;
             
             // Hiển thị thông tin
             document.getElementById('displayLoverName').textContent = loverName;
             document.getElementById('displayStartDate').textContent = formatDate(loveStartDate);
-            document.getElementById('displayDaysCount').textContent = daysDiff + ' ngày';
-            document.getElementById('daysCount').textContent = daysDiff;
+            document.getElementById('displayDaysCount').textContent = daysCount + ' ngày';
+            document.getElementById('daysCount').textContent = daysCount;
             
             // Cập nhật lại sau 24 giờ
             setTimeout(updateLoveInfo, 24 * 60 * 60 * 1000);
@@ -531,7 +534,7 @@
             }
         };
 
-        // Code hiệu ứng trái tim thu nhỏ
+        // Code hiệu ứng trái tim thu nhỏ (giữ nguyên)
         function initHeartEffect() {
             var canvas = document.getElementById('heartCanvas');
             var ctx = canvas.getContext('2d');
