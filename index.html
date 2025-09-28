@@ -194,6 +194,67 @@
             color: #74b9ff;
         }
         
+        /* Phần status */
+        .status-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+        
+        .status-section h2 {
+            color: #ff9ff3;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        #statusText {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            font-size: 16px;
+            margin-bottom: 10px;
+            resize: vertical;
+        }
+        
+        #statusText::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        #saveStatus {
+            background: linear-gradient(to right, #74b9ff, #0984e3);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        #saveStatus:hover {
+            background: linear-gradient(to right, #0984e3, #74b9ff);
+        }
+        
+        .status-display {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            border-left: 4px solid #ff6b6b;
+        }
+        
+        .status-date {
+            font-size: 0.8rem;
+            color: #ffcccb;
+            margin-top: 5px;
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             #heartContainer {
@@ -239,9 +300,9 @@
         <p>Nơi lưu giữ những kỷ niệm đẹp nhất của tình yêu</p>
         
         <div class="menu">
-            <a href="heart_red.html" class="menu-item">Trái Tim Đỏ</a>
-            <a href="heart_pink.html" class="menu-item">Trái Tim Hồng</a>
-            <a href="heart_blue.html" class="menu-item">Trái Tim Xanh</a>
+            <a href="tym1.html" class="menu-item">Trái Tim Đỏ</a>
+            <a href="tym2.html" class="menu-item">Trái Tim Hồng</a>
+            <a href="tym3.html" class="menu-item">Trái Tim Xanh</a>
             <a href="admin.html" class="menu-item">Cài Đặt</a>
         </div>
         
@@ -258,6 +319,16 @@
             <div class="info-item">
                 <span class="info-label">Số ngày yêu nhau:</span>
                 <span class="info-value" id="displayDaysCount">Đang tải...</span>
+            </div>
+        </div>
+        
+        <div class="status-section">
+            <h2>Status Tình Yêu</h2>
+            <textarea id="statusText" placeholder="Viết status tình yêu của bạn ở đây..."></textarea>
+            <button id="saveStatus">Lưu Status</button>
+            
+            <div id="statusDisplay" class="status-display">
+                <!-- Status sẽ được hiển thị ở đây -->
             </div>
         </div>
     </div>
@@ -281,7 +352,7 @@
             const password = document.getElementById('password').value;
             const message = document.getElementById('loginMessage');
             
-            // Kiểm tra thông tin đăng nhập (có thể thay bằng API thực tế)
+            // Kiểm tra thông tin đăng nhập
             if (username && password) {
                 // Lấy thông tin từ localStorage (do admin thiết lập)
                 const savedLoverName = localStorage.getItem('loverName');
@@ -290,7 +361,7 @@
                 
                 if (savedLoverName && savedStartDate) {
                     // Kiểm tra mật khẩu
-                    if (password === savedPassword || password === 'love123') { // Mật khẩu mặc định
+                    if (password === savedPassword || password === 'love123') {
                         isLoggedIn = true;
                         loverName = savedLoverName;
                         loveStartDate = new Date(savedStartDate);
@@ -302,6 +373,7 @@
                         // Khởi tạo trái tim thu nhỏ
                         initMiniHeart();
                         updateLoveInfo();
+                        loadStatus();
                         
                         // Lưu trạng thái đăng nhập
                         localStorage.setItem('isLoggedIn', 'true');
@@ -368,6 +440,77 @@
             return `${day}/${month}/${year}`;
         }
         
+        // Hàm lưu status
+        document.getElementById('saveStatus').addEventListener('click', function() {
+            const statusText = document.getElementById('statusText').value.trim();
+            if (statusText) {
+                const status = {
+                    text: statusText,
+                    date: new Date().toISOString()
+                };
+                
+                // Lấy danh sách status hiện tại
+                let statusList = JSON.parse(localStorage.getItem('loveStatus') || '[]');
+                
+                // Thêm status mới vào đầu danh sách
+                statusList.unshift(status);
+                
+                // Giới hạn chỉ lưu 10 status gần nhất
+                if (statusList.length > 10) {
+                    statusList = statusList.slice(0, 10);
+                }
+                
+                // Lưu vào localStorage
+                localStorage.setItem('loveStatus', JSON.stringify(statusList));
+                
+                // Hiển thị status
+                loadStatus();
+                
+                // Xóa nội dung textarea
+                document.getElementById('statusText').value = '';
+                
+                alert('Đã lưu status thành công!');
+            } else {
+                alert('Vui lòng nhập nội dung status!');
+            }
+        });
+        
+        // Hàm tải và hiển thị status
+        function loadStatus() {
+            const statusList = JSON.parse(localStorage.getItem('loveStatus') || '[]');
+            const statusDisplay = document.getElementById('statusDisplay');
+            
+            if (statusList.length === 0) {
+                statusDisplay.innerHTML = '<p>Chưa có status nào. Hãy viết status đầu tiên!</p>';
+                return;
+            }
+            
+            let html = '';
+            statusList.forEach(status => {
+                const date = new Date(status.date);
+                const formattedDate = formatDateTime(date);
+                html += `
+                    <div class="status-item">
+                        <p>${status.text}</p>
+                        <div class="status-date">${formattedDate}</div>
+                    </div>
+                    <hr style="margin: 10px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);">
+                `;
+            });
+            
+            statusDisplay.innerHTML = html;
+        }
+        
+        // Hàm định dạng ngày giờ
+        function formatDateTime(date) {
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            return `${hours}:${minutes} - ${day}/${month}/${year}`;
+        }
+        
         // Kiểm tra nếu đã đăng nhập trước đó
         window.onload = function() {
             if (localStorage.getItem('isLoggedIn') === 'true') {
@@ -384,6 +527,7 @@
                     document.getElementById('mainContent').classList.add('visible');
                     initMiniHeart();
                     updateLoveInfo();
+                    loadStatus();
                 } else {
                     // Nếu chưa có thông tin, hiển thị form đăng nhập
                     document.getElementById('loginMessage').textContent = 'Vui lòng nhập thông tin đăng nhập';
