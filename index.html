@@ -299,9 +299,9 @@
         
         <div class="menu">
             <a href="tym1" class="menu-item">Trái Tim Đỏ</a>
-            <a href="tym2" class="menu-item">Trái Tim Hồng</a>
-            <a href="tym3" class="menu-item">Trái Tim Xanh</a>
-            <a href="admin" class="menu-item">Cài Đặt</a>
+            <a href="index_tym2" class="menu-item">Trái Tim Hồng</a>
+            <a href="index_tym3 (1)" class="menu-item">Trái Tim Xanh</a>
+            <a href="admin (2)" class="menu-item">Cài Đặt</a>
         </div>
         
         <div class="love-info">
@@ -342,36 +342,30 @@
         let loveStartDate = null;
         let loverName = "";
         
-        // Hàm đăng nhập
+        // Hàm đăng nhập (giữ nguyên)
         function login() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const message = document.getElementById('loginMessage');
             
-            // Kiểm tra thông tin đăng nhập
             if (username && password) {
-                // Lấy thông tin từ localStorage (do admin thiết lập)
                 const savedLoverName = localStorage.getItem('loverName');
                 const savedStartDate = localStorage.getItem('startDate');
                 const savedPassword = localStorage.getItem('lovePassword');
                 
                 if (savedLoverName && savedStartDate) {
-                    // Kiểm tra mật khẩu
                     if (password === savedPassword || password === 'love123') {
                         isLoggedIn = true;
                         loverName = savedLoverName;
                         loveStartDate = new Date(savedStartDate);
                         
-                        // Ẩn form đăng nhập, hiển thị nội dung chính
                         document.getElementById('loginForm').classList.add('hidden');
                         document.getElementById('mainContent').classList.add('visible');
                         
-                        // Khởi tạo trái tim thu nhỏ
                         initMiniHeart();
                         updateLoveInfo();
                         loadStatus();
                         
-                        // Lưu trạng thái đăng nhập
                         localStorage.setItem('isLoggedIn', 'true');
                         message.textContent = '';
                     } else {
@@ -385,53 +379,43 @@
             }
         }
         
-        // Hàm khởi tạo trái tim thu nhỏ
+        // SỬA ĐỔI: Lấy ảnh Mini Heart từ mảng loveImages
         function initMiniHeart() {
-            // Lấy ảnh từ admin (nếu có)
-            const savedImage = localStorage.getItem('loveImage');
-            if (savedImage) {
-                document.getElementById('heartImage').src = savedImage;
-            } else {
-                // Ảnh mặc định
-                document.getElementById('heartImage').src = 'https://images.unsplash.com/photo-1518568814500-bf0f8d125f46?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60';
+            const savedImages = JSON.parse(localStorage.getItem('loveImages') || '[]');
+            let imageUrl = 'https://images.unsplash.com/photo-1518568814500-bf0f8d125f46?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'; // Ảnh mặc định
+
+            // Lấy ảnh đầu tiên trong mảng nếu có
+            if (savedImages.length > 0) {
+                imageUrl = savedImages[0].url;
             }
             
-            // Khởi tạo hiệu ứng trái tim thu nhỏ
+            document.getElementById('heartImage').src = imageUrl;
             initHeartEffect();
         }
         
-        // Hàm cập nhật thông tin tình yêu
+        // Hàm cập nhật thông tin tình yêu (giữ nguyên logic tính ngày chuẩn)
         function updateLoveInfo() {
             if (!loveStartDate) return;
             
-            // TÍNH TOÁN NGÀY CHÍNH XÁC (Đã bao gồm tháng, năm nhuận, vv. vì dùng chênh lệch miligiây)
             const today = new Date();
             const start = new Date(loveStartDate);
             
-            // Đặt cả hai về cùng thời điểm trong ngày (00:00:00) để đảm bảo tính toán nhất quán
             today.setHours(0, 0, 0, 0);
             start.setHours(0, 0, 0, 0);
             
-            // Tính chênh lệch thời gian (miligiây)
             const timeDiff = today.getTime() - start.getTime();
-            
-            // Chuyển đổi thành số ngày đã trôi qua
             const daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
+            const daysCount = daysDiff + 1; // Ngày thứ 1
             
-            // Thêm 1 để tính ngày bắt đầu là Ngày thứ 1
-            const daysCount = daysDiff + 1;
-            
-            // Hiển thị thông tin
             document.getElementById('displayLoverName').textContent = loverName;
             document.getElementById('displayStartDate').textContent = formatDate(loveStartDate);
             document.getElementById('displayDaysCount').textContent = daysCount + ' ngày';
             document.getElementById('daysCount').textContent = daysCount;
             
-            // Cập nhật lại sau 24 giờ
             setTimeout(updateLoveInfo, 24 * 60 * 60 * 1000);
         }
         
-        // Hàm định dạng ngày tháng
+        // ... (Các hàm formatDate, saveStatus, loadStatus, formatDateTime giữ nguyên)
         function formatDate(date) {
             const day = date.getDate().toString().padStart(2, '0');
             const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -439,8 +423,7 @@
             return `${day}/${month}/${year}`;
         }
         
-        // Hàm lưu status
-        document.getElementById('saveStatus').addEventListener('click', function() {
+        function saveStatus() {
             const statusText = document.getElementById('statusText').value.trim();
             if (statusText) {
                 const status = {
@@ -448,33 +431,26 @@
                     date: new Date().toISOString()
                 };
                 
-                // Lấy danh sách status hiện tại
                 let statusList = JSON.parse(localStorage.getItem('loveStatus') || '[]');
                 
-                // Thêm status mới vào đầu danh sách
                 statusList.unshift(status);
                 
-                // Giới hạn chỉ lưu 10 status gần nhất
                 if (statusList.length > 10) {
                     statusList = statusList.slice(0, 10);
                 }
                 
-                // Lưu vào localStorage
                 localStorage.setItem('loveStatus', JSON.stringify(statusList));
                 
-                // Hiển thị status
                 loadStatus();
                 
-                // Xóa nội dung textarea
                 document.getElementById('statusText').value = '';
                 
                 alert('Đã lưu status thành công!');
             } else {
                 alert('Vui lòng nhập nội dung status!');
             }
-        });
+        }
         
-        // Hàm tải và hiển thị status
         function loadStatus() {
             const statusList = JSON.parse(localStorage.getItem('loveStatus') || '[]');
             const statusDisplay = document.getElementById('statusDisplay');
@@ -500,7 +476,6 @@
             statusDisplay.innerHTML = html;
         }
         
-        // Hàm định dạng ngày giờ
         function formatDateTime(date) {
             const day = date.getDate().toString().padStart(2, '0');
             const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -510,10 +485,9 @@
             return `${hours}:${minutes} - ${day}/${month}/${year}`;
         }
         
-        // Kiểm tra nếu đã đăng nhập trước đó
+        // Tải thông tin khi mở trang (giữ nguyên)
         window.onload = function() {
             if (localStorage.getItem('isLoggedIn') === 'true') {
-                // Lấy thông tin từ localStorage
                 const savedLoverName = localStorage.getItem('loverName');
                 const savedStartDate = localStorage.getItem('startDate');
                 
@@ -528,7 +502,6 @@
                     updateLoveInfo();
                     loadStatus();
                 } else {
-                    // Nếu chưa có thông tin, hiển thị form đăng nhập
                     document.getElementById('loginMessage').textContent = 'Vui lòng nhập thông tin đăng nhập';
                 }
             }
