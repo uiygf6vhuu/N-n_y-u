@@ -94,11 +94,14 @@
             margin: 30px 0;
         }
         
+        /* 🔥 QUAN TRỌNG: Khung hình trái tim */
         .love-image-tym {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 50%;
+            /* HÌNH TRÁI TIM */
+            clip-path: path('M12 4.419c-2.826-5.695-11.999-4.064-11.999 3.27 0 7.27 9.903 10.938 11.999 15.311 2.096-4.373 12-8.041 12-15.311 0-7.327-9.17-8.972-12-3.27z');
+            transform: scale(1.1);
             box-shadow: 0 0 35px rgba(255, 92, 164, 0.9);
             border: 10px solid white;
             animation: heartbeat-strong 1.3s infinite;
@@ -112,7 +115,8 @@
             right: -20px;
             bottom: -20px;
             border: 4px solid #FF5CA4;
-            border-radius: 50%;
+            /* KHUNG VIỀN HÌNH TRÁI TIM */
+            clip-path: path('M12 4.419c-2.826-5.695-11.999-4.064-11.999 3.27 0 7.27 9.903 10.938 11.999 15.311 2.096-4.373 12-8.041 12-15.311 0-7.327-9.17-8.972-12-3.27z');
             animation: rotate 8s linear infinite;
             pointer-events: none;
         }
@@ -173,7 +177,6 @@
             box-shadow: 0 8px 20px rgba(255, 92, 164, 0.5);
         }
         
-        /* Tạo hiệu ứng sao lấp lánh */
         .sparkle:nth-child(1) { top: 10%; left: 20%; animation-delay: 0s; }
         .sparkle:nth-child(2) { top: 20%; right: 15%; animation-delay: 0.5s; }
         .sparkle:nth-child(3) { bottom: 30%; left: 10%; animation-delay: 1s; }
@@ -295,7 +298,6 @@
                     deltaTime = newTime - (time || newTime);
                 time = newTime;
                 
-                // Làm nền trong suốt để thấy ảnh
                 context.clearRect(0, 0, canvas.width, canvas.height);
                 
                 var amount = particleRate * deltaTime;
@@ -345,7 +347,6 @@
                         loveImage.style.display = 'block';
                         noImage.style.display = 'none';
                         
-                        // Thêm hiệu ứng khi ảnh load thành công
                         loveImage.onload = function() {
                             loveImage.style.opacity = '0';
                             setTimeout(() => {
@@ -375,7 +376,6 @@
             window.location.href = '/';
         }
 
-        // Tự động tải ảnh khi trang load
         document.addEventListener('DOMContentLoaded', loadLoveImage);
     </script>
 </body>
