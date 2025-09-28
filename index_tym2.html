@@ -175,7 +175,7 @@
     </style>
 </head>
 <body>
-    <button class="back-button" onclick="window.location.href='index.html'">← Quay lại</button>
+    <button class="back-button" onclick="window.location.href='index (4).html'">← Quay lại</button>
     
     <div class="container">
         <h1>Trái Tim Hồng</h1>
@@ -189,37 +189,34 @@
         <div class="image-info">Ảnh hiện tại: <span id="currentImageName">Đang tải...</span></div>
         
         <div class="controls">
-            <button id="changeImageBtn">Đổi Ảnh</button>
+            <button id="changeImageBtn">Đổi Ảnh Ngẫu Nhiên</button>
             <button id="uploadImageBtn">Tải Ảnh Lên</button>
             <button id="colorEffectBtn">Hiệu Ứng Màu</button>
         </div>
         
         <div class="instructions">
-            <p>Nhấp vào trái tim để đổi ảnh ngẫu nhiên</p>
-            <p>Sử dụng nút "Tải Ảnh Lên" để chọn ảnh từ thiết bị của bạn</p>
+            <p>Nhấp vào trái tim hoặc nút "Đổi Ảnh Ngẫu Nhiên" để xem các ảnh khác nhau.</p>
+            <p>Sử dụng nút "Tải Ảnh Lên" để chọn ảnh từ thiết bị của bạn.</p>
         </div>
     </div>
 
     <input type="file" id="imageUpload" accept="image/*" style="display: none;">
 
     <script>
-        // Lấy ảnh từ admin (localStorage)
+        // Lấy ảnh từ admin (localStorage) - Chỉ lấy ảnh Admin, không dùng ảnh mặc định nếu không có
         function getAdminImage() {
             const savedImage = localStorage.getItem('loveImage');
             if (savedImage) {
                 return savedImage;
             } else {
-                // Ảnh mặc định nếu chưa có ảnh từ admin
-                return 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60';
+                // Trả về một URL rỗng hoặc URL placeholder nếu không có ảnh Admin
+                return 'https://via.placeholder.com/500x500.png?text=No+Admin+Image';
             }
         }
         
-        // Danh sách ảnh mặc định
+        // Danh sách ảnh: Chỉ còn ảnh Admin. Các ảnh khác sẽ là ảnh được tải lên tạm thời.
         const imageList = [
-            { url: getAdminImage(), name: 'Ảnh từ admin' },
-            { url: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', name: 'Tình yêu đích thực' },
-            { url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', name: 'Ánh mắt trao nhau' },
-            { url: 'https://images.unsplash.com/photo-1518568814500-bf0f8d125f46?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', name: 'Cặp đôi hạnh phúc' }
+            { url: getAdminImage(), name: 'Ảnh từ admin' }
         ];
         
         let currentImageIndex = 0;
@@ -229,13 +226,15 @@
         const uploadImageBtn = document.getElementById('uploadImageBtn');
         const colorEffectBtn = document.getElementById('colorEffectBtn');
         const imageUpload = document.getElementById('imageUpload');
-        
+
         // Khởi tạo ảnh
         heartImage.src = imageList[0].url;
         currentImageName.textContent = imageList[0].name;
         
         // Hàm đổi ảnh
         function changeImage() {
+            // Logic đổi ảnh ngẫu nhiên giữa ảnh Admin và bất kỳ ảnh nào đã được tải lên
+            // Nếu chỉ có ảnh Admin, click sẽ không làm gì (hoặc có thể lặp lại chính nó)
             currentImageIndex = (currentImageIndex + 1) % imageList.length;
             heartImage.src = imageList[currentImageIndex].url;
             currentImageName.textContent = imageList[currentImageIndex].name;
@@ -253,7 +252,7 @@
         // Sự kiện click canvas trái tim
         document.getElementById('heartCanvas').addEventListener('click', changeImage);
         
-        // Sự kiện tải ảnh lên
+        // Sự kiện tải ảnh lên (Giữ lại tính năng này theo yêu cầu)
         uploadImageBtn.addEventListener('click', () => {
             imageUpload.click();
         });
@@ -263,8 +262,15 @@
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    heartImage.src = event.target.result;
-                    currentImageName.textContent = file.name;
+                    const newImageUrl = event.target.result;
+                    const newImageName = 'Tải lên: ' + file.name;
+
+                    // Thêm ảnh mới vào danh sách và đặt nó làm ảnh hiện tại
+                    imageList.push({ url: newImageUrl, name: newImageName });
+                    currentImageIndex = imageList.length - 1;
+                    
+                    heartImage.src = newImageUrl;
+                    currentImageName.textContent = newImageName;
                 };
                 reader.readAsDataURL(file);
             }
