@@ -149,7 +149,7 @@
 <script>
     // --- Bắt đầu phần JavaScript cho Trang Trái Tim Đỏ ---
 
-    // Polyfill cho requestAnimationFrame (giữ lại từ index_tym4)
+    // Polyfill cho requestAnimationFrame (giữ nguyên)
     window.requestAnimationFrame =
             window.__requestAnimationFrame ||
             window.requestAnimationFrame ||
@@ -170,25 +170,22 @@
                 };
             })();
     
-    // Phát hiện thiết bị (giữ lại từ index_tym4)
+    // Phát hiện thiết bị (giữ nguyên)
     window.isDevice = (/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(((navigator.userAgent || navigator.vendor || window.opera)).toLowerCase()));
 
-    // Lấy ảnh từ admin (localStorage) - Bỏ ảnh mặc định!
-    function getAdminImage() {
-        const savedImage = localStorage.getItem('loveImage');
-        if (savedImage) {
-            return savedImage;
+    // SỬA ĐỔI: Lấy danh sách ảnh từ localStorage
+    function getSavedImages() {
+        const savedImages = JSON.parse(localStorage.getItem('loveImages') || '[]');
+        if (savedImages.length > 0) {
+            return savedImages;
         } else {
-            // Trả về một URL placeholder nếu không có ảnh Admin
-            return 'https://via.placeholder.com/250x250.png?text=Admin+Image+Missing';
+            // Trả về ảnh placeholder nếu không có ảnh nào
+            return [{ url: 'https://via.placeholder.com/250x250.png?text=No+Images+Found', name: 'Chưa có ảnh nào' }];
         }
     }
     
-    // Danh sách ảnh: Chỉ còn ảnh Admin. Các ảnh khác là ảnh tải lên tạm thời.
-    const imageList = [
-        { url: getAdminImage(), name: 'Ảnh từ admin' }
-    ];
-
+    // Khởi tạo danh sách ảnh với ảnh đã lưu
+    let imageList = getSavedImages();
     let currentImageIndex = 0;
     const heartImage = document.getElementById('heartImage');
     const currentImageNameEl = document.getElementById('currentImageName');
@@ -216,7 +213,7 @@
     // Sự kiện click nút đổi ảnh
     changeImageBtn.addEventListener('click', changeImage);
 
-    // Sự kiện tải ảnh lên (Giữ lại tính năng này)
+    // Sự kiện tải ảnh lên (SỬA ĐỔI: Thêm vào mảng và lưu lại)
     uploadImageBtn.addEventListener('click', () => {
         imageUpload.click();
     });
@@ -229,12 +226,18 @@
                 const newImageUrl = event.target.result;
                 const newImageName = 'Tải lên: ' + file.name;
 
-                // Thêm ảnh mới vào danh sách và đặt nó làm ảnh hiện tại
+                // Thêm ảnh mới vào mảng
                 imageList.push({ url: newImageUrl, name: newImageName });
+
+                // Lưu toàn bộ mảng đã cập nhật vào localStorage
+                localStorage.setItem('loveImages', JSON.stringify(imageList));
+
+                // Hiển thị ảnh vừa tải lên và cập nhật chỉ mục
                 currentImageIndex = imageList.length - 1;
-                
                 heartImage.src = newImageUrl;
                 currentImageNameEl.textContent = newImageName;
+                
+                alert('Đã tải ảnh lên và thêm vào danh sách thành công!');
             };
             reader.readAsDataURL(file);
         }
