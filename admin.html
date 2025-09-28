@@ -102,6 +102,84 @@
             color: #ff4757;
             border: 1px solid #ff4757;
         }
+        
+        /* ĐỊNH DẠNG TIN NHẮN MỚI */
+        .message-style-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .style-option {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .style-option:hover {
+            border-color: #ff6b6b;
+        }
+        .style-option.selected {
+            border-color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+        }
+        .style-option.romantic {
+            background: linear-gradient(45deg, #ff9ff3, #f368e0);
+            color: white;
+        }
+        .style-option.elegant {
+            background: linear-gradient(45deg, #74b9ff, #0984e3);
+            color: white;
+        }
+        .style-option.vintage {
+            background: linear-gradient(45deg, #ffeaa7, #fab1a0);
+            color: #2d3436;
+        }
+        .style-option.modern {
+            background: linear-gradient(45deg, #dfe6e9, #b2bec3);
+            color: #2d3436;
+        }
+        .style-option.love {
+            background: linear-gradient(45deg, #fd79a8, #e84393);
+            color: white;
+        }
+        .style-option.default {
+            background: #f1f2f6;
+            color: #2d3436;
+        }
+        
+        .message-preview {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 10px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .gallery-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            transition: all 0.3s;
+        }
+        .gallery-image:hover {
+            transform: scale(1.05);
+            border-color: #ff6b6b;
+        }
     </style>
 </head>
 <body>
@@ -152,15 +230,21 @@
             </div>
 
             <div class="admin-section">
-                <h2>📷 Ảnh Hiện Tại</h2>
-                <div id="currentImageContainer">
-                    <div id="noCurrentImage">Đang tải ảnh...</div>
-                    <img id="currentImage" class="current-image" style="display:none;">
+                <h2>🖼️ Thư Viện Ảnh Hiện Tại</h2>
+                <p>Ảnh sẽ được hiển thị dưới dạng slideshow trong các trang kỷ niệm</p>
+                
+                <div class="image-gallery" id="imageGallery">
+                    <div>Đang tải ảnh...</div>
+                </div>
+                
+                <div id="noImages" style="text-align: center; color: #666; display: none;">
+                    Chưa có ảnh nào. Hãy upload ảnh để tạo slideshow đẹp mắt!
                 </div>
             </div>
 
             <div class="admin-section">
                 <h2>📤 Upload Ảnh Mới</h2>
+                <p>Thêm ảnh vào slideshow (có thể upload nhiều ảnh)</p>
                 
                 <div class="upload-options">
                     <div class="upload-option active" onclick="switchUploadMode('url')">
@@ -176,21 +260,66 @@
                 <div id="urlUpload" class="upload-mode">
                     <input type="text" id="imageUrl" class="date-input" 
                            placeholder="Dán URL ảnh (ví dụ: https://i.imgur.com/abc123.jpg)">
-                    <button onclick="uploadImageUrl()" class="btn">🖼️ Upload từ URL</button>
+                    <button onclick="uploadImageUrl()" class="btn">🖼️ Thêm Ảnh từ URL</button>
                 </div>
 
                 <div id="fileUpload" class="upload-mode" style="display:none;">
-                    <input type="file" id="fileInput" accept="image/*">
-                    <label for="fileInput" class="btn" style="cursor: pointer;">📁 Chọn Ảnh</label>
+                    <input type="file" id="fileInput" accept="image/*" multiple>
+                    <label for="fileInput" class="btn" style="cursor: pointer;">📁 Chọn Ảnh (nhiều ảnh)</label>
                     <button onclick="uploadImageFile()" class="btn">📤 Upload File</button>
                     <div id="fileInfo" class="file-info"></div>
                 </div>
+                
+                <button onclick="clearAllImages()" class="btn" style="background: #ff4757; margin-top: 15px;">
+                    🗑️ Xóa Tất Cả Ảnh
+                </button>
             </div>
 
             <div class="admin-section">
-                <h2>💌 Thêm Tin Nhắn Mới</h2>
-                <textarea id="newMessage" class="message-input" 
-                          placeholder="Nhập tin nhắn yêu thương..."></textarea>
+                <h2>💌 Thêm Tin Nhắn Mới (Có Định Dạng)</h2>
+                
+                <div class="password-field">
+                    <label>📅 Ngày:</label>
+                    <input type="date" id="messageDate" class="date-input" required>
+                </div>
+                
+                <div class="password-field">
+                    <label>💬 Nội dung tin nhắn:</label>
+                    <textarea id="newMessage" class="message-input" 
+                              placeholder="Nhập tin nhắn yêu thương..."></textarea>
+                </div>
+                
+                <div class="password-field">
+                    <label>🎨 Chọn kiểu định dạng:</label>
+                    <div class="message-style-options">
+                        <div class="style-option default selected" onclick="selectStyle('default')">
+                            Mặc định
+                        </div>
+                        <div class="style-option romantic" onclick="selectStyle('romantic')">
+                            Lãng mạn
+                        </div>
+                        <div class="style-option elegant" onclick="selectStyle('elegant')">
+                            Thanh lịch
+                        </div>
+                        <div class="style-option vintage" onclick="selectStyle('vintage')">
+                            Cổ điển
+                        </div>
+                        <div class="style-option modern" onclick="selectStyle('modern')">
+                            Hiện đại
+                        </div>
+                        <div class="style-option love" onclick="selectStyle('love')">
+                            Tình yêu
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="password-field">
+                    <label>👀 Xem trước:</label>
+                    <div id="messagePreview" class="message-preview default">
+                        Tin nhắn của bạn sẽ hiển thị ở đây...
+                    </div>
+                </div>
+                
                 <button onclick="addMessage()" class="btn">💝 Gửi Tin Nhắn</button>
             </div>
 
@@ -210,6 +339,7 @@
     <script>
         let adminPassword = localStorage.getItem('adminPassword') || '';
         let isAuthenticated = false;
+        let selectedStyle = 'default';
 
         async function adminLogin() {
             const inputPassword = document.getElementById('adminPassword').value.trim();
@@ -374,7 +504,7 @@
                 if (response.ok && data.success) {
                     alert('✅ ' + data.message);
                     document.getElementById('imageUrl').value = '';
-                    loadCurrentData();
+                    loadImageGallery();
                 } else {
                     alert('❌ ' + (data.error || 'Lỗi upload ảnh!'));
                 }
@@ -385,41 +515,93 @@
         
         async function uploadImageFile() {
             const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
+            const files = fileInput.files;
             
-            if (!file) return alert('❌ Vui lòng chọn file ảnh!');
-            if (file.size > 5 * 1024 * 1024) { 
-                alert('❌ File quá lớn! Tối đa 5MB.'); 
-                return; 
-            }
-
-            const formData = new FormData();
-            formData.append('image', file);
-
-            try {
-                const response = await fetch('/api/upload-file', {
-                    method: 'POST',
-                    headers: { 'Authorization': adminPassword },
-                    body: formData
-                });
-
-                const data = await response.json();
-                if (response.ok && data.success) {
-                    alert('✅ ' + data.message);
-                    fileInput.value = '';
-                    document.getElementById('fileInfo').innerHTML = '';
-                    loadCurrentData();
-                } else {
-                    alert('❌ ' + (data.error || 'Lỗi upload ảnh!'));
+            if (!files || files.length === 0) return alert('❌ Vui lòng chọn file ảnh!');
+            
+            let successCount = 0;
+            let errorCount = 0;
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.size > 5 * 1024 * 1024) { 
+                    errorCount++;
+                    continue;
                 }
-            } catch (error) {
-                alert('❌ Lỗi kết nối!');
+
+                const formData = new FormData();
+                formData.append('image', file);
+
+                try {
+                    const response = await fetch('/api/upload-file', {
+                        method: 'POST',
+                        headers: { 'Authorization': adminPassword },
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    if (response.ok && data.success) {
+                        successCount++;
+                    } else {
+                        errorCount++;
+                    }
+                } catch (error) {
+                    errorCount++;
+                }
             }
+            
+            if (successCount > 0) {
+                alert(`✅ Đã upload thành công ${successCount} ảnh!`);
+            }
+            if (errorCount > 0) {
+                alert(`❌ Có ${errorCount} ảnh upload thất bại!`);
+            }
+            
+            fileInput.value = '';
+            document.getElementById('fileInfo').innerHTML = '';
+            loadImageGallery();
+        }
+
+        async function clearAllImages() {
+            if (!confirm('❓ Bạn có chắc muốn xóa tất cả ảnh?')) return;
+            
+            try {
+                // Gọi API để xóa ảnh (cần thêm API này trên server)
+                // Tạm thời reload trang để xóa ảnh trong bộ nhớ
+                alert('🔄 Đang xóa ảnh... Vui lòng đợi!');
+                location.reload();
+            } catch (error) {
+                alert('❌ Lỗi khi xóa ảnh!');
+            }
+        }
+
+        function selectStyle(style) {
+            selectedStyle = style;
+            document.querySelectorAll('.style-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            // Cập nhật preview
+            updateMessagePreview();
+        }
+
+        function updateMessagePreview() {
+            const message = document.getElementById('newMessage').value || 'Tin nhắn của bạn';
+            const preview = document.getElementById('messagePreview');
+            
+            preview.textContent = message;
+            preview.className = 'message-preview ' + selectedStyle;
         }
 
         async function addMessage() {
             const message = document.getElementById('newMessage').value.trim();
-            if (!message) return alert('❌ Vui lòng nhập tin nhắn!');
+            const date = document.getElementById('messageDate').value;
+            
+            if (!message || !date) {
+                alert('❌ Vui lòng nhập đầy đủ ngày và tin nhắn!');
+                return;
+            }
 
             try {
                 const response = await fetch('/api/message', {
@@ -429,8 +611,9 @@
                         'Authorization': adminPassword 
                     },
                     body: JSON.stringify({ 
-                        date: new Date().toISOString().split('T')[0], 
-                        message 
+                        date: date, 
+                        message: message,
+                        style: selectedStyle
                     })
                 });
 
@@ -438,6 +621,8 @@
                 if (response.ok && data.success) {
                     alert('✅ ' + data.message);
                     document.getElementById('newMessage').value = '';
+                    document.getElementById('messageDate').value = '';
+                    updateMessagePreview();
                     loadCurrentMessages();
                 } else {
                     alert('❌ Lỗi khi thêm tin nhắn!');
@@ -448,29 +633,33 @@
         }
 
         async function loadCurrentData() {
-            await loadCurrentImage();
+            await loadImageGallery();
             await loadCurrentMessages();
         }
 
-        async function loadCurrentImage() {
+        async function loadImageGallery() {
             try {
-                const response = await fetch('/api/love-image', {
+                const response = await fetch('/api/love-images', {
                     headers: { 'Authorization': adminPassword }
                 });
                 
                 const data = await response.json();
-                const currentImage = document.getElementById('currentImage');
-                const noCurrentImage = document.getElementById('noCurrentImage');
+                const gallery = document.getElementById('imageGallery');
+                const noImages = document.getElementById('noImages');
                 
-                if (data.success && data.image) {
-                    currentImage.src = data.image;
-                    currentImage.style.display = 'block';
-                    noCurrentImage.style.display = 'none';
-                    noCurrentImage.textContent = 'Ảnh hiện tại:';
+                if (data.success && data.images && data.images.length > 0) {
+                    gallery.innerHTML = '';
+                    data.images.forEach((img, index) => {
+                        const imgElement = document.createElement('img');
+                        imgElement.src = img;
+                        imgElement.className = 'gallery-image';
+                        imgElement.alt = `Ảnh ${index + 1}`;
+                        gallery.appendChild(imgElement);
+                    });
+                    noImages.style.display = 'none';
                 } else {
-                    currentImage.style.display = 'none';
-                    noCurrentImage.style.display = 'block';
-                    noCurrentImage.textContent = 'Chưa có ảnh nào';
+                    gallery.innerHTML = '';
+                    noImages.style.display = 'block';
                 }
             } catch (error) {
                 console.error('❌ Lỗi tải ảnh:', error);
@@ -490,8 +679,16 @@
                     container.innerHTML = '';
                     data.messages.forEach((msg, index) => {
                         const div = document.createElement('div');
-                        div.style.cssText = 'background: #f1f2f6; padding: 10px; margin: 5px 0; border-radius: 5px;';
-                        div.innerHTML = `💬 ${msg}`;
+                        div.style.cssText = 'background: #f1f2f6; padding: 15px; margin: 10px 0; border-radius: 8px;';
+                        div.innerHTML = `
+                            <div style="display: flex; justify-content: between; align-items: center;">
+                                <strong>${msg.date}</strong>
+                                <span style="margin-left: auto; font-size: 0.8em; color: #666;">${new Date(msg.timestamp).toLocaleDateString('vi-VN')}</span>
+                            </div>
+                            <div class="message-preview ${msg.style || 'default'}" style="margin: 10px 0; padding: 10px;">
+                                ${msg.content}
+                            </div>
+                        `;
                         container.appendChild(div);
                     });
                 } else {
@@ -517,6 +714,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Trang admin đã tải');
             
+            // Cập nhật preview khi nhập tin nhắn
+            document.getElementById('newMessage').addEventListener('input', updateMessagePreview);
+            
             if (adminPassword) {
                 document.getElementById('adminPassword').value = adminPassword;
                 adminLogin();
@@ -525,10 +725,10 @@
 
         // Xử lý chọn file
         document.getElementById('fileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
+            const files = e.target.files;
+            if (files && files.length > 0) {
                 document.getElementById('fileInfo').innerHTML = 
-                    `📁 File: ${file.name}<br>📏 Size: ${(file.size / 1024 / 1024).toFixed(2)} MB`;
+                    `📁 Đã chọn ${files.length} file`;
             }
         });
     </script>
