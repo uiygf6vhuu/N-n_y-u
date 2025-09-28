@@ -298,10 +298,10 @@
         <p>Nơi lưu giữ những kỷ niệm đẹp nhất của tình yêu</p>
         
         <div class="menu">
-            <a href="tym1" class="menu-item">Trái Tim Đỏ (Cần bổ sung)</a>
-            <a href="index_tym2" class="menu-item">Trái Tim Hồng</a>
-            <a href="index_tym3 (1)" class="menu-item">Trái Tim Xanh</a>
-            <a href="admin (2)" class="menu-item">Cài Đặt</a>
+            <a href="tym1" class="menu-item">Trái Tim Đỏ</a>
+            <a href="tym2" class="menu-item">Trái Tim Hồng</a>
+            <a href="tym3" class="menu-item">Trái Tim Xanh</a>
+            <a href="admin" class="menu-item">Cài Đặt</a>
         </div>
         
         <div class="love-info">
@@ -404,7 +404,7 @@
         function updateLoveInfo() {
             if (!loveStartDate) return;
             
-            // Tính số ngày yêu nhau
+            // TÍNH TOÁN NGÀY CHÍNH XÁC (Đã bao gồm tháng, năm nhuận, vv. vì dùng chênh lệch miligiây)
             const today = new Date();
             const start = new Date(loveStartDate);
             
@@ -418,7 +418,7 @@
             // Chuyển đổi thành số ngày đã trôi qua
             const daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
             
-            // Đã sửa đổi: Thêm 1 để tính ngày bắt đầu là Ngày thứ 1
+            // Thêm 1 để tính ngày bắt đầu là Ngày thứ 1
             const daysCount = daysDiff + 1;
             
             // Hiển thị thông tin
