@@ -20,6 +20,7 @@
             align-items: center;
             overflow: hidden;
             color: white;
+            padding: 20px;
         }
         
         .container {
@@ -41,11 +42,14 @@
             font-size: 2.5rem;
         }
         
-        .heart-container {
+        .heart-frame {
             position: relative;
-            width: 300px;
-            height: 300px;
+            width: 400px;
+            height: 400px;
             margin: 0 auto 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         
         #heartCanvas {
@@ -67,16 +71,13 @@
         }
         
         #heartImage {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
             width: 70%;
             height: 70%;
             object-fit: cover;
             border-radius: 50%;
             z-index: 2;
             border: 3px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
         
         .controls {
@@ -123,6 +124,20 @@
             font-size: 0.9rem;
         }
         
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 107, 107, 0.8);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            z-index: 100;
+        }
+        
         .pulse {
             animation: pulse 2s infinite;
         }
@@ -142,9 +157,9 @@
                 font-size: 2rem;
             }
             
-            .heart-container {
-                width: 250px;
-                height: 250px;
+            .heart-frame {
+                width: 300px;
+                height: 300px;
             }
             
             .controls {
@@ -160,16 +175,18 @@
     </style>
 </head>
 <body>
+    <button class="back-button" onclick="window.location.href='index.html'">← Quay lại</button>
+    
     <div class="container">
         <h1>Trái Tim Đỏ</h1>
         <p class="subtitle">Tình yêu nồng cháy và mãnh liệt</p>
         
-        <div class="heart-container">
+        <div class="heart-frame">
             <canvas id="heartCanvas" class="pulse"></canvas>
-            <img id="heartImage" src="https://images.unsplash.com/photo-1518568814500-bf0f8d125f46?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="Ảnh tình yêu">
+            <img id="heartImage" src="" alt="Ảnh tình yêu">
         </div>
         
-        <div class="image-info">Ảnh hiện tại: <span id="currentImageName">Cặp đôi hạnh phúc</span></div>
+        <div class="image-info">Ảnh hiện tại: <span id="currentImageName">Đang tải...</span></div>
         
         <div class="controls">
             <button id="changeImageBtn">Đổi Ảnh</button>
@@ -186,9 +203,20 @@
     <input type="file" id="imageUpload" accept="image/*" style="display: none;">
 
     <script>
+        // Lấy ảnh từ admin (localStorage)
+        function getAdminImage() {
+            const savedImage = localStorage.getItem('loveImage');
+            if (savedImage) {
+                return savedImage;
+            } else {
+                // Ảnh mặc định nếu chưa có ảnh từ admin
+                return 'https://images.unsplash.com/photo-1518568814500-bf0f8d125f46?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60';
+            }
+        }
+        
         // Danh sách ảnh mặc định
         const imageList = [
-            { url: 'https://images.unsplash.com/photo-1518568814500-bf0f8d125f46?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', name: 'Cặp đôi hạnh phúc' },
+            { url: getAdminImage(), name: 'Ảnh từ admin' },
             { url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', name: 'Khoảnh khắc lãng mạn' },
             { url: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', name: 'Tình yêu đích thực' },
             { url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', name: 'Ánh mắt trao nhau' }
@@ -201,6 +229,10 @@
         const uploadImageBtn = document.getElementById('uploadImageBtn');
         const colorEffectBtn = document.getElementById('colorEffectBtn');
         const imageUpload = document.getElementById('imageUpload');
+        
+        // Khởi tạo ảnh
+        heartImage.src = imageList[0].url;
+        currentImageName.textContent = imageList[0].name;
         
         // Hàm đổi ảnh
         function changeImage() {
@@ -268,8 +300,8 @@
             var koef = mobile ? 0.5 : 1;
             var canvas = document.getElementById('heartCanvas');
             var ctx = canvas.getContext('2d');
-            var width = canvas.width = 300;
-            var height = canvas.height = 300;
+            var width = canvas.width = 400;
+            var height = canvas.height = 400;
             var rand = Math.random;
             
             ctx.fillStyle = "rgba(0,0,0,0)";
@@ -288,11 +320,11 @@
             var i;
             var dr = mobile ? 0.3 : 0.1;
             for (i = 0; i < Math.PI * 2; i += dr) 
+                pointsOrigin.push(scaleAndTranslate(heartPosition(i), 70, 4, 0, 0));
+            for (i = 0; i < Math.PI * 2; i += dr) 
                 pointsOrigin.push(scaleAndTranslate(heartPosition(i), 50, 3, 0, 0));
             for (i = 0; i < Math.PI * 2; i += dr) 
-                pointsOrigin.push(scaleAndTranslate(heartPosition(i), 35, 2, 0, 0));
-            for (i = 0; i < Math.PI * 2; i += dr) 
-                pointsOrigin.push(scaleAndTranslate(heartPosition(i), 20, 1, 0, 0));
+                pointsOrigin.push(scaleAndTranslate(heartPosition(i), 30, 2, 0, 0));
                 
             var heartPointsCount = pointsOrigin.length;
 
