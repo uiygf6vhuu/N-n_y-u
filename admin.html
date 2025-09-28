@@ -2,735 +2,210 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Admin - Trang Quản Trị Bí Mật 🔒</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Thiết lập thông tin tình yêu</title>
     <style>
-        .admin-section {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 25px;
-            border-radius: 15px;
-            margin: 20px 0;
-            border: 2px solid #ff6b6b;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .login-box {
-            text-align: center;
-            max-width: 400px;
-            margin: 50px auto;
-        }
-        .password-input {
-            font-size: 1.2em;
-            padding: 12px;
-            width: 100%;
-            margin: 15px 0;
-        }
-        .upload-options {
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
             display: flex;
-            gap: 20px;
-            margin: 20px 0;
-        }
-        .upload-option {
-            flex: 1;
+            justify-content: center;
+            align-items: center;
+            color: white;
             padding: 20px;
-            border: 2px dashed #ff6b6b;
-            border-radius: 10px;
+        }
+        
+        .container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(255, 107, 107, 0.5);
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        h1 {
+            color: #ff6b6b;
             text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ffcccb;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+        }
+        
+        button {
+            background: linear-gradient(to right, #ff6b6b, #ff8e8e);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
             cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
             transition: all 0.3s;
         }
-        .upload-option:hover {
-            background: rgba(255, 107, 107, 0.1);
+        
+        button:hover {
+            background: linear-gradient(to right, #ff5252, #ff6b6b);
         }
-        .upload-option.active {
-            background: rgba(255, 107, 107, 0.2);
-            border-style: solid;
-        }
-        #fileInput {
+        
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
             display: none;
         }
-        .file-info {
-            margin-top: 10px;
-            font-size: 0.9em;
-            color: #666;
+        
+        .success {
+            background: rgba(0, 255, 0, 0.2);
+            color: lightgreen;
+            display: block;
         }
-        .current-image {
-            max-width: 200px;
-            border-radius: 10px;
-            margin: 10px 0;
+        
+        .error {
+            background: rgba(255, 0, 0, 0.2);
+            color: lightcoral;
+            display: block;
         }
-        .password-section {
-            background: linear-gradient(45deg, #ff9ff3, #f368e0);
-            color: white;
-        }
-        .password-section h2 {
-            color: white;
-        }
-        .password-form {
-            display: grid;
-            gap: 15px;
+        
+        .instructions {
             margin-top: 20px;
-        }
-        .password-field {
-            display: flex;
-            flex-direction: column;
-        }
-        .password-field label {
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .current-password-display {
-            background: #fff;
-            color: #333;
-            padding: 10px;
-            border-radius: 5px;
-            font-weight: normal;
-            margin-top: 5px;
-        }
-        .status-message {
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
-            text-align: center;
-            font-weight: bold;
-        }
-        .status-success {
-            background: rgba(46, 213, 115, 0.2);
-            color: #2ed573;
-            border: 1px solid #2ed573;
-        }
-        .status-error {
-            background: rgba(255, 71, 87, 0.2);
-            color: #ff4757;
-            border: 1px solid #ff4757;
-        }
-        
-        /* ĐỊNH DẠNG TIN NHẮN MỚI */
-        .message-style-options {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin: 15px 0;
-        }
-        .style-option {
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .style-option:hover {
-            border-color: #ff6b6b;
-        }
-        .style-option.selected {
-            border-color: #ff6b6b;
-            background: rgba(255, 107, 107, 0.1);
-        }
-        .style-option.romantic {
-            background: linear-gradient(45deg, #ff9ff3, #f368e0);
-            color: white;
-        }
-        .style-option.elegant {
-            background: linear-gradient(45deg, #74b9ff, #0984e3);
-            color: white;
-        }
-        .style-option.vintage {
-            background: linear-gradient(45deg, #ffeaa7, #fab1a0);
-            color: #2d3436;
-        }
-        .style-option.modern {
-            background: linear-gradient(45deg, #dfe6e9, #b2bec3);
-            color: #2d3436;
-        }
-        .style-option.love {
-            background: linear-gradient(45deg, #fd79a8, #e84393);
-            color: white;
-        }
-        .style-option.default {
-            background: #f1f2f6;
-            color: #2d3436;
-        }
-        
-        .message-preview {
-            margin: 15px 0;
             padding: 15px;
+            background: rgba(255, 107, 107, 0.2);
             border-radius: 10px;
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            font-weight: bold;
-        }
-        
-        .image-gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 10px;
-            margin: 15px 0;
-        }
-        .gallery-image {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 8px;
-            border: 2px solid #ddd;
-            transition: all 0.3s;
-        }
-        .gallery-image:hover {
-            transform: scale(1.05);
-            border-color: #ff6b6b;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="loginScreen" class="login-box">
-            <h1>🔒 Đăng Nhập Admin</h1>
-            <p>Vui lòng nhập mật khẩu admin:</p>
-            <input type="password" id="adminPassword" class="password-input" placeholder="Nhập mật khẩu admin" value="611181">
-            <button onclick="adminLogin()" class="btn" style="width: 100%;">🔑 Đăng Nhập</button>
-            <p id="adminLoginMessage" style="color: red; margin-top: 10px;"></p>
-            <p style="color: #666; font-size: 0.9em;">
-                💡 Mật khẩu mặc định: <strong>611181</strong>
-            </p>
+        <h1>Thiết Lập Thông Tin Tình Yêu</h1>
+        
+        <div class="form-group">
+            <label for="loverName">Tên người yêu:</label>
+            <input type="text" id="loverName" placeholder="Nhập tên người yêu">
         </div>
-
-        <div id="adminContent" style="display: none;">
-            <h1>👑 Trang Quản Trị Bí Mật</h1>
-            
-            <div class="admin-section password-section">
-                <h2>🔐 Quản Lý Mật Khẩu</h2>
-                <p>Thay đổi mật khẩu truy cập các trang</p>
-                
-                <div class="password-form">
-                    <div class="password-field">
-                        <label>🔒 Mật Khẩu Trang Chính Hiện Tại:</label>
-                        <div id="currentSitePassword" class="current-password-display">Đang tải...</div>
-                        <label>🔄 Đổi Mật Khẩu Trang Chính</label>
-                        <input type="password" id="newSitePassword" class="date-input" 
-                               placeholder="Nhập mật khẩu mới cho trang chính">
-                        <button onclick="changeSitePassword()" class="btn" style="margin-top: 10px;">
-                            💾 Lưu Mật Khẩu Trang Chính
-                        </button>
-                    </div>
-                    
-                    <div class="password-field">
-                        <label>🔑 Mật Khẩu Admin Hiện Tại:</label>
-                        <div id="currentAdminPasswordDisplay" class="current-password-display">Đang tải...</div>
-                        <label>🔒 Đổi Mật Khẩu Admin</label>
-                        <input type="password" id="newAdminPassword" class="date-input" 
-                               placeholder="Nhập mật khẩu admin mới">
-                        <button onclick="changeAdminPassword()" class="btn" style="margin-top: 10px;">
-                            🔑 Lưu Mật Khẩu Admin
-                        </button>
-                    </div>
-                </div>
-                
-                <div id="passwordMessage" class="status-message"></div>
-            </div>
-
-            <div class="admin-section">
-                <h2>🖼️ Thư Viện Ảnh Hiện Tại</h2>
-                <p>Ảnh sẽ được hiển thị dưới dạng slideshow trong các trang kỷ niệm</p>
-                
-                <div class="image-gallery" id="imageGallery">
-                    <div>Đang tải ảnh...</div>
-                </div>
-                
-                <div id="noImages" style="text-align: center; color: #666; display: none;">
-                    Chưa có ảnh nào. Hãy upload ảnh để tạo slideshow đẹp mắt!
-                </div>
-            </div>
-
-            <div class="admin-section">
-                <h2>📤 Upload Ảnh Mới</h2>
-                <p>Thêm ảnh vào slideshow (có thể upload nhiều ảnh)</p>
-                
-                <div class="upload-options">
-                    <div class="upload-option active" onclick="switchUploadMode('url')">
-                        <h3>🌐 URL Ảnh</h3>
-                        <p>Dán link ảnh từ internet</p>
-                    </div>
-                    <div class="upload-option" onclick="switchUploadMode('file')">
-                        <h3>📁 File từ máy</h3>
-                        <p>Tải ảnh từ thiết bị</p>
-                    </div>
-                </div>
-
-                <div id="urlUpload" class="upload-mode">
-                    <input type="text" id="imageUrl" class="date-input" 
-                           placeholder="Dán URL ảnh (ví dụ: https://i.imgur.com/abc123.jpg)">
-                    <button onclick="uploadImageUrl()" class="btn">🖼️ Thêm Ảnh từ URL</button>
-                </div>
-
-                <div id="fileUpload" class="upload-mode" style="display:none;">
-                    <input type="file" id="fileInput" accept="image/*" multiple>
-                    <label for="fileInput" class="btn" style="cursor: pointer;">📁 Chọn Ảnh (nhiều ảnh)</label>
-                    <button onclick="uploadImageFile()" class="btn">📤 Upload File</button>
-                    <div id="fileInfo" class="file-info"></div>
-                </div>
-                
-                <button onclick="clearAllImages()" class="btn" style="background: #ff4757; margin-top: 15px;">
-                    🗑️ Xóa Tất Cả Ảnh
-                </button>
-            </div>
-
-            <div class="admin-section">
-                <h2>💌 Thêm Tin Nhắn Mới (Có Định Dạng)</h2>
-                
-                <div class="password-field">
-                    <label>📅 Ngày:</label>
-                    <input type="date" id="messageDate" class="date-input" required>
-                </div>
-                
-                <div class="password-field">
-                    <label>💬 Nội dung tin nhắn:</label>
-                    <textarea id="newMessage" class="message-input" 
-                              placeholder="Nhập tin nhắn yêu thương..."></textarea>
-                </div>
-                
-                <div class="password-field">
-                    <label>🎨 Chọn kiểu định dạng:</label>
-                    <div class="message-style-options">
-                        <div class="style-option default selected" onclick="selectStyle('default')">
-                            Mặc định
-                        </div>
-                        <div class="style-option romantic" onclick="selectStyle('romantic')">
-                            Lãng mạn
-                        </div>
-                        <div class="style-option elegant" onclick="selectStyle('elegant')">
-                            Thanh lịch
-                        </div>
-                        <div class="style-option vintage" onclick="selectStyle('vintage')">
-                            Cổ điển
-                        </div>
-                        <div class="style-option modern" onclick="selectStyle('modern')">
-                            Hiện đại
-                        </div>
-                        <div class="style-option love" onclick="selectStyle('love')">
-                            Tình yêu
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="password-field">
-                    <label>👀 Xem trước:</label>
-                    <div id="messagePreview" class="message-preview default">
-                        Tin nhắn của bạn sẽ hiển thị ở đây...
-                    </div>
-                </div>
-                
-                <button onclick="addMessage()" class="btn">💝 Gửi Tin Nhắn</button>
-            </div>
-
-            <div class="admin-section">
-                <h2>📋 Tin Nhắn Hiện Tại</h2>
-                <div id="currentMessages">Đang tải...</div>
-            </div>
-
-            <div class="navigation" style="text-align: center; margin-top: 30px;">
-                <a href="/" class="btn">🏠 Về Trang Chính</a>
-                <a href="/game" class="btn">🎮 Chơi Game</a>
-                <button onclick="logout()" class="btn" style="background: #ff4757;">🚪 Đăng Xuất</button>
-            </div>
+        
+        <div class="form-group">
+            <label for="startDate">Ngày bắt đầu yêu:</label>
+            <input type="date" id="startDate">
+        </div>
+        
+        <div class="form-group">
+            <label for="lovePassword">Mật khẩu đăng nhập:</label>
+            <input type="password" id="lovePassword" placeholder="Nhập mật khẩu">
+        </div>
+        
+        <div class="form-group">
+            <label for="loveImage">URL ảnh tình yêu (tùy chọn):</label>
+            <input type="text" id="loveImage" placeholder="Dán URL ảnh từ internet">
+        </div>
+        
+        <button onclick="saveSettings()">Lưu Thiết Lập</button>
+        
+        <div id="message" class="message"></div>
+        
+        <div class="instructions">
+            <p><strong>Hướng dẫn:</strong></p>
+            <p>- Nhập thông tin tình yêu của bạn</p>
+            <p>- Ngày bắt đầu yêu sẽ dùng để tính số ngày yêu nhau</p>
+            <p>- Mật khẩu dùng để đăng nhập vào trang chính</p>
+            <p>- URL ảnh sẽ hiển thị bên trong trái tim</p>
         </div>
     </div>
 
     <script>
-        let adminPassword = localStorage.getItem('adminPassword') || '';
-        let isAuthenticated = false;
-        let selectedStyle = 'default';
-
-        async function adminLogin() {
-            const inputPassword = document.getElementById('adminPassword').value.trim();
-            const messageElement = document.getElementById('adminLoginMessage');
-
-            if (!inputPassword) {
-                messageElement.textContent = 'Vui lòng nhập mật khẩu!';
+        function saveSettings() {
+            const loverName = document.getElementById('loverName').value;
+            const startDate = document.getElementById('startDate').value;
+            const lovePassword = document.getElementById('lovePassword').value;
+            const loveImage = document.getElementById('loveImage').value;
+            const messageEl = document.getElementById('message');
+            
+            // Kiểm tra thông tin bắt buộc
+            if (!loverName || !startDate || !lovePassword) {
+                messageEl.textContent = 'Vui lòng điền đầy đủ thông tin bắt buộc!';
+                messageEl.className = 'message error';
                 return;
             }
-
-            try {
-                console.log('🔐 Đang đăng nhập admin...');
-                const response = await fetch('/api/admin-login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: inputPassword })
-                });
-
-                const data = await response.json();
-                console.log('📨 Phản hồi admin:', data);
-
-                if (response.ok && data.success) {
-                    isAuthenticated = true;
-                    adminPassword = inputPassword;
-                    localStorage.setItem('adminPassword', adminPassword);
-                    
-                    messageElement.textContent = '✅ Đăng nhập admin thành công!';
-                    messageElement.style.color = 'green';
-                    
-                    setTimeout(() => {
-                        document.getElementById('loginScreen').style.display = 'none';
-                        document.getElementById('adminContent').style.display = 'block';
-                        loadCurrentData();
-                        loadCurrentPasswords();
-                    }, 1000);
-
-                } else {
-                    messageElement.textContent = '❌ ' + (data.error || 'Sai mật khẩu admin');
-                    messageElement.style.color = 'red';
-                }
-            } catch (error) {
-                console.error('❌ Lỗi đăng nhập admin:', error);
-                messageElement.textContent = '❌ Lỗi kết nối server';
-                messageElement.style.color = 'red';
-            }
-        }
-
-        async function loadCurrentPasswords() {
-            try {
-                const response = await fetch('/api/passwords', {
-                    headers: { 'Authorization': adminPassword }
-                });
-                
-                const data = await response.json();
-                console.log('🔐 Mật khẩu từ server:', data);
-                
-                if (data.sitePassword) {
-                    document.getElementById('currentSitePassword').textContent = data.sitePassword;
-                }
-                if (data.adminPassword) {
-                    document.getElementById('currentAdminPasswordDisplay').textContent = data.adminPassword;
-                }
-                
-            } catch (error) {
-                console.error('❌ Lỗi tải mật khẩu:', error);
-                showPasswordMessage('❌ Lỗi tải thông tin mật khẩu!', 'error');
-            }
-        }
-        
-        async function changeSitePassword() {
-            const newPassword = document.getElementById('newSitePassword').value.trim();
-            if (!newPassword || newPassword.length < 3) {
-                showPasswordMessage('❌ Mật khẩu phải có ít nhất 3 ký tự!', 'error');
+            
+            // Kiểm tra ngày hợp lệ
+            const selectedDate = new Date(startDate);
+            const today = new Date();
+            if (selectedDate > today) {
+                messageEl.textContent = 'Ngày bắt đầu không thể là ngày trong tương lai!';
+                messageEl.className = 'message error';
                 return;
             }
-
-            try {
-                const response = await fetch('/api/change-site-password', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': adminPassword 
-                    },
-                    body: JSON.stringify({ newPassword })
-                });
-
-                const data = await response.json();
-                if (response.ok && data.success) {
-                    showPasswordMessage('✅ ' + data.message, 'success');
-                    document.getElementById('newSitePassword').value = '';
-                    loadCurrentPasswords();
-                } else {
-                    showPasswordMessage('❌ ' + (data.error || 'Lỗi khi đổi mật khẩu'), 'error');
-                }
-            } catch (error) {
-                showPasswordMessage('❌ Lỗi kết nối!', 'error');
+            
+            // Lưu thông tin vào localStorage
+            localStorage.setItem('loverName', loverName);
+            localStorage.setItem('startDate', startDate);
+            localStorage.setItem('lovePassword', lovePassword);
+            
+            if (loveImage) {
+                localStorage.setItem('loveImage', loveImage);
             }
+            
+            // Hiển thị thông báo thành công
+            messageEl.textContent = 'Đã lưu thiết lập thành công!';
+            messageEl.className = 'message success';
+            
+            // Ẩn thông báo sau 3 giây
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 3000);
         }
         
-        async function changeAdminPassword() {
-            const newPassword = document.getElementById('newAdminPassword').value.trim();
+        // Tải thông tin đã lưu (nếu có)
+        window.onload = function() {
+            const savedLoverName = localStorage.getItem('loverName');
+            const savedStartDate = localStorage.getItem('startDate');
+            const savedLovePassword = localStorage.getItem('lovePassword');
+            const savedLoveImage = localStorage.getItem('loveImage');
             
-            if (!newPassword || newPassword.length < 3) {
-                showPasswordMessage('❌ Mật khẩu phải có ít nhất 3 ký tự!', 'error');
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/change-admin-password', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': adminPassword
-                    },
-                    body: JSON.stringify({ newPassword })
-                });
-
-                const data = await response.json();
-                if (response.ok && data.success) {
-                    showPasswordMessage('✅ ' + data.message, 'success');
-                    document.getElementById('newAdminPassword').value = '';
-                    adminPassword = newPassword;
-                    localStorage.setItem('adminPassword', adminPassword);
-                    loadCurrentPasswords();
-                } else {
-                    showPasswordMessage('❌ ' + (data.error || 'Lỗi khi đổi mật khẩu'), 'error');
-                }
-            } catch (error) {
-                showPasswordMessage('❌ Lỗi kết nối!', 'error');
-            }
-        }
-
-        function showPasswordMessage(message, type) {
-            const messageElement = document.getElementById('passwordMessage');
-            messageElement.textContent = message;
-            messageElement.className = `status-message ${type === 'success' ? 'status-success' : 'status-error'}`;
-            setTimeout(() => { messageElement.textContent = ''; messageElement.className = 'status-message'; }, 5000);
-        }
-
-        function switchUploadMode(mode) {
-            document.getElementById('urlUpload').style.display = mode === 'url' ? 'block' : 'none';
-            document.getElementById('fileUpload').style.display = mode === 'file' ? 'block' : 'none';
-            document.querySelectorAll('.upload-option').forEach(opt => opt.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-        }
-
-        async function uploadImageUrl() {
-            const imageUrl = document.getElementById('imageUrl').value.trim();
-            if (!imageUrl) return alert('❌ Vui lòng nhập URL ảnh!');
-
-            try {
-                const response = await fetch('/api/upload-url', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': adminPassword
-                    },
-                    body: JSON.stringify({ imageUrl })
-                });
-
-                const data = await response.json();
-                if (response.ok && data.success) {
-                    alert('✅ ' + data.message);
-                    document.getElementById('imageUrl').value = '';
-                    loadImageGallery();
-                } else {
-                    alert('❌ ' + (data.error || 'Lỗi upload ảnh!'));
-                }
-            } catch (error) {
-                alert('❌ Lỗi kết nối!');
-            }
-        }
-        
-        async function uploadImageFile() {
-            const fileInput = document.getElementById('fileInput');
-            const files = fileInput.files;
-            
-            if (!files || files.length === 0) return alert('❌ Vui lòng chọn file ảnh!');
-            
-            let successCount = 0;
-            let errorCount = 0;
-            
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                if (file.size > 5 * 1024 * 1024) { 
-                    errorCount++;
-                    continue;
-                }
-
-                const formData = new FormData();
-                formData.append('image', file);
-
-                try {
-                    const response = await fetch('/api/upload-file', {
-                        method: 'POST',
-                        headers: { 'Authorization': adminPassword },
-                        body: formData
-                    });
-
-                    const data = await response.json();
-                    if (response.ok && data.success) {
-                        successCount++;
-                    } else {
-                        errorCount++;
-                    }
-                } catch (error) {
-                    errorCount++;
-                }
+            if (savedLoverName) {
+                document.getElementById('loverName').value = savedLoverName;
             }
             
-            if (successCount > 0) {
-                alert(`✅ Đã upload thành công ${successCount} ảnh!`);
-            }
-            if (errorCount > 0) {
-                alert(`❌ Có ${errorCount} ảnh upload thất bại!`);
+            if (savedStartDate) {
+                document.getElementById('startDate').value = savedStartDate;
             }
             
-            fileInput.value = '';
-            document.getElementById('fileInfo').innerHTML = '';
-            loadImageGallery();
-        }
-
-        async function clearAllImages() {
-            if (!confirm('❓ Bạn có chắc muốn xóa tất cả ảnh?')) return;
+            if (savedLovePassword) {
+                document.getElementById('lovePassword').value = savedLovePassword;
+            }
             
-            try {
-                // Gọi API để xóa ảnh (cần thêm API này trên server)
-                // Tạm thời reload trang để xóa ảnh trong bộ nhớ
-                alert('🔄 Đang xóa ảnh... Vui lòng đợi!');
-                location.reload();
-            } catch (error) {
-                alert('❌ Lỗi khi xóa ảnh!');
+            if (savedLoveImage) {
+                document.getElementById('loveImage').value = savedLoveImage;
             }
-        }
-
-        function selectStyle(style) {
-            selectedStyle = style;
-            document.querySelectorAll('.style-option').forEach(opt => {
-                opt.classList.remove('selected');
-            });
-            event.currentTarget.classList.add('selected');
-            
-            // Cập nhật preview
-            updateMessagePreview();
-        }
-
-        function updateMessagePreview() {
-            const message = document.getElementById('newMessage').value || 'Tin nhắn của bạn';
-            const preview = document.getElementById('messagePreview');
-            
-            preview.textContent = message;
-            preview.className = 'message-preview ' + selectedStyle;
-        }
-
-        async function addMessage() {
-            const message = document.getElementById('newMessage').value.trim();
-            const date = document.getElementById('messageDate').value;
-            
-            if (!message || !date) {
-                alert('❌ Vui lòng nhập đầy đủ ngày và tin nhắn!');
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/message', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json', 
-                        'Authorization': adminPassword 
-                    },
-                    body: JSON.stringify({ 
-                        date: date, 
-                        message: message,
-                        style: selectedStyle
-                    })
-                });
-
-                const data = await response.json();
-                if (response.ok && data.success) {
-                    alert('✅ ' + data.message);
-                    document.getElementById('newMessage').value = '';
-                    document.getElementById('messageDate').value = '';
-                    updateMessagePreview();
-                    loadCurrentMessages();
-                } else {
-                    alert('❌ Lỗi khi thêm tin nhắn!');
-                }
-            } catch (error) {
-                alert('❌ Lỗi kết nối!');
-            }
-        }
-
-        async function loadCurrentData() {
-            await loadImageGallery();
-            await loadCurrentMessages();
-        }
-
-        async function loadImageGallery() {
-            try {
-                const response = await fetch('/api/love-images', {
-                    headers: { 'Authorization': adminPassword }
-                });
-                
-                const data = await response.json();
-                const gallery = document.getElementById('imageGallery');
-                const noImages = document.getElementById('noImages');
-                
-                if (data.success && data.images && data.images.length > 0) {
-                    gallery.innerHTML = '';
-                    data.images.forEach((img, index) => {
-                        const imgElement = document.createElement('img');
-                        imgElement.src = img;
-                        imgElement.className = 'gallery-image';
-                        imgElement.alt = `Ảnh ${index + 1}`;
-                        gallery.appendChild(imgElement);
-                    });
-                    noImages.style.display = 'none';
-                } else {
-                    gallery.innerHTML = '';
-                    noImages.style.display = 'block';
-                }
-            } catch (error) {
-                console.error('❌ Lỗi tải ảnh:', error);
-            }
-        }
-
-        async function loadCurrentMessages() {
-            try {
-                const response = await fetch('/api/messages', {
-                    headers: { 'Authorization': adminPassword }
-                });
-                
-                const data = await response.json();
-                const container = document.getElementById('currentMessages');
-                
-                if (data.success && data.messages && data.messages.length > 0) {
-                    container.innerHTML = '';
-                    data.messages.forEach((msg, index) => {
-                        const div = document.createElement('div');
-                        div.style.cssText = 'background: #f1f2f6; padding: 15px; margin: 10px 0; border-radius: 8px;';
-                        div.innerHTML = `
-                            <div style="display: flex; justify-content: between; align-items: center;">
-                                <strong>${msg.date}</strong>
-                                <span style="margin-left: auto; font-size: 0.8em; color: #666;">${new Date(msg.timestamp).toLocaleDateString('vi-VN')}</span>
-                            </div>
-                            <div class="message-preview ${msg.style || 'default'}" style="margin: 10px 0; padding: 10px;">
-                                ${msg.content}
-                            </div>
-                        `;
-                        container.appendChild(div);
-                    });
-                } else {
-                    container.innerHTML = '<p>Chưa có tin nhắn nào.</p>';
-                }
-            } catch (error) {
-                console.error('❌ Lỗi tải tin nhắn:', error);
-                container.innerHTML = '<p>❌ Lỗi tải tin nhắn</p>';
-            }
-        }
-        
-        function logout() {
-            isAuthenticated = false;
-            adminPassword = '';
-            localStorage.removeItem('adminPassword');
-            document.getElementById('loginScreen').style.display = 'block';
-            document.getElementById('adminContent').style.display = 'none';
-            document.getElementById('adminPassword').value = '611181';
-            document.getElementById('adminLoginMessage').textContent = '';
-        }
-
-        // Tự động chạy khi tải trang
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Trang admin đã tải');
-            
-            // Cập nhật preview khi nhập tin nhắn
-            document.getElementById('newMessage').addEventListener('input', updateMessagePreview);
-            
-            if (adminPassword) {
-                document.getElementById('adminPassword').value = adminPassword;
-                adminLogin();
-            }
-        });
-
-        // Xử lý chọn file
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const files = e.target.files;
-            if (files && files.length > 0) {
-                document.getElementById('fileInfo').innerHTML = 
-                    `📁 Đã chọn ${files.length} file`;
-            }
-        });
+        };
     </script>
 </body>
 </html>
