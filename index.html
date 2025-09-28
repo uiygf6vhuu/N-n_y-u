@@ -5,9 +5,6 @@
     <title>Trang Tình Yêu Bí Mật 💕</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* ----------------------------------------------------------------------------------
-         * CSS ĐĂNG NHẬP / TRANG CHÍNH
-         * ---------------------------------------------------------------------------------- */
         .login-container {
             max-width: 400px;
             margin: 100px auto;
@@ -16,7 +13,7 @@
             padding: 40px;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            z-index: 100; /* Luôn nổi trên hiệu ứng tym4 */
+            z-index: 100;
             position: absolute;
             top: 50%;
             left: 50%;
@@ -66,25 +63,8 @@
             margin: 10px auto;
             max-width: 300px;
         }
-
-        /* ----------------------------------------------------------------------------------
-         * CSS CHO HIỆU ỨNG TYM 4 (Gốc từ index4.html)
-         * ---------------------------------------------------------------------------------- */
         #tym4-frame {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #000;
-            z-index: 1; /* Nằm dưới form login */
-        }
-        #tym4-canvas {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
+            display: none; /* Tạm ẩn hiệu ứng */
         }
     </style>
 </head>
@@ -96,9 +76,12 @@
     <div id="loginScreen" class="login-container">
         <h1>🔒 Chào Mừng!</h1>
         <p>Đây là trang kỷ niệm riêng của chúng ta. Vui lòng nhập mật khẩu:</p>
-        <input type="password" id="sitePassword" class="password-input" placeholder="Mật khẩu bí mật">
+        <input type="password" id="sitePassword" class="password-input" placeholder="Mật khẩu bí mật" value="611181">
         <button class="btn" onclick="login()">🔐 Đăng Nhập</button>
         <p id="loginMessage" style="color: red; margin-top: 10px;"></p>
+        <p style="color: #666; font-size: 0.9em; margin-top: 10px;">
+            💡 Mật khẩu mặc định: <strong>611181</strong>
+        </p>
     </div>
 
     <div id="mainContent" class="container" style="display: none;">
@@ -114,73 +97,96 @@
         <div class="admin-section">
             <h2>📜 Nhật Ký Tình Yêu</h2>
             <ul id="messageList" class="message-list">
-                </ul>
+                <!-- Tin nhắn sẽ được tải ở đây -->
+            </ul>
         </div>
         
         <div class="tym-links">
             <h2>✨ Khám Phá Các Kỷ Niệm (Có Ảnh)</h2>
             <p>Chọn một kiểu trái tim để xem ảnh kỷ niệm (Ảnh đã upload ở trang Admin):</p>
-            <a href="/tym1" class="btn" target="_blank" style="background: linear-gradient(45deg, #dc143c, #b3002d);">Viền 1 (Mạnh mẽ)</a>
-            <a href="/tym2" class="btn" target="_blank" style="background: linear-gradient(45deg, #ff69b4, #e84c8e);">Viền 2 (Bay nhẹ)</a>
-            <a href="/tym3" class="btn" target="_blank" style="background: linear-gradient(45deg, #9370db, #7b59bf);">Viền 3 (Cổ điển)</a>
+            <a href="/tym1" class="btn" style="background: linear-gradient(45deg, #dc143c, #b3002d);">Viền 1 (Mạnh mẽ)</a>
+            <a href="/tym2" class="btn" style="background: linear-gradient(45deg, #ff69b4, #e84c8e);">Viền 2 (Bay nhẹ)</a>
+            <a href="/tym3" class="btn" style="background: linear-gradient(45deg, #9370db, #7b59bf);">Viền 3 (Cổ điển)</a>
             <a href="/game" class="btn" style="background: #2ed573; margin-top: 15px;">🎮 Chơi Game Tim</a>
         </div>
 
         <div class="navigation">
-            <a href="/admin" class="btn" target="_blank" style="background: #3742fa;">⚙️ Trang Admin</a>
+            <a href="/admin" class="btn" style="background: #3742fa;">⚙️ Trang Admin</a>
             <button class="btn" onclick="logout()" style="background: #ff4757;">🚪 Khóa Trang</button>
         </div>
     </div>
 
     <script>
-        // Mật khẩu sẽ được lưu trong localStorage sau khi đăng nhập thành công
         let sitePassword = localStorage.getItem('sitePassword') || '';
         let isAuthenticated = false;
 
         async function login() {
-            const inputPassword = document.getElementById('sitePassword').value;
+            const inputPassword = document.getElementById('sitePassword').value.trim();
             const messageElement = document.getElementById('loginMessage');
 
+            if (!inputPassword) {
+                messageElement.textContent = 'Vui lòng nhập mật khẩu!';
+                return;
+            }
+
             try {
+                console.log('🔐 Đang đăng nhập với mật khẩu:', inputPassword);
+                
                 // Thử gọi API để xác thực mật khẩu
                 const response = await fetch('/api/messages', {
-                    headers: { 'Authorization': inputPassword }
+                    headers: { 
+                        'Authorization': inputPassword,
+                        'Content-Type': 'application/json'
+                    }
                 });
 
-                if (response.ok) {
+                const data = await response.json();
+                console.log('📨 Phản hồi từ server:', data);
+
+                if (response.ok && data.success) {
                     isAuthenticated = true;
                     sitePassword = inputPassword;
                     localStorage.setItem('sitePassword', sitePassword);
-                    messageElement.textContent = 'Đăng nhập thành công! 🎉';
+                    
+                    messageElement.textContent = '✅ Đăng nhập thành công!';
+                    messageElement.style.color = 'green';
+                    
                     setTimeout(() => {
                         document.getElementById('loginScreen').style.display = 'none';
                         document.getElementById('mainContent').style.display = 'block';
-                        loadMessages(); 
-                    }, 500);
+                        loadMessages();
+                    }, 1000);
 
-                    // Thu nhỏ hiệu ứng tym4 để nội dung chính nổi bật
-                    document.getElementById('tym4-frame').style.display = 'none'; // Tắt tym4 đi để dễ đọc
                 } else {
-                    messageElement.textContent = 'Mật khẩu không đúng. Vui lòng thử lại.';
+                    messageElement.textContent = '❌ ' + (data.error || 'Mật khẩu không đúng');
+                    messageElement.style.color = 'red';
                 }
             } catch (error) {
-                console.error('Lỗi đăng nhập:', error);
-                messageElement.textContent = 'Lỗi kết nối server.';
+                console.error('❌ Lỗi đăng nhập:', error);
+                messageElement.textContent = '❌ Lỗi kết nối server. Vui lòng thử lại.';
+                messageElement.style.color = 'red';
             }
         }
 
         async function loadMessages() {
             if (!isAuthenticated) return;
+            
             try {
+                console.log('📥 Đang tải tin nhắn...');
                 const response = await fetch('/api/messages', {
-                    headers: { 'Authorization': sitePassword }
+                    headers: { 
+                        'Authorization': sitePassword,
+                        'Content-Type': 'application/json'
+                    }
                 });
                 
                 const data = await response.json();
+                console.log('📨 Tin nhắn từ server:', data);
+                
                 const list = document.getElementById('messageList');
                 list.innerHTML = '';
                 
-                if (data.messages && data.messages.length > 0) {
+                if (data.success && data.messages && data.messages.length > 0) {
                     data.messages.reverse().forEach(msg => {
                         const li = document.createElement('li');
                         li.className = 'message-item';
@@ -188,19 +194,21 @@
                         list.appendChild(li);
                     });
                 } else {
-                    list.innerHTML = '<li class="no-content">Hãy là người đầu tiên gửi tin nhắn!</li>';
+                    list.innerHTML = '<li class="no-content">Hãy là người đầu tiên gửi tin nhắn yêu thương! 💕</li>';
                 }
             } catch (error) {
-                console.error('Lỗi tải tin nhắn:', error);
+                console.error('❌ Lỗi tải tin nhắn:', error);
+                const list = document.getElementById('messageList');
+                list.innerHTML = '<li class="no-content">❌ Lỗi tải tin nhắn. Vui lòng thử lại.</li>';
             }
         }
 
         async function postMessage() {
             const date = document.getElementById('dateInput').value;
-            const message = document.getElementById('messageInput').value;
+            const message = document.getElementById('messageInput').value.trim();
             
             if (!date || !message) {
-                alert('Vui lòng chọn ngày và nhập tin nhắn.');
+                alert('❌ Vui lòng chọn ngày và nhập tin nhắn.');
                 return;
             }
 
@@ -214,41 +222,38 @@
                     body: JSON.stringify({ date, message })
                 });
 
-                if (response.ok) {
-                    alert('Đã gửi tin nhắn thành công! ❤️');
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    alert('✅ Đã gửi tin nhắn thành công! ❤️');
                     document.getElementById('messageInput').value = '';
-                    loadMessages(); // Tải lại danh sách
+                    loadMessages();
                 } else {
-                    const errorData = await response.json();
-                    alert('Lỗi: ' + (errorData.error || 'Không thể gửi tin nhắn.'));
+                    alert('❌ Lỗi: ' + (data.error || 'Không thể gửi tin nhắn.'));
                 }
             } catch (error) {
-                console.error('Lỗi gửi tin nhắn:', error);
-                alert('Lỗi kết nối server.');
+                console.error('❌ Lỗi gửi tin nhắn:', error);
+                alert('❌ Lỗi kết nối server.');
             }
         }
 
         function logout() {
             isAuthenticated = false;
             sitePassword = '';
-            localStorage.removeItem('sitePassword'); // Xóa mật khẩu khỏi localStorage
+            localStorage.removeItem('sitePassword');
             document.getElementById('loginScreen').style.display = 'block';
             document.getElementById('mainContent').style.display = 'none';
-            document.getElementById('sitePassword').value = '';
-            
-            // Phục hồi hiệu ứng tym4 về full màn hình
-            document.getElementById('tym4-frame').style.display = 'block'; 
+            document.getElementById('sitePassword').value = '611181';
+            document.getElementById('loginMessage').textContent = '';
         }
 
         // Tự động kiểm tra đăng nhập khi tải trang
         document.addEventListener('DOMContentLoaded', () => {
-            initTym4();
+            console.log('🚀 Trang đã tải xong');
+            
             if (sitePassword) {
-                // Thử đăng nhập tự động
                 document.getElementById('sitePassword').value = sitePassword;
                 login();
-            } else {
-                document.getElementById('mainContent').style.display = 'none';
             }
         });
 
@@ -257,15 +262,11 @@
             if (e.key === 'Enter') login();
         });
 
-        // ----------------------------------------------------------------------------------
-        // CODE HIỆU ỨNG TYM 4 (Gốc từ index4.html)
-        // ----------------------------------------------------------------------------------
+        // Tạm ẩn hiệu ứng Tym4
         function initTym4() {
-            // Tạm thời vô hiệu hóa hiệu ứng tym4 vì không có code
-            console.log('Tym4 effect is disabled due to missing code.');
-            // Ẩn khung tym4
             document.getElementById('tym4-frame').style.display = 'none';
         }
+        initTym4();
     </script>
 </body>
 </html>
