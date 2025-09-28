@@ -7,9 +7,6 @@ const PORT = process.env.PORT || 3000;
 
 console.log('🚀 Khởi động server...');
 
-// TẮT MONGODB - SỬ DỤNG BỘ NHỚ TRONG RAM
-console.log('🗄️ Chế độ không database - sử dụng bộ nhớ RAM');
-
 // Lưu trữ dữ liệu trong RAM
 let storage = {
     passwords: {
@@ -17,7 +14,7 @@ let storage = {
         adminPassword: '611181'
     },
     messages: [],
-    loveImage: null,
+    loveImages: [], // THAY ĐỔI: Lưu nhiều ảnh cho slideshow
     gameScores: []
 };
 
@@ -250,7 +247,7 @@ app.get('/api/messages', requireSiteAuth, (req, res) => {
         
         res.json({ 
             success: true,
-            messages: storage.messages.map(msg => `${msg.date}: ${msg.content}`) 
+            messages: storage.messages
         });
     } catch (error) {
         console.error('❌ Lỗi lấy tin nhắn:', error.message);
@@ -263,7 +260,7 @@ app.get('/api/messages', requireSiteAuth, (req, res) => {
 
 app.post('/api/message', requireSiteAuth, (req, res) => {
     try {
-        const { date, message } = req.body;
+        const { date, message, style } = req.body; // THÊM THAM SỐ STYLE
         console.log('💌 Yêu cầu gửi tin nhắn:', date);
         
         if (!message || !date) {
@@ -276,6 +273,7 @@ app.post('/api/message', requireSiteAuth, (req, res) => {
         storage.messages.push({
             content: message,
             date: date,
+            style: style || 'default', // LƯU KIỂU ĐỊNH DẠNG
             timestamp: new Date()
         });
 
@@ -311,12 +309,13 @@ app.post('/api/upload-url', requireAdminAuth, (req, res) => {
             });
         }
 
-        storage.loveImage = imageUrl;
+        // THÊM ẢNH VÀO MẢNG (KHÔNG XÓA ẢNH CŨ)
+        storage.loveImages.push(imageUrl);
         
-        console.log('✅ Đã lưu ảnh từ URL thành công');
+        console.log('✅ Đã thêm ảnh từ URL thành công');
         res.json({ 
             success: true, 
-            message: 'Đã lưu ảnh từ URL thành công!', 
+            message: 'Đã thêm ảnh từ URL thành công!', 
             image: imageUrl 
         });
     } catch (error) {
@@ -341,7 +340,8 @@ app.post('/api/upload-file', requireAdminAuth, upload.single('image'), (req, res
         }
 
         const imagePath = '/uploads/' + req.file.filename;
-        storage.loveImage = imagePath;
+        // THÊM ẢNH VÀO MẢNG (KHÔNG XÓA ẢNH CŨ)
+        storage.loveImages.push(imagePath);
         
         console.log('✅ Đã upload ảnh từ file thành công:', imagePath);
         res.json({ 
@@ -358,14 +358,23 @@ app.post('/api/upload-file', requireAdminAuth, upload.single('image'), (req, res
     }
 });
 
-// 🖼️ API lấy ảnh
-app.get('/api/love-image', requireSiteAuth, (req, res) => {
+// 🖼️ API lấy DANH SÁCH ẢNH (THAY ĐỔI: trả về mảng ảnh)
+app.get('/api/love-images', requireSiteAuth, (req, res) => {
     try {
-        console.log('🖼️ Yêu cầu lấy ảnh');
+        console.log('🖼️ Yêu cầu lấy danh sách ảnh');
+        
+        // Nếu không có ảnh, thêm ảnh mặc định
+        if (storage.loveImages.length === 0) {
+            storage.loveImages = [
+                'https://picsum.photos/seed/love1/400/400',
+                'https://picsum.photos/seed/love2/400/400',
+                'https://picsum.photos/seed/love3/400/400'
+            ];
+        }
         
         res.json({ 
             success: true,
-            image: storage.loveImage || '' 
+            images: storage.loveImages 
         });
     } catch (error) {
         console.error('❌ Lỗi lấy ảnh:', error.message);
@@ -491,6 +500,7 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`🔗 Truy cập: http://localhost:${PORT}`);
     console.log('💾 Chế độ: Lưu trữ bộ nhớ RAM (không cần database)');
     console.log('🔐 Mật khẩu mặc định: 611181');
+    console.log('🖼️ Slideshow ảnh: Đã kích hoạt');
 });
 
 // Xử lý tắt server
