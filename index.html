@@ -286,7 +286,7 @@
 <body>
     <div id="loginForm">
         <h2>Đăng Nhập Tình Yêu</h2>
-        <p>Nhập mật khẩu do Admin cung cấp</p>
+        <p>Nhập mật khẩu trang chính do Admin cung cấp</p>
         <input type="password" id="sitePassword" placeholder="Mật khẩu trang chính">
         <button onclick="login()">Đăng Nhập</button>
         <p id="loginMessage" style="color: red; margin-top: 10px; font-size: 14px;"></p>
@@ -298,9 +298,8 @@
         
         <div class="menu">
             <a href="tym1" class="menu-item">Trái Tim Đỏ</a>
-            <a href="index_tym2" class="menu-item">Trái Tim Hồng</a>
-            <a href="index_tym3 (1)" class="menu-item">Trái Tim Xanh</a>
-            <a href="admin (2)" class="menu-item">Cài Đặt</a>
+            <a href="tym2" class="menu-item">Trái Tim Hồng</a>
+            <a href="tym3" class="menu-item">Trái Tim Xanh</a>
         </div>
         
         <div class="love-info">
@@ -337,8 +336,8 @@
     <div id="loveDays">Ngày thứ: <span id="daysCount">0</span></div>
 
     <script>
-        let loveStartDate = null;
-        let sitePassword = ''; // Mật khẩu trang chính được lưu tạm thời
+        // Biến toàn cục
+        let sitePassword = ''; // Dùng làm Auth Token cho các API
         
         // Hàm đăng nhập (SỬA ĐỔI: Dùng API kiểm tra mật khẩu)
         async function login() {
@@ -357,12 +356,14 @@
                     sitePassword = password; // Lưu mật khẩu để dùng làm Auth cho các API khác
                     localStorage.setItem('sitePassword', password);
                     
-                    // Lấy thông tin cục bộ
+                    // Lấy thông tin cục bộ (Tên người yêu, Ngày bắt đầu)
+                    const savedLoverName = localStorage.getItem('loverName') || 'Người yêu';
                     const savedStartDate = localStorage.getItem('startDate');
-                    loveStartDate = new Date(savedStartDate);
                     
                     document.getElementById('loginForm').classList.add('hidden');
                     document.getElementById('mainContent').classList.add('visible');
+                    
+                    document.getElementById('displayLoverName').textContent = savedLoverName;
                     
                     initMiniHeart();
                     updateLoveInfo();
@@ -377,17 +378,19 @@
         
         // Hàm khởi tạo trái tim thu nhỏ (SỬA ĐỔI: Dùng API lấy ảnh)
         async function initMiniHeart() {
+            const currentAuth = sitePassword || localStorage.getItem('sitePassword') || 'dummy';
+            
             try {
                 const response = await fetch('/api/love-images', {
                     method: 'GET',
-                    headers: { 'Authorization': sitePassword || localStorage.getItem('sitePassword') || 'dummy' }
+                    headers: { 'Authorization': currentAuth }
                 });
                 const data = await response.json();
                 
                 let imageUrl = 'https://images.unsplash.com/photo-1518568814500-bf0f8d125f46?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60';
                 
                 if (data.success && data.images && data.images.length > 0) {
-                    imageUrl = data.images[0]; // Lấy ảnh đầu tiên
+                    imageUrl = data.images[0]; // Lấy ảnh đầu tiên trong mảng
                 }
                 
                 document.getElementById('heartImage').src = imageUrl;
@@ -412,6 +415,7 @@
                  return;
             }
 
+            // Logic tính ngày chính xác (tự động xử lý năm nhuận/tháng)
             const today = new Date();
             const start = new Date(savedStartDate);
             
@@ -428,18 +432,12 @@
             setTimeout(updateLoveInfo, 24 * 60 * 60 * 1000);
         }
         
-        // Hàm định dạng ngày tháng (giữ nguyên)
-        function formatDate(date) {
-            const day = date.getDate().toString().padStart(2, '0');
-            const month = (date.getMonth() + 1).toString().padStart(2, '0');
-            const year = date.getFullYear();
-            return `${day}/${month}/${year}`;
-        }
-        
         // Hàm lưu status (SỬA ĐỔI: Dùng API gửi tin nhắn)
         document.getElementById('saveStatus').addEventListener('click', async function() {
             const statusText = document.getElementById('statusText').value.trim();
-            if (!statusText || !sitePassword) {
+            const currentAuth = sitePassword || localStorage.getItem('sitePassword');
+
+            if (!statusText || !currentAuth) {
                 return alert('Vui lòng nhập nội dung status và đảm bảo đã đăng nhập!');
             }
             
@@ -448,7 +446,7 @@
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'Authorization': sitePassword 
+                        'Authorization': currentAuth 
                     },
                     body: JSON.stringify({
                         date: new Date().toISOString(),
@@ -472,16 +470,21 @@
         
         // Hàm tải và hiển thị status (SỬA ĐỔI: Dùng API lấy tin nhắn)
         async function loadStatus() {
+            const currentAuth = sitePassword || localStorage.getItem('sitePassword') || 'dummy';
+            
             try {
                 const response = await fetch('/api/messages', {
                     method: 'GET',
-                    headers: { 'Authorization': sitePassword || localStorage.getItem('sitePassword') || 'dummy' }
+                    headers: { 'Authorization': currentAuth }
                 });
                 const data = await response.json();
                 const statusDisplay = document.getElementById('statusDisplay');
                 
                 if (data.success && data.messages.length > 0) {
-                    let html = data.messages.reverse().map(status => {
+                    // Hiển thị 10 tin nhắn gần nhất
+                    const displayMessages = data.messages.slice(-10).reverse(); 
+                    
+                    let html = displayMessages.map(status => {
                         const date = new Date(status.timestamp);
                         const formattedDate = formatDateTime(date);
                         return `
@@ -503,7 +506,41 @@
             }
         }
         
-        // Hàm định dạng ngày giờ (giữ nguyên)
+        // Tải thông tin khi mở trang (SỬA ĐỔI: Tự động đăng nhập nếu có token)
+        window.onload = function() {
+             sitePassword = localStorage.getItem('sitePassword');
+             
+             if (sitePassword) {
+                // Giả định mật khẩu còn hiệu lực và tải nội dung
+                const savedLoverName = localStorage.getItem('loverName');
+                const savedStartDate = localStorage.getItem('startDate');
+                
+                if (savedLoverName && savedStartDate) {
+                    
+                    document.getElementById('displayLoverName').textContent = savedLoverName;
+                    
+                    document.getElementById('loginForm').classList.add('hidden');
+                    document.getElementById('mainContent').classList.add('visible');
+                    
+                    initMiniHeart();
+                    updateLoveInfo();
+                    loadStatus();
+                } else {
+                     // Nếu thiếu thông tin tĩnh (tên, ngày), buộc phải đăng nhập lại
+                    document.getElementById('sitePassword').value = sitePassword; 
+                    document.getElementById('loginMessage').textContent = 'Vui lòng đăng nhập lại để xác thực Server và tải thông tin tĩnh.';
+                }
+            }
+        };
+
+        // --- Hàm hỗ trợ ---
+        function formatDate(date) {
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+        
         function formatDateTime(date) {
             const day = date.getDate().toString().padStart(2, '0');
             const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -513,28 +550,6 @@
             return `${hours}:${minutes} - ${day}/${month}/${year}`;
         }
         
-        // Tải thông tin khi mở trang (giữ nguyên)
-        window.onload = function() {
-             sitePassword = localStorage.getItem('sitePassword');
-             if (sitePassword) {
-                 // Tải thông tin cục bộ và thử load nội dung chính
-                 const savedStartDate = localStorage.getItem('startDate');
-                 if (savedStartDate) {
-                    loveStartDate = new Date(savedStartDate);
-                 }
-                
-                document.getElementById('loginForm').classList.add('hidden');
-                document.getElementById('mainContent').classList.add('visible');
-                initMiniHeart();
-                updateLoveInfo();
-                loadStatus();
-            }
-        };
-
-        // Code hiệu ứng trái tim thu nhỏ (giữ nguyên)
-        function initHeartEffect() { /* ... */ }
-    </script>
-    <script>
         // Code hiệu ứng trái tim thu nhỏ (giữ nguyên)
         function initHeartEffect() {
             var canvas = document.getElementById('heartCanvas');
