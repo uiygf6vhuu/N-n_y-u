@@ -82,11 +82,11 @@
             object-fit: contain;
             border-radius: 5px;
             margin-top: 10px;
-            display: none; /* Ban đầu ẩn */
+            display: none;
         }
         
         .save-button {
-            background: #ff6b6b;
+            background: linear-gradient(to right, #ff6b6b, #ff8e8e);
             color: white;
             border: none;
             padding: 12px 25px;
@@ -99,7 +99,7 @@
         }
         
         .save-button:hover {
-            background: #ff5252;
+            background: linear-gradient(to right, #ff5252, #ff6b6b);
         }
 
         .back-button {
@@ -114,27 +114,33 @@
             width: 100%;
             transition: background 0.3s;
         }
+        
+        .upload-file-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
 
-        .status-list {
+        .upload-file-group input[type="file"] {
+            flex: 1;
+            padding: 5px;
+        }
+
+        .message {
             margin-top: 15px;
             padding: 10px;
-            background: rgba(255, 255, 255, 0.05);
             border-radius: 5px;
+            text-align: center;
+            display: none;
+            color: white;
         }
         
-        .status-item {
-            padding: 8px 0;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+        .success {
+            background: rgba(0, 255, 0, 0.2);
         }
         
-        .status-item:last-child {
-            border-bottom: none;
-        }
-        
-        .status-date {
-            font-size: 0.7rem;
-            color: #ccc;
-            margin-top: 3px;
+        .error {
+            background: rgba(255, 0, 0, 0.2);
         }
     </style>
 </head>
@@ -142,151 +148,271 @@
     <div class="container">
         <h1>Thiết Lập Admin</h1>
         
-        <h2>1. Thông Tin Yêu Đương</h2>
-        <div class="form-group">
-            <label for="loverName">Tên người yêu:</label>
-            <input type="text" id="loverName" placeholder="Nhập tên người yêu">
-        </div>
-        <div class="form-group">
-            <label for="startDate">Ngày bắt đầu yêu:</label>
-            <input type="date" id="startDate">
-        </div>
-        <div class="form-group">
-            <label for="lovePassword">Mật khẩu truy cập:</label>
-            <input type="password" id="lovePassword" placeholder="Thiết lập mật khẩu">
+        <div id="loginForm">
+            <h2>Đăng nhập Admin</h2>
+            <input type="password" id="adminPasswordLogin" placeholder="Nhập mật khẩu Admin">
+            <button class="save-button" onclick="adminLogin()">Đăng nhập</button>
+            <p id="loginMessage" class="message"></p>
         </div>
 
-        <h2>2. Hình Ảnh Chính (URL)</h2>
-        <div class="form-group">
-            <label for="imageUrl">URL Ảnh Chính:</label>
-            <p style="font-size: 0.8em; color: #aaa;">Ảnh này sẽ được thêm vào danh sách ảnh chung.</p>
-            <input type="text" id="imageUrl" placeholder="Dán link ảnh tại đây">
-        </div>
+        <div id="adminContent" style="display: none;">
+            <h2>1. Thông Tin Yêu Đương</h2>
+            <div class="form-group">
+                <label for="sitePassword">Mật khẩu trang chính (Sẽ được lưu trên Server):</label>
+                <input type="password" id="sitePassword" placeholder="Thiết lập mật khẩu trang chính">
+            </div>
+            
+            <div class="form-group">
+                <label for="adminPassword">Mật khẩu Admin (Sẽ được lưu trên Server):</label>
+                <input type="password" id="adminPassword" placeholder="Thiết lập mật khẩu Admin">
+            </div>
+            
+            <div class="form-group">
+                <label for="loverName">Tên người yêu (Lưu cục bộ):</label>
+                <input type="text" id="loverName" placeholder="Nhập tên người yêu">
+            </div>
+            <div class="form-group">
+                <label for="startDate">Ngày bắt đầu yêu (Lưu cục bộ):</label>
+                <input type="date" id="startDate">
+            </div>
+            
+            <button class="save-button" onclick="saveBasicSettings()">Lưu Thông Tin Cơ Bản</button>
 
-        <div class="image-preview-container">
-            Ảnh chính (Đầu tiên trong danh sách):
-            <img id="imagePreview" src="" alt="Ảnh tình yêu">
+            <h2>2. Quản Lý Thư Viện Ảnh</h2>
+            <p style="font-size: 0.8em; color: #aaa; margin-bottom: 10px;">Các ảnh này sẽ được dùng cho slideshow và lưu trên Server.</p>
+
+            <div class="form-group">
+                <label for="imageUrl">Thêm ảnh bằng URL:</label>
+                <input type="text" id="imageUrl" placeholder="Dán URL ảnh tại đây">
+                <button class="save-button" style="margin-top: 10px; background: #2ecc71;" onclick="uploadImageFromUrl()">Thêm Ảnh từ URL</button>
+            </div>
+            
+            <div class="form-group">
+                <label for="imageFile">Tải ảnh lên từ thiết bị (Tối đa 5MB):</label>
+                <div class="upload-file-group">
+                    <input type="file" id="imageFile" accept="image/*">
+                    <button class="save-button" style="margin-top: 0; width: auto; background: #3498db;" onclick="uploadImageFromFile()">Tải Lên Server</button>
+                </div>
+            </div>
+
+            <div class="image-preview-container">
+                <p>Danh sách ảnh hiện tại:</p>
+                <div id="imageListDisplay">Chưa có ảnh nào được tải lên.</div>
+            </div>
+            
+            <h2>3. Quản Lý Status</h2>
+            <p style="font-size: 0.8em; color: #aaa;">Status được lưu trên Server. Chỉ có thể xóa status qua database/server.</p>
+            <div id="statusList">
+                </div>
+            
+            <button class="back-button" onclick="window.location.href='index (4).html'">Quay Lại Trang Chính</button>
         </div>
         
-        <h2>3. Quản Lý Status (Chỉ hiển thị)</h2>
-        <div class="form-group">
-            <p>Status sẽ được quản lý ở trang chính. Dưới đây là danh sách 10 status gần nhất đã lưu:</p>
-            <div id="statusList" class="status-list">
-                </div>
-        </div>
-
-        <button class="save-button" onclick="saveInfo()">Lưu Tất Cả Thông Tin</button>
-
-        <button class="back-button" onclick="window.location.href='index (4).html'">Quay Lại Trang Chính</button>
+        <p id="message" class="message"></p>
     </div>
 
     <script>
-        // Hàm lưu thông tin
-        function saveInfo() {
-            const loverName = document.getElementById('loverName').value.trim();
+        let adminToken = '';
+        const MESSAGE_DURATION = 3000;
+
+        function showMessage(text, isSuccess) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = `message ${isSuccess ? 'success' : 'error'}`;
+            messageEl.style.display = 'block';
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, MESSAGE_DURATION);
+        }
+
+        async function adminLogin() {
+            const password = document.getElementById('adminPasswordLogin').value;
+            try {
+                const response = await fetch('/api/admin-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    adminToken = password; // Sử dụng mật khẩu làm token xác thực (chỉ cho demo)
+                    document.getElementById('loginForm').style.display = 'none';
+                    document.getElementById('adminContent').style.display = 'block';
+                    showMessage('Đăng nhập Admin thành công!', true);
+                    loadData();
+                } else {
+                    showMessage(data.error || 'Đăng nhập thất bại', false);
+                }
+            } catch (error) {
+                showMessage('Lỗi kết nối Server', false);
+            }
+        }
+
+        async function saveBasicSettings() {
+            if (!adminToken) return showMessage('Chưa đăng nhập Admin!', false);
+
+            const sitePassword = document.getElementById('sitePassword').value;
+            const adminPassword = document.getElementById('adminPassword').value;
+            const loverName = document.getElementById('loverName').value;
             const startDate = document.getElementById('startDate').value;
-            const lovePassword = document.getElementById('lovePassword').value.trim();
-            const imageUrl = document.getElementById('imageUrl').value.trim();
-            
-            if (!loverName || !startDate || !lovePassword || !imageUrl) {
-                alert('Vui lòng nhập đầy đủ Tên, Ngày, Mật khẩu và URL Ảnh.');
-                return;
-            }
-            
-            // Lấy danh sách ảnh hiện tại (có thể rỗng)
-            let loveImages = JSON.parse(localStorage.getItem('loveImages') || '[]');
-            
-            // Xóa ảnh Admin cũ (nếu có) và thêm ảnh mới vào đầu
-            // Giả sử ảnh Admin luôn là ảnh đầu tiên trong mảng
-            if (loveImages.length > 0 && loveImages[0].name === 'Ảnh từ admin') {
-                loveImages.shift();
-            }
 
-            // Thêm ảnh mới từ Admin vào đầu danh sách
-            loveImages.unshift({ url: imageUrl, name: 'Ảnh từ admin' });
+            // 1. Lưu thông tin mật khẩu (Server)
+            try {
+                // Đổi mật khẩu trang chính
+                if (sitePassword) {
+                    await fetch('/api/change-site-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
+                        body: JSON.stringify({ newPassword: sitePassword })
+                    });
+                }
 
-            // Lưu vào localStorage
-            localStorage.setItem('loverName', loverName);
-            localStorage.setItem('startDate', startDate);
-            localStorage.setItem('lovePassword', lovePassword);
-            localStorage.setItem('loveImages', JSON.stringify(loveImages));
-            
-            alert('Đã lưu thông tin thành công!');
-            
-            // Cập nhật preview
-            const preview = document.getElementById('imagePreview');
-            preview.src = imageUrl;
-            preview.style.display = 'block';
+                // Đổi mật khẩu Admin
+                if (adminPassword) {
+                    const response = await fetch('/api/change-admin-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
+                        body: JSON.stringify({ newPassword: adminPassword })
+                    });
+                    if (response.ok) {
+                         // Cập nhật token nếu mật khẩu admin được thay đổi thành công
+                        adminToken = adminPassword; 
+                    }
+                }
+
+                // 2. Lưu thông tin cục bộ (Client)
+                localStorage.setItem('loverName', loverName);
+                localStorage.setItem('startDate', startDate);
+                
+                showMessage('Đã lưu thiết lập thành công!', true);
+            } catch (error) {
+                showMessage('Lỗi khi lưu mật khẩu lên Server.', false);
+            }
         }
 
-        // Hàm tải và hiển thị status (giữ nguyên)
-        function loadStatusList() {
-            const statusList = JSON.parse(localStorage.getItem('loveStatus') || '[]');
-            const statusDisplay = document.getElementById('statusList');
+        async function uploadImageFromUrl() {
+            if (!adminToken) return showMessage('Chưa đăng nhập Admin!', false);
+            const imageUrl = document.getElementById('imageUrl').value;
             
-            if (statusList.length === 0) {
-                statusDisplay.innerHTML = '<p style="color:#ccc; font-size: 0.9em;">Chưa có status nào được lưu.</p>';
-                return;
+            try {
+                const response = await fetch('/api/upload-url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
+                    body: JSON.stringify({ imageUrl })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showMessage('Đã thêm ảnh từ URL thành công!', true);
+                    document.getElementById('imageUrl').value = '';
+                    await loadImages();
+                } else {
+                    showMessage(data.error || 'Lỗi thêm ảnh', false);
+                }
+            } catch (error) {
+                showMessage('Lỗi kết nối Server khi upload URL.', false);
             }
-            
-            let html = '';
-            statusList.forEach(status => {
-                const date = new Date(status.date);
-                const formattedDate = formatDateTime(date);
-                html += `
-                    <div class="status-item">
-                        <p style="font-size: 0.9em;">${status.text}</p>
-                        <div class="status-date">${formattedDate}</div>
-                    </div>
-                `;
-            });
-            
-            statusDisplay.innerHTML = html;
         }
 
-        // Hàm định dạng ngày giờ (giữ nguyên)
-        function formatDateTime(date) {
-            const day = date.getDate().toString().padStart(2, '0');
-            const month = (date.getMonth() + 1).toString().padStart(2, '0');
-            const year = date.getFullYear();
-            const hours = date.getHours().toString().padStart(2, '0');
-            const minutes = date.getMinutes().toString().padStart(2, '0');
-            return `${hours}:${minutes} - ${day}/${month}/${year}`;
-        }
-        
-        // Tải thông tin đã lưu (nếu có)
-        window.onload = function() {
-            // Thông tin cơ bản
-            const savedLoverName = localStorage.getItem('loverName');
-            const savedStartDate = localStorage.getItem('startDate');
-            const savedLovePassword = localStorage.getItem('lovePassword');
-            const savedLoveImages = JSON.parse(localStorage.getItem('loveImages') || '[]');
-            
-            if (savedLoverName) {
-                document.getElementById('loverName').value = savedLoverName;
-            }
-            
-            if (savedStartDate) {
-                document.getElementById('startDate').value = savedStartDate;
-            }
-            
-            if (savedLovePassword) {
-                document.getElementById('lovePassword').value = savedLovePassword;
-            }
-            
-            // Ảnh (Lấy ảnh đầu tiên trong mảng làm ảnh Admin/Preview)
-            if (savedLoveImages.length > 0) {
-                const adminImage = savedLoveImages.find(img => img.name === 'Ảnh từ admin' || img.name === 'Ảnh từ admin');
-                const previewUrl = adminImage ? adminImage.url : savedLoveImages[0].url;
+        async function uploadImageFromFile() {
+            if (!adminToken) return showMessage('Chưa đăng nhập Admin!', false);
+            const fileInput = document.getElementById('imageFile');
+            const file = fileInput.files[0];
 
-                const preview = document.getElementById('imagePreview');
-                preview.src = previewUrl;
-                preview.style.display = 'block';
-                document.getElementById('imageUrl').value = previewUrl;
+            if (!file) {
+                return showMessage('Vui lòng chọn một tệp ảnh.', false);
             }
+
+            const formData = new FormData();
+            formData.append('image', file);
             
-            // Tải danh sách status
-            loadStatusList();
+            try {
+                const response = await fetch('/api/upload-file', {
+                    method: 'POST',
+                    headers: { 'Authorization': adminToken },
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showMessage('Đã tải ảnh lên Server thành công!', true);
+                    fileInput.value = '';
+                    await loadImages();
+                } else {
+                    showMessage(data.error || 'Lỗi tải tệp', false);
+                }
+            } catch (error) {
+                showMessage('Lỗi kết nối Server khi tải tệp.', false);
+            }
+        }
+
+        async function loadImages() {
+            // Không cần auth để lấy ảnh
+            try {
+                const response = await fetch('/api/love-images', {
+                    method: 'GET',
+                    headers: { 'Authorization': 'dummy' } // Dùng dummy auth vì API requireSiteAuth
+                });
+                
+                const data = await response.json();
+                const display = document.getElementById('imageListDisplay');
+                
+                if (data.success && data.images && data.images.length > 0) {
+                    display.innerHTML = data.images.map((url, index) => `
+                        <div style="margin-top: 10px; font-size: 0.9em; padding: 5px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                            #${index + 1}: <a href="${url}" target="_blank" style="color: #74b9ff; word-break: break-all;">${url.substring(0, 40)}...</a>
+                        </div>
+                    `).join('');
+                    
+                    // Cập nhật preview bằng ảnh đầu tiên
+                    document.getElementById('imagePreview').src = data.images[0];
+                    document.getElementById('imagePreview').style.display = 'block';
+                } else {
+                    display.textContent = 'Chưa có ảnh nào được tải lên.';
+                    document.getElementById('imagePreview').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Lỗi tải ảnh:', error);
+                document.getElementById('imageListDisplay').textContent = 'Lỗi tải danh sách ảnh từ Server.';
+            }
+        }
+
+        async function loadStatus() {
+            // Không cần auth vì status được lưu ở index.html
+            const statusListContainer = document.getElementById('statusList');
+            statusListContainer.innerHTML = '<p>Tính năng xem status đang được triển khai (Server side).</p>';
+            // Mặc dù file server.js có API messages, nhưng index.html lưu status cục bộ. 
+            // Cần sửa index.html để sử dụng API messages cho tính đồng bộ.
+        }
+
+        async function loadData() {
+            // Tải mật khẩu từ server (Chỉ để xem)
+            try {
+                const response = await fetch('/api/passwords', {
+                    method: 'GET',
+                    headers: { 'Authorization': adminToken }
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('sitePassword').value = data.sitePassword;
+                    document.getElementById('adminPassword').value = data.adminPassword;
+                }
+            } catch (error) {
+                console.error('Lỗi tải mật khẩu:', error);
+            }
+
+            // Tải thông tin cục bộ
+            document.getElementById('loverName').value = localStorage.getItem('loverName') || '';
+            document.getElementById('startDate').value = localStorage.getItem('startDate') || '';
+
+            loadImages();
+            loadStatus();
+        }
+
+        window.onload = () => {
+            // Để đơn giản, không tự động login. Bắt buộc nhập lại mật khẩu Admin.
         };
     </script>
 </body>
