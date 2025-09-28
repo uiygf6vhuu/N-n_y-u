@@ -2,381 +2,424 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Kỷ Niệm Tình Yêu - Hiệu Ứng 3 💕</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trái Tim Xanh - Tình Yêu Bình Yên</title>
     <style>
-        html, body {
-            height: 100%;
-            padding: 0;
+        * {
             margin: 0;
-            background: #000;
-            overflow: hidden;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0c2461 0%, #1e3799 100%);
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-direction: column;
+            overflow: hidden;
+            color: white;
+            padding: 20px;
         }
         
-        .box {
-            width: 100%;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: flex;
-            flex-direction: column;
+        .container {
+            text-align: center;
             z-index: 10;
-        }
-        
-        canvas {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-        }
-        
-        #pinkboard {
             position: relative;
-            margin: auto;
-            height: 500px;
-            width: 500px;
-            animation: animate 1.3s infinite;
-            z-index: 10;
-        }
-
-        #pinkboard:before, #pinkboard:after {
-            content: '';
-            position: absolute;
-            background: #FF5CA4;
-            width: 100px;
-            height: 160px;
-            border-top-left-radius: 50px;
-            border-top-right-radius: 50px;
-        }
-
-        #pinkboard:before {
-            left: 100px;
-            transform: rotate(-45deg);
-            transform-origin: 0 100%;
-            box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
-        }
-
-        #pinkboard:after {
-            left: 0;
-            transform: rotate(45deg);
-            transform-origin: 100% 100%;
-        }
-
-        @keyframes animate {
-            0% { transform: scale(1); }
-            30% { transform: scale(.8); }
-            60% { transform: scale(1.2); }
-            100% { transform: scale(1); }
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(52, 152, 219, 0.5);
+            max-width: 90%;
+            margin: 20px;
         }
         
-        #content-overlay {
-            position: fixed;
+        h1 {
+            color: #74b9ff;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(116, 185, 255, 0.7);
+            font-size: 2.5rem;
+        }
+        
+        .heart-frame {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 0 auto 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #heartCanvas {
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 20;
-            text-align: center;
-        }
-        
-        .love-image-container {
-            position: relative;
-            width: 320px;
-            height: 320px;
-            margin: 30px 0;
-        }
-        
-        /* 🔥 QUAN TRỌNG: Khung hình trái tim */
-        .love-image-tym {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            /* HÌNH TRÁI TIM */
-            clip-path: path('M12 4.419c-2.826-5.695-11.999-4.064-11.999 3.27 0 7.27 9.903 10.938 11.999 15.311 2.096-4.373 12-8.041 12-15.311 0-7.327-9.17-8.972-12-3.27z');
-            transform: scale(1.1);
-            box-shadow: 0 0 35px rgba(255, 92, 164, 0.9);
-            border: 10px solid white;
-            animation: heartbeat-strong 1.3s infinite;
-            display: none;
-        }
-        
-        .image-frame {
-            position: absolute;
-            top: -20px;
-            left: -20px;
-            right: -20px;
-            bottom: -20px;
-            border: 4px solid #FF5CA4;
-            /* KHUNG VIỀN HÌNH TRÁI TIM */
-            clip-path: path('M12 4.419c-2.826-5.695-11.999-4.064-11.999 3.27 0 7.27 9.903 10.938 11.999 15.311 2.096-4.373 12-8.041 12-15.311 0-7.327-9.17-8.972-12-3.27z');
-            animation: rotate 8s linear infinite;
-            pointer-events: none;
-        }
-        
-        .sparkle {
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            background: gold;
             border-radius: 50%;
-            animation: sparkle 2s infinite;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 50px rgba(52, 152, 219, 0.7);
+            border: 5px solid rgba(116, 185, 255, 0.5);
         }
         
-        @keyframes heartbeat-strong {
-            0% { transform: scale(1); }
-            30% { transform: scale(0.9); }
-            60% { transform: scale(1.1); }
-            100% { transform: scale(1); }
+        #heartCanvas:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 70px rgba(52, 152, 219, 0.9);
         }
         
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        #heartImage {
+            width: 70%;
+            height: 70%;
+            object-fit: cover;
+            border-radius: 50%;
+            z-index: 2;
+            border: 3px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
         
-        @keyframes sparkle {
-            0%, 100% { opacity: 0; transform: scale(0); }
-            50% { opacity: 1; transform: scale(1); }
-        }
-        
-        h1 {
-            color: white;
-            text-shadow: 0 0 20px #FF5CA4;
-            font-size: 2.8em;
-            margin-bottom: 25px;
-        }
-        
-        .navigation {
-            position: fixed;
-            bottom: 30px;
-            z-index: 30;
+        .controls {
             display: flex;
+            justify-content: center;
             gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
         }
         
-        .btn {
-            padding: 12px 25px;
-            background: linear-gradient(45deg, #FF5CA4, #e84c8e);
+        button {
+            background: linear-gradient(to right, #74b9ff, #0984e3);
             color: white;
-            text-decoration: none;
-            border-radius: 25px;
-            transition: all 0.3s;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
             font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(116, 185, 255, 0.4);
         }
         
-        .btn:hover {
+        button:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(255, 92, 164, 0.5);
+            box-shadow: 0 8px 20px rgba(116, 185, 255, 0.6);
         }
         
-        .sparkle:nth-child(1) { top: 10%; left: 20%; animation-delay: 0s; }
-        .sparkle:nth-child(2) { top: 20%; right: 15%; animation-delay: 0.5s; }
-        .sparkle:nth-child(3) { bottom: 30%; left: 10%; animation-delay: 1s; }
-        .sparkle:nth-child(4) { bottom: 15%; right: 25%; animation-delay: 1.5s; }
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .image-info {
+            margin-top: 15px;
+            font-style: italic;
+            color: #d6eaff;
+        }
+        
+        .instructions {
+            margin-top: 30px;
+            padding: 15px;
+            background: rgba(116, 185, 255, 0.2);
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(116, 185, 255, 0.8);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            z-index: 100;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 50px rgba(52, 152, 219, 0.7); }
+            50% { box-shadow: 0 0 70px rgba(52, 152, 219, 0.9); }
+            100% { box-shadow: 0 0 50px rgba(52, 152, 219, 0.7); }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .heart-frame {
+                width: 300px;
+                height: 300px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="box">
-        <canvas id="pinkboard"></canvas>
-    </div>
+    <button class="back-button" onclick="window.location.href='index.html'">← Quay lại</button>
     
-    <div id="content-overlay">
-        <h1>💖 Tình Yêu Rực Rỡ 💖</h1>
+    <div class="container">
+        <h1>Trái Tim Xanh</h1>
+        <p class="subtitle">Tình yêu bình yên và thủy chung</p>
         
-        <div class="love-image-container">
-            <img id="loveImage" class="love-image-tym" alt="Ảnh tình yêu">
-            <div class="image-frame"></div>
-            <div class="sparkle"></div>
-            <div class="sparkle"></div>
-            <div class="sparkle"></div>
-            <div class="sparkle"></div>
+        <div class="heart-frame">
+            <canvas id="heartCanvas" class="pulse"></canvas>
+            <img id="heartImage" src="" alt="Ảnh tình yêu">
         </div>
         
-        <p id="noImage" style="color: white; font-size: 1.3em; text-shadow: 0 0 10px #000;">
-            Đang tải ảnh kỷ niệm...
-        </p>
+        <div class="image-info">Ảnh hiện tại: <span id="currentImageName">Đang tải...</span></div>
         
-        <div class="navigation">
-            <a href="/" class="btn">🏠 Trang Chính</a>
-            <a href="/tym1" class="btn">💖 Hiệu Ứng 1</a>
-            <a href="/tym2" class="btn">💖 Hiệu Ứng 2</a>
-            <button onclick="logout()" class="btn">🚪 Đăng Xuất</button>
+        <div class="controls">
+            <button id="changeImageBtn">Đổi Ảnh</button>
+            <button id="uploadImageBtn">Tải Ảnh Lên</button>
+            <button id="colorEffectBtn">Hiệu Ứng Màu</button>
+        </div>
+        
+        <div class="instructions">
+            <p>Nhấp vào trái tim để đổi ảnh ngẫu nhiên</p>
+            <p>Sử dụng nút "Tải Ảnh Lên" để chọn ảnh từ thiết bị của bạn</p>
         </div>
     </div>
+
+    <input type="file" id="imageUpload" accept="image/*" style="display: none;">
 
     <script>
-        // Code hiệu ứng trái tim gốc của Tym3
-        var settings = {
-            particles: {
-                length: 2000,
-                duration: 2,
-                velocity: 100,
-                effect: -1.3,
-                size: 13,
-            },
+        // Lấy ảnh từ admin (localStorage)
+        function getAdminImage() {
+            const savedImage = localStorage.getItem('loveImage');
+            if (savedImage) {
+                return savedImage;
+            } else {
+                // Ảnh mặc định nếu chưa có ảnh từ admin
+                return 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60';
+            }
+        }
+        
+        // Danh sách ảnh mặc định
+        const imageList = [
+            { url: getAdminImage(), name: 'Ảnh từ admin' },
+            { url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', name: 'Ánh mắt trao nhau' },
+            { url: 'https://images.unsplash.com/photo-1518568814500-bf0f8d125f46?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', name: 'Cặp đôi hạnh phúc' },
+            { url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', name: 'Khoảnh khắc lãng mạn' }
+        ];
+        
+        let currentImageIndex = 0;
+        const heartImage = document.getElementById('heartImage');
+        const currentImageName = document.getElementById('currentImageName');
+        const changeImageBtn = document.getElementById('changeImageBtn');
+        const uploadImageBtn = document.getElementById('uploadImageBtn');
+        const colorEffectBtn = document.getElementById('colorEffectBtn');
+        const imageUpload = document.getElementById('imageUpload');
+        
+        // Khởi tạo ảnh
+        heartImage.src = imageList[0].url;
+        currentImageName.textContent = imageList[0].name;
+        
+        // Hàm đổi ảnh
+        function changeImage() {
+            currentImageIndex = (currentImageIndex + 1) % imageList.length;
+            heartImage.src = imageList[currentImageIndex].url;
+            currentImageName.textContent = imageList[currentImageIndex].name;
+            
+            // Hiệu ứng khi đổi ảnh
+            heartImage.style.opacity = '0';
+            setTimeout(() => {
+                heartImage.style.opacity = '1';
+            }, 300);
+        }
+        
+        // Sự kiện click nút đổi ảnh
+        changeImageBtn.addEventListener('click', changeImage);
+        
+        // Sự kiện click canvas trái tim
+        document.getElementById('heartCanvas').addEventListener('click', changeImage);
+        
+        // Sự kiện tải ảnh lên
+        uploadImageBtn.addEventListener('click', () => {
+            imageUpload.click();
+        });
+        
+        imageUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    heartImage.src = event.target.result;
+                    currentImageName.textContent = file.name;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Hiệu ứng màu sắc
+        colorEffectBtn.addEventListener('click', function() {
+            const canvas = document.getElementById('heartCanvas');
+            canvas.classList.toggle('pulse');
+            
+            if (canvas.classList.contains('pulse')) {
+                this.textContent = 'Tắt Hiệu Ứng';
+            } else {
+                this.textContent = 'Hiệu Ứng Màu';
+            }
+        });
+        
+        // Code hiệu ứng trái tim canvas (màu xanh)
+        window.requestAnimationFrame = window.requestAnimationFrame || 
+                                      window.mozRequestAnimationFrame || 
+                                      window.webkitRequestAnimationFrame || 
+                                      window.msRequestAnimationFrame || 
+                                      function(callback) { setTimeout(callback, 1000/60); };
+
+        window.isDevice = (/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(navigator.userAgent.toLowerCase()));
+        
+        var loaded = false;
+        var init = function() {
+            if (loaded) return;
+            loaded = true;
+            
+            var mobile = window.isDevice;
+            var koef = mobile ? 0.5 : 1;
+            var canvas = document.getElementById('heartCanvas');
+            var ctx = canvas.getContext('2d');
+            var width = canvas.width = 400;
+            var height = canvas.height = 400;
+            var rand = Math.random;
+            
+            ctx.fillStyle = "rgba(0,0,0,0)";
+            ctx.fillRect(0, 0, width, height);
+
+            var heartPosition = function(rad) {
+                return [Math.pow(Math.sin(rad), 3), -(15 * Math.cos(rad) - 5 * Math.cos(2 * rad) - 2 * Math.cos(3 * rad) - Math.cos(4 * rad))];
+            };
+            
+            var scaleAndTranslate = function(pos, sx, sy, dx, dy) {
+                return [dx + pos[0] * sx, dy + pos[1] * sy];
+            };
+
+            var traceCount = mobile ? 20 : 50;
+            var pointsOrigin = [];
+            var i;
+            var dr = mobile ? 0.3 : 0.1;
+            for (i = 0; i < Math.PI * 2; i += dr) 
+                pointsOrigin.push(scaleAndTranslate(heartPosition(i), 70, 4, 0, 0));
+            for (i = 0; i < Math.PI * 2; i += dr) 
+                pointsOrigin.push(scaleAndTranslate(heartPosition(i), 50, 3, 0, 0));
+            for (i = 0; i < Math.PI * 2; i += dr) 
+                pointsOrigin.push(scaleAndTranslate(heartPosition(i), 30, 2, 0, 0));
+                
+            var heartPointsCount = pointsOrigin.length;
+
+            var targetPoints = [];
+            var pulse = function(kx, ky) {
+                for (i = 0; i < pointsOrigin.length; i++) {
+                    targetPoints[i] = [];
+                    targetPoints[i][0] = kx * pointsOrigin[i][0] + width / 2;
+                    targetPoints[i][1] = ky * pointsOrigin[i][1] + height / 2;
+                }
+            };
+
+            var e = [];
+            for (i = 0; i < heartPointsCount; i++) {
+                var x = rand() * width;
+                var y = rand() * height;
+                e[i] = {
+                    vx: 0,
+                    vy: 0,
+                    R: 2,
+                    speed: rand() + 5,
+                    q: ~~(rand() * heartPointsCount),
+                    D: 2 * (i % 2) - 1,
+                    force: 0.2 * rand() + 0.7,
+                    f: "hsla(220, " + ~~(50 * rand() + 40) + "%, " + ~~(60 * rand() + 30) + "%, .3)",
+                    trace: []
+                };
+                for (var k = 0; k < traceCount; k++) 
+                    e[i].trace[k] = {x: x, y: y};
+            }
+
+            var config = {
+                traceK: 0.4,
+                timeDelta: 0.01
+            };
+
+            var time = 0;
+            var loop = function() {
+                var n = -Math.cos(time);
+                pulse((1 + n) * .5, (1 + n) * .5);
+                time += ((Math.sin(time)) < 0 ? 9 : (n > 0.8) ? .2 : 1) * config.timeDelta;
+                
+                ctx.fillStyle = "rgba(0,0,0,.05)";
+                ctx.fillRect(0, 0, width, height);
+                
+                for (i = e.length; i--;) {
+                    var u = e[i];
+                    var q = targetPoints[u.q];
+                    var dx = u.trace[0].x - q[0];
+                    var dy = u.trace[0].y - q[1];
+                    var length = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (10 > length) {
+                        if (0.95 < rand()) {
+                            u.q = ~~(rand() * heartPointsCount);
+                        } else {
+                            if (0.99 < rand()) {
+                                u.D *= -1;
+                            }
+                            u.q += u.D;
+                            u.q %= heartPointsCount;
+                            if (0 > u.q) {
+                                u.q += heartPointsCount;
+                            }
+                        }
+                    }
+                    
+                    u.vx += -dx / length * u.speed;
+                    u.vy += -dy / length * u.speed;
+                    u.trace[0].x += u.vx;
+                    u.trace[0].y += u.vy;
+                    u.vx *= u.force;
+                    u.vy *= u.force;
+                    
+                    for (k = 0; k < u.trace.length - 1;) {
+                        var T = u.trace[k];
+                        var N = u.trace[++k];
+                        N.x -= config.traceK * (N.x - T.x);
+                        N.y -= config.traceK * (N.y - T.y);
+                    }
+                    
+                    ctx.fillStyle = u.f;
+                    for (k = 0; k < u.trace.length; k++) {
+                        ctx.fillRect(u.trace[k].x, u.trace[k].y, 1, 1);
+                    }
+                }
+
+                window.requestAnimationFrame(loop);
+            };
+
+            loop();
         };
 
-        (function(){var b=0;var c=["ms","moz","webkit","o"];for(var a=0;a<c.length&&!window.requestAnimationFrame;++a){window.requestAnimationFrame=window[c[a]+"RequestAnimationFrame"];window.cancelAnimationFrame=window[c[a]+"CancelAnimationFrame"]||window[c[a]+"CancelRequestAnimationFrame"]}if(!window.requestAnimationFrame){window.requestAnimationFrame=function(h,e){var d=new Date().getTime();var f=Math.max(0,16-(d-b));var g=window.setTimeout(function(){h(d+f)},f);b=d+f;return g}}if(!window.cancelAnimationFrame){window.cancelAnimationFrame=function(d){clearTimeout(d)}}}());
-
-        var Point = (function() {
-            function Point(x, y) { this.x = (typeof x !== 'undefined') ? x : 0; this.y = (typeof y !== 'undefined') ? y : 0; }
-            Point.prototype.clone = function() { return new Point(this.x, this.y); };
-            Point.prototype.length = function(length) { if (typeof length == 'undefined') return Math.sqrt(this.x * this.x + this.y * this.y); this.normalize(); this.x *= length; this.y *= length; return this; };
-            Point.prototype.normalize = function() { var length = this.length(); this.x /= length; this.y /= length; return this; };
-            return Point;
-        })();
-
-        var Particle = (function() {
-            function Particle() { this.position = new Point(); this.velocity = new Point(); this.acceleration = new Point(); this.age = 0; }
-            Particle.prototype.initialize = function(x, y, dx, dy) { this.position.x = x; this.position.y = y; this.velocity.x = dx; this.velocity.y = dy; this.acceleration.x = dx * settings.particles.effect; this.acceleration.y = dy * settings.particles.effect; this.age = 0; };
-            Particle.prototype.update = function(deltaTime) { this.position.x += this.velocity.x * deltaTime; this.position.y += this.velocity.y * deltaTime; this.velocity.x += this.acceleration.x * deltaTime; this.velocity.y += this.acceleration.y * deltaTime; this.age += deltaTime; };
-            Particle.prototype.draw = function(context, image) { function ease(t) { return (--t) * t * t + 1; } var size = image.width * ease(this.age / settings.particles.duration); context.globalAlpha = 1 - this.age / settings.particles.duration; context.drawImage(image, this.position.x - size / 2, this.position.y - size / 2, size, size); };
-            return Particle;
-        })();
-
-        var ParticlePool = (function() {
-            var particles, firstActive = 0, firstFree = 0, duration = settings.particles.duration;
-            function ParticlePool(length) { particles = new Array(length); for (var i = 0; i < particles.length; i++) particles[i] = new Particle(); }
-            ParticlePool.prototype.add = function(x, y, dx, dy) { particles[firstFree].initialize(x, y, dx, dy); firstFree++; if (firstFree == particles.length) firstFree = 0; if (firstActive == firstFree) firstActive++; if (firstActive == particles.length) firstActive = 0; };
-            ParticlePool.prototype.update = function(deltaTime) { var i; if (firstActive < firstFree) { for (i = firstActive; i < firstFree; i++) particles[i].update(deltaTime); } if (firstFree < firstActive) { for (i = firstActive; i < particles.length; i++) particles[i].update(deltaTime); for (i = 0; i < firstFree; i++) particles[i].update(deltaTime); } while (particles[firstActive].age >= duration && firstActive != firstFree) { firstActive++; if (firstActive == particles.length) firstActive = 0; } };
-            ParticlePool.prototype.draw = function(context, image) { if (firstActive < firstFree) { for (i = firstActive; i < firstFree; i++) particles[i].draw(context, image); } if (firstFree < firstActive) { for (i = firstActive; i < particles.length; i++) particles[i].draw(context, image); for (i = 0; i < firstFree; i++) particles[i].draw(context, image); } };
-            return ParticlePool;
-        })();
-
-        (function(canvas) {
-            var context = canvas.getContext('2d'),
-                particles = new ParticlePool(settings.particles.length),
-                particleRate = settings.particles.length / settings.particles.duration,
-                time;
-            
-            function pointOnHeart(t) {
-                return new Point(
-                    160 * Math.pow(Math.sin(t), 3),
-                    130 * Math.cos(t) - 50 * Math.cos(2 * t) - 20 * Math.cos(3 * t) - 10 * Math.cos(4 * t) + 25
-                );
-            }
-            
-            var image = (function() {
-                var canvas = document.createElement('canvas'),
-                    context = canvas.getContext('2d');
-                canvas.width = settings.particles.size;
-                canvas.height = settings.particles.size;
-                function to(t) {
-                    var point = pointOnHeart(t);
-                    point.x = settings.particles.size / 2 + point.x * settings.particles.size / 350;
-                    point.y = settings.particles.size / 2 - point.y * settings.particles.size / 350;
-                    return point;
-                }
-                context.beginPath();
-                var t = -Math.PI;
-                var point = to(t);
-                context.moveTo(point.x, point.y);
-                while (t < Math.PI) {
-                    t += 0.01;
-                    point = to(t);
-                    context.lineTo(point.x, point.y);
-                }
-                context.closePath();
-                context.fillStyle = '#FF5CA4';
-                context.fill();
-                var image = new Image();
-                image.src = canvas.toDataURL();
-                return image;
-            })();
-            
-            function render() {
-                requestAnimationFrame(render);
-                var newTime = new Date().getTime() / 1000,
-                    deltaTime = newTime - (time || newTime);
-                time = newTime;
-                
-                context.clearRect(0, 0, canvas.width, canvas.height);
-                
-                var amount = particleRate * deltaTime;
-                for (var i = 0; i < amount; i++) {
-                    var pos = pointOnHeart(Math.PI - 2 * Math.PI * Math.random());
-                    var dir = pos.clone().length(settings.particles.velocity);
-                    particles.add(canvas.width / 2 + pos.x, canvas.height / 2 - pos.y, dir.x, -dir.y);
-                }
-                
-                particles.update(deltaTime);
-                particles.draw(context, image);
-            }
-            
-            function onResize() {
-                canvas.width = canvas.clientWidth;
-                canvas.height = canvas.clientHeight;
-            }
-            window.onresize = onResize;
-            
-            setTimeout(function() {
-                onResize();
-                render();
-            }, 10);
-        })(document.getElementById('pinkboard'));
-
-        // 🔓 PHẦN TẢI ẢNH TỪ DATABASE
-        let sitePassword = localStorage.getItem('sitePassword');
-
-        async function loadLoveImage() {
-            try {
-                if (!sitePassword) {
-                    showError('Vui lòng đăng nhập từ trang chính!');
-                    return;
-                }
-
-                const response = await fetch('/api/love-image', {
-                    headers: { 'Authorization': sitePassword }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    const loveImage = document.getElementById('loveImage');
-                    const noImage = document.getElementById('noImage');
-
-                    if (data.image) {
-                        loveImage.src = data.image;
-                        loveImage.style.display = 'block';
-                        noImage.style.display = 'none';
-                        
-                        loveImage.onload = function() {
-                            loveImage.style.opacity = '0';
-                            setTimeout(() => {
-                                loveImage.style.transition = 'opacity 1s ease-in-out';
-                                loveImage.style.opacity = '1';
-                            }, 100);
-                        };
-                    } else {
-                        noImage.textContent = 'Chưa có ảnh nào được upload!';
-                    }
-                } else {
-                    showError('Lỗi tải ảnh!');
-                }
-            } catch (error) {
-                showError('Lỗi kết nối server!');
-            }
-        }
-
-        function showError(message) {
-            const noImage = document.getElementById('noImage');
-            noImage.textContent = message;
-            noImage.style.color = '#ff4757';
-        }
-
-        function logout() {
-            localStorage.removeItem('sitePassword');
-            window.location.href = '/';
-        }
-
-        document.addEventListener('DOMContentLoaded', loadLoveImage);
+        // Khởi chạy hiệu ứng
+        init();
     </script>
 </body>
 </html>
