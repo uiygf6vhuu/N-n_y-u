@@ -47,7 +47,7 @@
             color: #ffcccb;
         }
         
-        input {
+        input, textarea {
             width: 100%;
             padding: 12px;
             border: 1px solid #ddd;
@@ -55,6 +55,11 @@
             background: rgba(255, 255, 255, 0.1);
             color: white;
             font-size: 16px;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
         }
         
         button {
@@ -72,6 +77,29 @@
         
         button:hover {
             background: linear-gradient(to right, #ff5252, #ff6b6b);
+        }
+        
+        .image-upload-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .image-upload-container input[type="file"] {
+            flex: 1;
+        }
+        
+        .image-upload-container button {
+            width: auto;
+            margin-top: 0;
+        }
+        
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            margin-top: 10px;
+            border-radius: 5px;
+            display: none;
         }
         
         .message {
@@ -101,51 +129,130 @@
             border-radius: 10px;
             font-size: 14px;
         }
+        
+        .tab-container {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom: 2px solid #ff6b6b;
+            color: #ff6b6b;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Thiết Lập Thông Tin Tình Yêu</h1>
         
-        <div class="form-group">
-            <label for="loverName">Tên người yêu:</label>
-            <input type="text" id="loverName" placeholder="Nhập tên người yêu">
+        <div class="tab-container">
+            <div class="tab active" onclick="switchTab('basic')">Thông Tin Cơ Bản</div>
+            <div class="tab" onclick="switchTab('image')">Hình Ảnh</div>
+            <div class="tab" onclick="switchTab('status')">Quản Lý Status</div>
         </div>
         
-        <div class="form-group">
-            <label for="startDate">Ngày bắt đầu yêu:</label>
-            <input type="date" id="startDate">
+        <!-- Tab Thông Tin Cơ Bản -->
+        <div id="basic-tab" class="tab-content active">
+            <div class="form-group">
+                <label for="loverName">Tên người yêu:</label>
+                <input type="text" id="loverName" placeholder="Nhập tên người yêu">
+            </div>
+            
+            <div class="form-group">
+                <label for="startDate">Ngày bắt đầu yêu:</label>
+                <input type="date" id="startDate">
+            </div>
+            
+            <div class="form-group">
+                <label for="lovePassword">Mật khẩu đăng nhập:</label>
+                <input type="password" id="lovePassword" placeholder="Nhập mật khẩu">
+            </div>
+            
+            <button onclick="saveBasicSettings()">Lưu Thiết Lập Cơ Bản</button>
         </div>
         
-        <div class="form-group">
-            <label for="lovePassword">Mật khẩu đăng nhập:</label>
-            <input type="password" id="lovePassword" placeholder="Nhập mật khẩu">
+        <!-- Tab Hình Ảnh -->
+        <div id="image-tab" class="tab-content">
+            <div class="form-group">
+                <label for="imageUpload">Tải ảnh lên từ thiết bị:</label>
+                <div class="image-upload-container">
+                    <input type="file" id="imageUpload" accept="image/*">
+                    <button onclick="uploadImage()">Tải Lên</button>
+                </div>
+                <img id="imagePreview" class="preview-image" alt="Ảnh xem trước">
+            </div>
+            
+            <div class="form-group">
+                <label for="imageUrl">Hoặc nhập URL ảnh từ internet:</label>
+                <input type="text" id="imageUrl" placeholder="Dán URL ảnh từ internet">
+                <button onclick="saveImageFromUrl()">Lưu Ảnh từ URL</button>
+            </div>
         </div>
         
-        <div class="form-group">
-            <label for="loveImage">URL ảnh tình yêu (tùy chọn):</label>
-            <input type="text" id="loveImage" placeholder="Dán URL ảnh từ internet">
+        <!-- Tab Quản Lý Status -->
+        <div id="status-tab" class="tab-content">
+            <div class="form-group">
+                <label for="adminStatus">Viết status mới:</label>
+                <textarea id="adminStatus" placeholder="Viết status tình yêu..."></textarea>
+                <button onclick="saveAdminStatus()">Lưu Status</button>
+            </div>
+            
+            <div class="form-group">
+                <h3>Danh sách status:</h3>
+                <div id="statusList">
+                    <!-- Danh sách status sẽ hiển thị ở đây -->
+                </div>
+            </div>
         </div>
-        
-        <button onclick="saveSettings()">Lưu Thiết Lập</button>
         
         <div id="message" class="message"></div>
         
         <div class="instructions">
             <p><strong>Hướng dẫn:</strong></p>
-            <p>- Nhập thông tin tình yêu của bạn</p>
-            <p>- Ngày bắt đầu yêu sẽ dùng để tính số ngày yêu nhau</p>
-            <p>- Mật khẩu dùng để đăng nhập vào trang chính</p>
-            <p>- URL ảnh sẽ hiển thị bên trong trái tim</p>
+            <p>- Tab "Thông Tin Cơ Bản": Thiết lập tên, ngày bắt đầu và mật khẩu</p>
+            <p>- Tab "Hình Ảnh": Tải ảnh từ thiết bị hoặc nhập URL ảnh</p>
+            <p>- Tab "Quản Lý Status": Viết và quản lý các status tình yêu</p>
         </div>
     </div>
 
     <script>
-        function saveSettings() {
+        // Chuyển tab
+        function switchTab(tabName) {
+            // Ẩn tất cả các tab
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Hiện tab được chọn
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // Cập nhật trạng thái tab
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+        }
+        
+        // Lưu thiết lập cơ bản
+        function saveBasicSettings() {
             const loverName = document.getElementById('loverName').value;
             const startDate = document.getElementById('startDate').value;
             const lovePassword = document.getElementById('lovePassword').value;
-            const loveImage = document.getElementById('loveImage').value;
             const messageEl = document.getElementById('message');
             
             // Kiểm tra thông tin bắt buộc
@@ -169,10 +276,6 @@
             localStorage.setItem('startDate', startDate);
             localStorage.setItem('lovePassword', lovePassword);
             
-            if (loveImage) {
-                localStorage.setItem('loveImage', loveImage);
-            }
-            
             // Hiển thị thông báo thành công
             messageEl.textContent = 'Đã lưu thiết lập thành công!';
             messageEl.className = 'message success';
@@ -183,12 +286,164 @@
             }, 3000);
         }
         
+        // Tải ảnh lên từ thiết bị
+        function uploadImage() {
+            const fileInput = document.getElementById('imageUpload');
+            const messageEl = document.getElementById('message');
+            
+            if (fileInput.files.length === 0) {
+                messageEl.textContent = 'Vui lòng chọn một tệp ảnh!';
+                messageEl.className = 'message error';
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                // Lưu ảnh dưới dạng Data URL
+                localStorage.setItem('loveImage', e.target.result);
+                
+                // Hiển thị ảnh xem trước
+                const preview = document.getElementById('imagePreview');
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                
+                messageEl.textContent = 'Đã tải ảnh lên thành công!';
+                messageEl.className = 'message success';
+                
+                setTimeout(() => {
+                    messageEl.style.display = 'none';
+                }, 3000);
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
+        // Lưu ảnh từ URL
+        function saveImageFromUrl() {
+            const imageUrl = document.getElementById('imageUrl').value;
+            const messageEl = document.getElementById('message');
+            
+            if (!imageUrl) {
+                messageEl.textContent = 'Vui lòng nhập URL ảnh!';
+                messageEl.className = 'message error';
+                return;
+            }
+            
+            // Lưu URL ảnh
+            localStorage.setItem('loveImage', imageUrl);
+            
+            // Hiển thị ảnh xem trước
+            const preview = document.getElementById('imagePreview');
+            preview.src = imageUrl;
+            preview.style.display = 'block';
+            
+            messageEl.textContent = 'Đã lưu ảnh từ URL thành công!';
+            messageEl.className = 'message success';
+            
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Lưu status từ admin
+        function saveAdminStatus() {
+            const statusText = document.getElementById('adminStatus').value.trim();
+            const messageEl = document.getElementById('message');
+            
+            if (!statusText) {
+                messageEl.textContent = 'Vui lòng nhập nội dung status!';
+                messageEl.className = 'message error';
+                return;
+            }
+            
+            const status = {
+                text: statusText,
+                date: new Date().toISOString()
+            };
+            
+            // Lấy danh sách status hiện tại
+            let statusList = JSON.parse(localStorage.getItem('loveStatus') || '[]');
+            
+            // Thêm status mới vào đầu danh sách
+            statusList.unshift(status);
+            
+            // Giới hạn chỉ lưu 10 status gần nhất
+            if (statusList.length > 10) {
+                statusList = statusList.slice(0, 10);
+            }
+            
+            // Lưu vào localStorage
+            localStorage.setItem('loveStatus', JSON.stringify(statusList));
+            
+            // Hiển thị danh sách status
+            loadStatusList();
+            
+            // Xóa nội dung textarea
+            document.getElementById('adminStatus').value = '';
+            
+            messageEl.textContent = 'Đã lưu status thành công!';
+            messageEl.className = 'message success';
+            
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Tải danh sách status
+        function loadStatusList() {
+            const statusList = JSON.parse(localStorage.getItem('loveStatus') || '[]');
+            const statusListContainer = document.getElementById('statusList');
+            
+            if (statusList.length === 0) {
+                statusListContainer.innerHTML = '<p>Chưa có status nào.</p>';
+                return;
+            }
+            
+            let html = '';
+            statusList.forEach((status, index) => {
+                const date = new Date(status.date);
+                const formattedDate = formatDateTime(date);
+                html += `
+                    <div class="status-item" style="margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 5px;">
+                        <p>${status.text}</p>
+                        <div style="font-size: 0.8rem; color: #ffcccb; margin-top: 5px;">${formattedDate}</div>
+                        <button onclick="deleteStatus(${index})" style="background: #ff6b6b; color: white; border: none; padding: 5px 10px; border-radius: 3px; margin-top: 5px; cursor: pointer;">Xóa</button>
+                    </div>
+                `;
+            });
+            
+            statusListContainer.innerHTML = html;
+        }
+        
+        // Xóa status
+        function deleteStatus(index) {
+            let statusList = JSON.parse(localStorage.getItem('loveStatus') || '[]');
+            
+            if (index >= 0 && index < statusList.length) {
+                statusList.splice(index, 1);
+                localStorage.setItem('loveStatus', JSON.stringify(statusList));
+                loadStatusList();
+            }
+        }
+        
+        // Hàm định dạng ngày giờ
+        function formatDateTime(date) {
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            return `${hours}:${minutes} - ${day}/${month}/${year}`;
+        }
+        
         // Tải thông tin đã lưu (nếu có)
         window.onload = function() {
+            // Thông tin cơ bản
             const savedLoverName = localStorage.getItem('loverName');
             const savedStartDate = localStorage.getItem('startDate');
             const savedLovePassword = localStorage.getItem('lovePassword');
-            const savedLoveImage = localStorage.getItem('loveImage');
             
             if (savedLoverName) {
                 document.getElementById('loverName').value = savedLoverName;
@@ -202,9 +457,17 @@
                 document.getElementById('lovePassword').value = savedLovePassword;
             }
             
+            // Ảnh
+            const savedLoveImage = localStorage.getItem('loveImage');
             if (savedLoveImage) {
-                document.getElementById('loveImage').value = savedLoveImage;
+                const preview = document.getElementById('imagePreview');
+                preview.src = savedLoveImage;
+                preview.style.display = 'block';
+                document.getElementById('imageUrl').value = savedLoveImage;
             }
+            
+            // Tải danh sách status
+            loadStatusList();
         };
     </script>
 </body>
