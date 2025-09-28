@@ -45,11 +45,14 @@
             margin: 20px 0;
         }
         
+        /* 🔥 QUAN TRỌNG: Khung hình trái tim */
         .love-image-tym {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 50%;
+            /* HÌNH TRÁI TIM */
+            clip-path: path('M12 4.419c-2.826-5.695-11.999-4.064-11.999 3.27 0 7.27 9.903 10.938 11.999 15.311 2.096-4.373 12-8.041 12-15.311 0-7.327-9.17-8.972-12-3.27z');
+            transform: scale(1.1);
             box-shadow: 0 0 25px rgba(234, 128, 176, 0.8);
             border: 6px solid white;
             animation: heartbeat 2s infinite;
@@ -63,7 +66,8 @@
             right: -15px;
             bottom: -15px;
             border: 2px solid #ea80b0;
-            border-radius: 50%;
+            /* KHUNG VIỀN HÌNH TRÁI TIM */
+            clip-path: path('M12 4.419c-2.826-5.695-11.999-4.064-11.999 3.27 0 7.27 9.903 10.938 11.999 15.311 2.096-4.373 12-8.041 12-15.311 0-7.327-9.17-8.972-12-3.27z');
             animation: pulse 3s ease-in-out infinite;
             pointer-events: none;
         }
@@ -220,7 +224,6 @@
                     deltaTime = newTime - (time || newTime);
                 time = newTime;
                 
-                // Làm nền trong suốt để thấy ảnh
                 context.clearRect(0, 0, canvas.width, canvas.height);
                 
                 var amount = particleRate * deltaTime;
@@ -270,7 +273,6 @@
                         loveImage.style.display = 'block';
                         noImage.style.display = 'none';
                         
-                        // Thêm hiệu ứng khi ảnh load thành công
                         loveImage.onload = function() {
                             loveImage.style.opacity = '0';
                             setTimeout(() => {
@@ -300,7 +302,6 @@
             window.location.href = '/';
         }
 
-        // Tự động tải ảnh khi trang load
         document.addEventListener('DOMContentLoaded', loadLoveImage);
     </script>
 </body>
