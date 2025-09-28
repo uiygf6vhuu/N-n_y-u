@@ -203,22 +203,19 @@
     <input type="file" id="imageUpload" accept="image/*" style="display: none;">
 
     <script>
-        // Lấy ảnh từ admin (localStorage) - Chỉ lấy ảnh Admin, không dùng ảnh mặc định nếu không có
-        function getAdminImage() {
-            const savedImage = localStorage.getItem('loveImage');
-            if (savedImage) {
-                return savedImage;
+        // SỬA ĐỔI: Lấy danh sách ảnh từ localStorage
+        function getSavedImages() {
+            const savedImages = JSON.parse(localStorage.getItem('loveImages') || '[]');
+            if (savedImages.length > 0) {
+                return savedImages;
             } else {
-                // Trả về một URL rỗng hoặc URL placeholder nếu không có ảnh Admin
-                return 'https://via.placeholder.com/500x500.png?text=No+Admin+Image';
+                // Trả về ảnh placeholder nếu không có ảnh nào
+                return [{ url: 'https://via.placeholder.com/500x500.png?text=No+Images+Found', name: 'Chưa có ảnh nào' }];
             }
         }
         
-        // Danh sách ảnh: Chỉ còn ảnh Admin. Các ảnh khác sẽ là ảnh được tải lên tạm thời.
-        const imageList = [
-            { url: getAdminImage(), name: 'Ảnh từ admin' }
-        ];
-        
+        // Khởi tạo danh sách ảnh với ảnh đã lưu
+        let imageList = getSavedImages();
         let currentImageIndex = 0;
         const heartImage = document.getElementById('heartImage');
         const currentImageName = document.getElementById('currentImageName');
@@ -233,8 +230,6 @@
         
         // Hàm đổi ảnh
         function changeImage() {
-            // Logic đổi ảnh ngẫu nhiên giữa ảnh Admin và bất kỳ ảnh nào đã được tải lên
-            // Nếu chỉ có ảnh Admin, click sẽ không làm gì (hoặc có thể lặp lại chính nó)
             currentImageIndex = (currentImageIndex + 1) % imageList.length;
             heartImage.src = imageList[currentImageIndex].url;
             currentImageName.textContent = imageList[currentImageIndex].name;
@@ -252,7 +247,7 @@
         // Sự kiện click canvas trái tim
         document.getElementById('heartCanvas').addEventListener('click', changeImage);
         
-        // Sự kiện tải ảnh lên (Giữ lại tính năng này theo yêu cầu)
+        // Sự kiện tải ảnh lên (SỬA ĐỔI: Thêm vào mảng và lưu lại)
         uploadImageBtn.addEventListener('click', () => {
             imageUpload.click();
         });
@@ -265,18 +260,24 @@
                     const newImageUrl = event.target.result;
                     const newImageName = 'Tải lên: ' + file.name;
 
-                    // Thêm ảnh mới vào danh sách và đặt nó làm ảnh hiện tại
+                    // Thêm ảnh mới vào mảng
                     imageList.push({ url: newImageUrl, name: newImageName });
+
+                    // Lưu toàn bộ mảng đã cập nhật vào localStorage
+                    localStorage.setItem('loveImages', JSON.stringify(imageList));
+
+                    // Hiển thị ảnh vừa tải lên và cập nhật chỉ mục
                     currentImageIndex = imageList.length - 1;
-                    
                     heartImage.src = newImageUrl;
                     currentImageName.textContent = newImageName;
+                    
+                    alert('Đã tải ảnh lên và thêm vào danh sách thành công!');
                 };
                 reader.readAsDataURL(file);
             }
         });
         
-        // Hiệu ứng màu sắc
+        // Hiệu ứng màu sắc (giữ nguyên)
         colorEffectBtn.addEventListener('click', function() {
             const canvas = document.getElementById('heartCanvas');
             canvas.classList.toggle('pulse');
@@ -288,7 +289,7 @@
             }
         });
         
-        // Code hiệu ứng trái tim canvas (màu xanh)
+        // Code hiệu ứng trái tim canvas (màu xanh - giữ nguyên)
         window.requestAnimationFrame = window.requestAnimationFrame || 
                                       window.mozRequestAnimationFrame || 
                                       window.webkitRequestAnimationFrame || 
