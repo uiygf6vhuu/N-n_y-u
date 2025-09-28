@@ -1,89 +1,89 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trái Tim Đỏ - Tình Yêu Nồng Cháy</title>
+<HTML>
+<HEAD>
+    <TITLE>Trái Tim Đỏ - Tình Yêu Nồng Cháy</TITLE>
+    <META NAME="Generator" CONTENT="EditPlus">
+    <META NAME="Author" CONTENT="">
+    <META NAME="Keywords" CONTENT="">
+    <META NAME="Description" CONTENT="">
     <style>
-        * {
+        /* CSS cho nền đen và canvas toàn màn hình */
+        body {
+            background-color: #000;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            font-family: 'Arial', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             overflow: hidden;
+            font-family: 'Arial', sans-serif;
             color: white;
-            padding: 20px;
         }
-        
-        .container {
-            text-align: center;
-            z-index: 10;
-            position: relative;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 15px;
-            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
-            max-width: 90%;
-            margin: 20px;
-        }
-        
-        h1 {
-            color: #ff6b6b;
-            margin-bottom: 20px;
-            text-shadow: 0 0 10px rgba(255, 107, 107, 0.7);
-            font-size: 2.5rem;
-        }
-        
-        .heart-frame {
-            position: relative;
-            width: 400px;
-            height: 400px;
-            margin: 0 auto 30px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        #heartCanvas {
+
+        canvas {
             position: absolute;
-            top: 0;
             left: 0;
+            top: 0;
             width: 100%;
             height: 100%;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 50px rgba(255, 0, 0, 0.7);
-            border: 5px solid rgba(255, 107, 107, 0.5);
+            /* Màu nền canvas được xử lý trong JS để tạo hiệu ứng mờ */
+            z-index: 1; 
         }
-        
-        #heartCanvas:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 70px rgba(255, 0, 0, 0.9);
+
+        /* Container và các thành phần hiển thị trên canvas */
+        .container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.7);
+            max-width: 90%;
+            width: 450px;
         }
-        
+
+        h1 {
+            color: #ff6b6b;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.7);
+        }
+
+        .heart-frame {
+            position: relative;
+            width: 250px; /* Nhỏ hơn để không che hết canvas */
+            height: 250px;
+            margin: 20px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
         #heartImage {
-            width: 70%;
-            height: 70%;
+            width: 100%;
+            height: 100%;
             object-fit: cover;
             border-radius: 50%;
-            z-index: 2;
-            border: 3px solid rgba(255, 255, 255, 0.7);
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            z-index: 12;
+            border: 5px solid #ff6b6b;
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.8);
+            transition: all 0.3s ease;
+        }
+
+        #heartImage:hover {
+            transform: scale(1.05);
+        }
+        
+        .image-info {
+            margin-top: 15px;
+            font-style: italic;
+            color: #ffcccb;
+            font-size: 0.9rem;
         }
         
         .controls {
             display: flex;
             justify-content: center;
-            gap: 15px;
+            gap: 10px;
             margin-top: 20px;
             flex-wrap: wrap;
         }
@@ -92,36 +92,17 @@
             background: linear-gradient(to right, #ff6b6b, #ff8e8e);
             color: white;
             border: none;
-            padding: 12px 25px;
+            padding: 10px 20px;
             border-radius: 50px;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: bold;
             transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+            box-shadow: 0 3px 10px rgba(255, 107, 107, 0.4);
         }
         
         button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.6);
-        }
-        
-        button:active {
-            transform: translateY(1px);
-        }
-        
-        .image-info {
-            margin-top: 15px;
-            font-style: italic;
-            color: #ffcccb;
-        }
-        
-        .instructions {
-            margin-top: 30px;
-            padding: 15px;
-            background: rgba(255, 107, 107, 0.2);
-            border-radius: 10px;
-            font-size: 0.9rem;
+            background: linear-gradient(to right, #ff5252, #ff6b6b);
         }
         
         .back-button {
@@ -131,295 +112,269 @@
             background: rgba(255, 107, 107, 0.8);
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 8px 15px;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.9rem;
             z-index: 100;
         }
-        
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { box-shadow: 0 0 50px rgba(255, 0, 0, 0.7); }
-            50% { box-shadow: 0 0 70px rgba(255, 0, 0, 0.9); }
-            100% { box-shadow: 0 0 50px rgba(255, 0, 0, 0.7); }
-        }
-        
-        @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-            }
-            
-            h1 {
-                font-size: 2rem;
-            }
-            
-            .heart-frame {
-                width: 300px;
-                height: 300px;
-            }
-            
-            .controls {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            button {
-                width: 100%;
-                max-width: 250px;
-            }
-        }
+
     </style>
-</head>
-<body>
-    <button class="back-button" onclick="window.location.href='index.html'">← Quay lại</button>
-    
-    <div class="container">
-        <h1>Trái Tim Đỏ</h1>
-        <p class="subtitle">Tình yêu nồng cháy và mãnh liệt</p>
-        
-        <div class="heart-frame">
-            <canvas id="heartCanvas" class="pulse"></canvas>
-            <img id="heartImage" src="" alt="Ảnh tình yêu">
-        </div>
-        
-        <div class="image-info">Ảnh hiện tại: <span id="currentImageName">Đang tải...</span></div>
-        
-        <div class="controls">
-            <button id="changeImageBtn">Đổi Ảnh</button>
-            <button id="uploadImageBtn">Tải Ảnh Lên</button>
-            <button id="colorEffectBtn">Hiệu Ứng Màu</button>
-        </div>
-        
-        <div class="instructions">
-            <p>Nhấp vào trái tim để đổi ảnh ngẫu nhiên</p>
-            <p>Sử dụng nút "Tải Ảnh Lên" để chọn ảnh từ thiết bị của bạn</p>
-        </div>
+</HEAD>
+
+<BODY>
+<button class="back-button" onclick="window.location.href='index (4).html'">← Quay lại</button>
+
+<canvas id="heart"></canvas>
+
+<div class="container">
+    <h1>Trái Tim Đỏ</h1>
+    <p>Tình yêu nồng cháy và đam mê</p>
+
+    <div class="heart-frame">
+        <img id="heartImage" src="" alt="Ảnh tình yêu">
     </div>
 
-    <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+    <div class="image-info">Ảnh hiện tại: <span id="currentImageName">Đang tải...</span></div>
+        
+    <div class="controls">
+        <button id="changeImageBtn">Đổi Ảnh Ngẫu Nhiên</button>
+        <button id="uploadImageBtn">Tải Ảnh Lên</button>
+    </div>
+</div>
 
-    <script>
-        // Lấy ảnh từ admin (localStorage)
-        function getAdminImage() {
-            const savedImage = localStorage.getItem('loveImage');
-            if (savedImage) {
-                return savedImage;
-            } else {
-                // Ảnh mặc định nếu chưa có ảnh từ admin
-                return 'https://images.unsplash.com/photo-1518568814500-bf0f8d125f46?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60';
-            }
-        }
-        
-        // Danh sách ảnh mặc định
-        const imageList = [
-            { url: getAdminImage(), name: 'Ảnh từ admin' },
-            { url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', name: 'Khoảnh khắc lãng mạn' },
-            { url: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', name: 'Tình yêu đích thực' },
-            { url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', name: 'Ánh mắt trao nhau' }
-        ];
-        
-        let currentImageIndex = 0;
-        const heartImage = document.getElementById('heartImage');
-        const currentImageName = document.getElementById('currentImageName');
-        const changeImageBtn = document.getElementById('changeImageBtn');
-        const uploadImageBtn = document.getElementById('uploadImageBtn');
-        const colorEffectBtn = document.getElementById('colorEffectBtn');
-        const imageUpload = document.getElementById('imageUpload');
-        
-        // Khởi tạo ảnh
-        heartImage.src = imageList[0].url;
-        currentImageName.textContent = imageList[0].name;
-        
-        // Hàm đổi ảnh
-        function changeImage() {
-            currentImageIndex = (currentImageIndex + 1) % imageList.length;
-            heartImage.src = imageList[currentImageIndex].url;
-            currentImageName.textContent = imageList[currentImageIndex].name;
-            
-            // Hiệu ứng khi đổi ảnh
-            heartImage.style.opacity = '0';
-            setTimeout(() => {
-                heartImage.style.opacity = '1';
-            }, 300);
-        }
-        
-        // Sự kiện click nút đổi ảnh
-        changeImageBtn.addEventListener('click', changeImage);
-        
-        // Sự kiện click canvas trái tim
-        document.getElementById('heartCanvas').addEventListener('click', changeImage);
-        
-        // Sự kiện tải ảnh lên
-        uploadImageBtn.addEventListener('click', () => {
-            imageUpload.click();
-        });
-        
-        imageUpload.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    heartImage.src = event.target.result;
-                    currentImageName.textContent = file.name;
+<input type="file" id="imageUpload" accept="image/*" style="display: none;">
+
+
+<script>
+    // --- Bắt đầu phần JavaScript cho Trang Trái Tim Đỏ ---
+
+    // Polyfill cho requestAnimationFrame (giữ lại từ index_tym4)
+    window.requestAnimationFrame =
+            window.__requestAnimationFrame ||
+            window.requestAnimationFrame ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame ||
+            window.oRequestAnimationFrame ||
+            window.msRequestAnimationFrame ||
+            (function () {
+                return function (callback, element) {
+                    var lastTime = element.__lastTime;
+                    if (lastTime === undefined) {
+                        lastTime = 0;
+                    }
+                    var currTime = Date.now();
+                    var timeToCall = Math.max(1, 33 - (currTime - lastTime));
+                    window.setTimeout(callback, timeToCall);
+                    element.__lastTime = currTime + timeToCall;
                 };
-                reader.readAsDataURL(file);
-            }
-        });
+            })();
+    
+    // Phát hiện thiết bị (giữ lại từ index_tym4)
+    window.isDevice = (/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(((navigator.userAgent || navigator.vendor || window.opera)).toLowerCase()));
+
+    // Lấy ảnh từ admin (localStorage) - Bỏ ảnh mặc định!
+    function getAdminImage() {
+        const savedImage = localStorage.getItem('loveImage');
+        if (savedImage) {
+            return savedImage;
+        } else {
+            // Trả về một URL placeholder nếu không có ảnh Admin
+            return 'https://via.placeholder.com/250x250.png?text=Admin+Image+Missing';
+        }
+    }
+    
+    // Danh sách ảnh: Chỉ còn ảnh Admin. Các ảnh khác là ảnh tải lên tạm thời.
+    const imageList = [
+        { url: getAdminImage(), name: 'Ảnh từ admin' }
+    ];
+
+    let currentImageIndex = 0;
+    const heartImage = document.getElementById('heartImage');
+    const currentImageNameEl = document.getElementById('currentImageName');
+    const changeImageBtn = document.getElementById('changeImageBtn');
+    const uploadImageBtn = document.getElementById('uploadImageBtn');
+    const imageUpload = document.getElementById('imageUpload');
+
+    // Khởi tạo ảnh
+    heartImage.src = imageList[0].url;
+    currentImageNameEl.textContent = imageList[0].name;
+
+    // Hàm đổi ảnh
+    function changeImage() {
+        currentImageIndex = (currentImageIndex + 1) % imageList.length;
+        heartImage.src = imageList[currentImageIndex].url;
+        currentImageNameEl.textContent = imageList[currentImageIndex].name;
         
-        // Hiệu ứng màu sắc
-        colorEffectBtn.addEventListener('click', function() {
-            const canvas = document.getElementById('heartCanvas');
-            canvas.classList.toggle('pulse');
-            
-            if (canvas.classList.contains('pulse')) {
-                this.textContent = 'Tắt Hiệu Ứng';
-            } else {
-                this.textContent = 'Hiệu Ứng Màu';
-            }
-        });
+        // Hiệu ứng khi đổi ảnh
+        heartImage.style.opacity = '0';
+        setTimeout(() => {
+            heartImage.style.opacity = '1';
+        }, 300);
+    }
+
+    // Sự kiện click nút đổi ảnh
+    changeImageBtn.addEventListener('click', changeImage);
+
+    // Sự kiện tải ảnh lên (Giữ lại tính năng này)
+    uploadImageBtn.addEventListener('click', () => {
+        imageUpload.click();
+    });
+    
+    imageUpload.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const newImageUrl = event.target.result;
+                const newImageName = 'Tải lên: ' + file.name;
+
+                // Thêm ảnh mới vào danh sách và đặt nó làm ảnh hiện tại
+                imageList.push({ url: newImageUrl, name: newImageName });
+                currentImageIndex = imageList.length - 1;
+                
+                heartImage.src = newImageUrl;
+                currentImageNameEl.textContent = newImageName;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // --- Bắt đầu phần Canvas (Hiệu ứng trái tim) ---
+    var loaded = false;
+    var init = function () {
+        if (loaded) return;
+        loaded = true;
+        var mobile = window.isDevice;
+        var koef = mobile ? 0.5 : 1;
+        var canvas = document.getElementById('heart');
+        var ctx = canvas.getContext('2d');
+        var width = canvas.width = koef * innerWidth;
+        var height = canvas.height = koef * innerHeight;
+        var rand = Math.random;
         
-        // Code hiệu ứng trái tim canvas (màu đỏ)
-        window.requestAnimationFrame = window.requestAnimationFrame || 
-                                      window.mozRequestAnimationFrame || 
-                                      window.webkitRequestAnimationFrame || 
-                                      window.msRequestAnimationFrame || 
-                                      function(callback) { setTimeout(callback, 1000/60); };
+        // Màu nền đen
+        ctx.fillStyle = "rgba(0,0,0,1)";
+        ctx.fillRect(0, 0, width, height);
 
-        window.isDevice = (/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(navigator.userAgent.toLowerCase()));
-        
-        var loaded = false;
-        var init = function() {
-            if (loaded) return;
-            loaded = true;
-            
-            var mobile = window.isDevice;
-            var koef = mobile ? 0.5 : 1;
-            var canvas = document.getElementById('heartCanvas');
-            var ctx = canvas.getContext('2d');
-            var width = canvas.width = 400;
-            var height = canvas.height = 400;
-            var rand = Math.random;
-            
-            ctx.fillStyle = "rgba(0,0,0,0)";
-            ctx.fillRect(0, 0, width, height);
 
-            var heartPosition = function(rad) {
-                return [Math.pow(Math.sin(rad), 3), -(15 * Math.cos(rad) - 5 * Math.cos(2 * rad) - 2 * Math.cos(3 * rad) - Math.cos(4 * rad))];
-            };
-            
-            var scaleAndTranslate = function(pos, sx, sy, dx, dy) {
-                return [dx + pos[0] * sx, dy + pos[1] * sy];
-            };
-
-            var traceCount = mobile ? 20 : 50;
-            var pointsOrigin = [];
-            var i;
-            var dr = mobile ? 0.3 : 0.1;
-            for (i = 0; i < Math.PI * 2; i += dr) 
-                pointsOrigin.push(scaleAndTranslate(heartPosition(i), 70, 4, 0, 0));
-            for (i = 0; i < Math.PI * 2; i += dr) 
-                pointsOrigin.push(scaleAndTranslate(heartPosition(i), 50, 3, 0, 0));
-            for (i = 0; i < Math.PI * 2; i += dr) 
-                pointsOrigin.push(scaleAndTranslate(heartPosition(i), 30, 2, 0, 0));
-                
-            var heartPointsCount = pointsOrigin.length;
-
-            var targetPoints = [];
-            var pulse = function(kx, ky) {
-                for (i = 0; i < pointsOrigin.length; i++) {
-                    targetPoints[i] = [];
-                    targetPoints[i][0] = kx * pointsOrigin[i][0] + width / 2;
-                    targetPoints[i][1] = ky * pointsOrigin[i][1] + height / 2;
-                }
-            };
-
-            var e = [];
-            for (i = 0; i < heartPointsCount; i++) {
-                var x = rand() * width;
-                var y = rand() * height;
-                e[i] = {
-                    vx: 0,
-                    vy: 0,
-                    R: 2,
-                    speed: rand() + 5,
-                    q: ~~(rand() * heartPointsCount),
-                    D: 2 * (i % 2) - 1,
-                    force: 0.2 * rand() + 0.7,
-                    f: "hsla(0, " + ~~(40 * rand() + 60) + "%, " + ~~(60 * rand() + 20) + "%, .3)",
-                    trace: []
-                };
-                for (var k = 0; k < traceCount; k++) 
-                    e[i].trace[k] = {x: x, y: y};
-            }
-
-            var config = {
-                traceK: 0.4,
-                timeDelta: 0.01
-            };
-
-            var time = 0;
-            var loop = function() {
-                var n = -Math.cos(time);
-                pulse((1 + n) * .5, (1 + n) * .5);
-                time += ((Math.sin(time)) < 0 ? 9 : (n > 0.8) ? .2 : 1) * config.timeDelta;
-                
-                ctx.fillStyle = "rgba(0,0,0,.05)";
-                ctx.fillRect(0, 0, width, height);
-                
-                for (i = e.length; i--;) {
-                    var u = e[i];
-                    var q = targetPoints[u.q];
-                    var dx = u.trace[0].x - q[0];
-                    var dy = u.trace[0].y - q[1];
-                    var length = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (10 > length) {
-                        if (0.95 < rand()) {
-                            u.q = ~~(rand() * heartPointsCount);
-                        } else {
-                            if (0.99 < rand()) {
-                                u.D *= -1;
-                            }
-                            u.q += u.D;
-                            u.q %= heartPointsCount;
-                            if (0 > u.q) {
-                                u.q += heartPointsCount;
-                            }
-                        }
-                    }
-                    
-                    u.vx += -dx / length * u.speed;
-                    u.vy += -dy / length * u.speed;
-                    u.trace[0].x += u.vx;
-                    u.trace[0].y += u.vy;
-                    u.vx *= u.force;
-                    u.vy *= u.force;
-                    
-                    for (k = 0; k < u.trace.length - 1;) {
-                        var T = u.trace[k];
-                        var N = u.trace[++k];
-                        N.x -= config.traceK * (N.x - T.x);
-                        N.y -= config.traceK * (N.y - T.y);
-                    }
-                    
-                    ctx.fillStyle = u.f;
-                    for (k = 0; k < u.trace.length; k++) {
-                        ctx.fillRect(u.trace[k].x, u.trace[k].y, 1, 1);
-                    }
-                }
-
-                window.requestAnimationFrame(loop);
-            };
-
-            loop();
+        var heartPosition = function (rad) {
+            // Phương trình cardioid cho hiệu ứng
+            return [Math.pow(Math.sin(rad), 3), -(15 * Math.cos(rad) - 5 * Math.cos(2 * rad) - 2 * Math.cos(3 * rad) - Math.cos(4 * rad))];
+        };
+        var scaleAndTranslate = function (pos, sx, sy, dx, dy) {
+            return [dx + pos[0] * sx, dy + pos[1] * sy];
         };
 
-        // Khởi chạy hiệu ứng
-        init();
-    </script>
-</body>
-</html>
+        window.addEventListener('resize', function () {
+            width = canvas.width = koef * innerWidth;
+            height = canvas.height = koef * innerHeight;
+            ctx.fillStyle = "rgba(0,0,0,1)";
+            ctx.fillRect(0, 0, width, height);
+        });
+
+        var traceCount = mobile ? 20 : 50;
+        var pointsOrigin = [];
+        var i;
+        var dr = mobile ? 0.3 : 0.1;
+        
+        // Tạo các điểm cho 3 lớp trái tim
+        for (i = 0; i < Math.PI * 2; i += dr) pointsOrigin.push(scaleAndTranslate(heartPosition(i), 210, 13, 0, 0));
+        for (i = 0; i < Math.PI * 2; i += dr) pointsOrigin.push(scaleAndTranslate(heartPosition(i), 150, 9, 0, 0));
+        for (i = 0; i < Math.PI * 2; i += dr) pointsOrigin.push(scaleAndTranslate(heartPosition(i), 90, 5, 0, 0));
+        var heartPointsCount = pointsOrigin.length;
+
+        var targetPoints = [];
+        var pulse = function (kx, ky) {
+            for (i = 0; i < pointsOrigin.length; i++) {
+                targetPoints[i] = [];
+                targetPoints[i][0] = kx * pointsOrigin[i][0] + width / 2;
+                targetPoints[i][1] = ky * pointsOrigin[i][1] + height / 2;
+            }
+        };
+
+        var e = [];
+        for (i = 0; i < heartPointsCount; i++) {
+            var x = rand() * width;
+            var y = rand() * height;
+            e[i] = {
+                vx: 0,
+                vy: 0,
+                R: 2,
+                speed: rand() + 5,
+                q: ~~(rand() * heartPointsCount),
+                D: 2 * (i % 2) - 1,
+                force: 0.2 * rand() + 0.7,
+                // Màu Đỏ/Hồng (Hue 0)
+                f: "hsla(0," + ~~(40 * rand() + 60) + "%," + ~~(60 * rand() + 20) + "%,.3)",
+                trace: []
+            };
+            for (var k = 0; k < traceCount; k++) e[i].trace[k] = {x: x, y: y};
+        }
+
+        var config = {
+            traceK: 0.4,
+            timeDelta: 0.01
+        };
+
+        var time = 0;
+        var loop = function () {
+            var n = -Math.cos(time);
+            pulse((1 + n) * .5, (1 + n) * .5);
+            time += ((Math.sin(time)) < 0 ? 9 : (n > 0.8) ? .2 : 1) * config.timeDelta;
+            
+            // Hiệu ứng mờ (trail effect)
+            ctx.fillStyle = "rgba(0,0,0,.1)";
+            ctx.fillRect(0, 0, width, height);
+            
+            for (i = e.length; i--;) {
+                var u = e[i];
+                var q = targetPoints[u.q];
+                var dx = u.trace[0].x - q[0];
+                var dy = u.trace[0].y - q[1];
+                var length = Math.sqrt(dx * dx + dy * dy);
+                if (10 > length) {
+                    if (0.95 < rand()) {
+                        u.q = ~~(rand() * heartPointsCount);
+                    }
+                    else {
+                        if (0.99 < rand()) {
+                            u.D *= -1;
+                        }
+                        u.q += u.D;
+                        u.q %= heartPointsCount;
+                        if (0 > u.q) {
+                            u.q += heartPointsCount;
+                        }
+                    }
+                }
+                u.vx += -dx / length * u.speed;
+                u.vy += -dy / length * u.speed;
+                u.trace[0].x += u.vx;
+                u.trace[0].y += u.vy;
+                u.vx *= u.force;
+                u.vy *= u.force;
+                for (k = 0; k < u.trace.length - 1;) {
+                    var T = u.trace[k];
+                    var N = u.trace[++k];
+                    N.x -= config.traceK * (N.x - T.x);
+                    N.y -= config.traceK * (N.y - T.y);
+                }
+                ctx.fillStyle = u.f;
+                for (k = 0; k < u.trace.length; k++) {
+                    ctx.fillRect(u.trace[k].x, u.trace[k].y, 1, 1);
+                }
+            }
+            
+            window.requestAnimationFrame(loop, canvas);
+        };
+
+        loop();
+    };
+
+    var s = document.readyState;
+    if (s === 'complete' || s === 'loaded' || s === 'interactive') init();
+    else document.addEventListener('DOMContentLoaded', init, false);
+</script>
+</BODY>
+</HTML>
