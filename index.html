@@ -286,9 +286,8 @@
 <body>
     <div id="loginForm">
         <h2>Đăng Nhập Tình Yêu</h2>
-        <p>Nhập thông tin do admin cung cấp</p>
-        <input type="text" id="username" placeholder="Tên người yêu">
-        <input type="password" id="password" placeholder="Mật khẩu">
+        <p>Nhập mật khẩu do Admin cung cấp</p>
+        <input type="password" id="sitePassword" placeholder="Mật khẩu trang chính">
         <button onclick="login()">Đăng Nhập</button>
         <p id="loginMessage" style="color: red; margin-top: 10px; font-size: 14px;"></p>
     </div>
@@ -299,8 +298,9 @@
         
         <div class="menu">
             <a href="tym1" class="menu-item">Trái Tim Đỏ</a>
-            <a href="tym2" class="menu-item">Trái Tim Hồng</a>
-            <a href="tym3" class="menu-item">Trái Tim Xanh</a>
+            <a href="index_tym2" class="menu-item">Trái Tim Hồng</a>
+            <a href="index_tym3 (1)" class="menu-item">Trái Tim Xanh</a>
+            <a href="admin (2)" class="menu-item">Cài Đặt</a>
         </div>
         
         <div class="love-info">
@@ -320,10 +320,11 @@
         </div>
         
         <div class="status-section">
-            <h2>Status Tình Yêu</h2>
+            <h2>Viết Status</h2>
             <textarea id="statusText" placeholder="Viết status tình yêu của bạn ở đây..."></textarea>
             <button id="saveStatus">Lưu Status</button>
-            
+
+            <h2>Dòng thời gian</h2>
             <div id="statusDisplay" class="status-display">
                 </div>
         </div>
@@ -336,68 +337,83 @@
     <div id="loveDays">Ngày thứ: <span id="daysCount">0</span></div>
 
     <script>
-        // Biến toàn cục
-        let isLoggedIn = false;
         let loveStartDate = null;
-        let loverName = "";
+        let sitePassword = ''; // Mật khẩu trang chính được lưu tạm thời
         
-        // Hàm đăng nhập (giữ nguyên)
-        function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+        // Hàm đăng nhập (SỬA ĐỔI: Dùng API kiểm tra mật khẩu)
+        async function login() {
+            const password = document.getElementById('sitePassword').value;
             const message = document.getElementById('loginMessage');
             
-            if (username && password) {
-                const savedLoverName = localStorage.getItem('loverName');
-                const savedStartDate = localStorage.getItem('startDate');
-                const savedPassword = localStorage.getItem('lovePassword');
-                
-                if (savedLoverName && savedStartDate) {
-                    if (password === savedPassword || password === 'love123') {
-                        isLoggedIn = true;
-                        loverName = savedLoverName;
-                        loveStartDate = new Date(savedStartDate);
-                        
-                        document.getElementById('loginForm').classList.add('hidden');
-                        document.getElementById('mainContent').classList.add('visible');
-                        
-                        initMiniHeart();
-                        updateLoveInfo();
-                        loadStatus();
-                        
-                        localStorage.setItem('isLoggedIn', 'true');
-                        message.textContent = '';
-                    } else {
-                        message.textContent = 'Mật khẩu không đúng!';
-                    }
-                } else {
-                    message.textContent = 'Chưa có thông tin tình yêu. Vui lòng liên hệ admin!';
-                }
-            } else {
-                message.textContent = 'Vui lòng nhập đầy đủ thông tin!';
-            }
-        }
-        
-        // SỬA ĐỔI: Lấy ảnh Mini Heart từ mảng loveImages
-        function initMiniHeart() {
-            const savedImages = JSON.parse(localStorage.getItem('loveImages') || '[]');
-            let imageUrl = 'https://images.unsplash.com/photo-1518568814500-bf0f8d125f46?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'; // Ảnh mặc định
+            try {
+                const response = await fetch('/api/check-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
 
-            // Lấy ảnh đầu tiên trong mảng nếu có
-            if (savedImages.length > 0) {
-                imageUrl = savedImages[0].url;
+                const data = await response.json();
+                if (data.success) {
+                    sitePassword = password; // Lưu mật khẩu để dùng làm Auth cho các API khác
+                    localStorage.setItem('sitePassword', password);
+                    
+                    // Lấy thông tin cục bộ
+                    const savedStartDate = localStorage.getItem('startDate');
+                    loveStartDate = new Date(savedStartDate);
+                    
+                    document.getElementById('loginForm').classList.add('hidden');
+                    document.getElementById('mainContent').classList.add('visible');
+                    
+                    initMiniHeart();
+                    updateLoveInfo();
+                    loadStatus();
+                } else {
+                    message.textContent = data.error || 'Đăng nhập thất bại';
+                }
+            } catch (error) {
+                message.textContent = 'Lỗi kết nối Server.';
             }
-            
-            document.getElementById('heartImage').src = imageUrl;
-            initHeartEffect();
         }
         
-        // Hàm cập nhật thông tin tình yêu (giữ nguyên logic tính ngày chuẩn)
+        // Hàm khởi tạo trái tim thu nhỏ (SỬA ĐỔI: Dùng API lấy ảnh)
+        async function initMiniHeart() {
+            try {
+                const response = await fetch('/api/love-images', {
+                    method: 'GET',
+                    headers: { 'Authorization': sitePassword || localStorage.getItem('sitePassword') || 'dummy' }
+                });
+                const data = await response.json();
+                
+                let imageUrl = 'https://images.unsplash.com/photo-1518568814500-bf0f8d125f46?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60';
+                
+                if (data.success && data.images && data.images.length > 0) {
+                    imageUrl = data.images[0]; // Lấy ảnh đầu tiên
+                }
+                
+                document.getElementById('heartImage').src = imageUrl;
+                initHeartEffect();
+            } catch (error) {
+                console.error('Lỗi tải ảnh Mini Heart:', error);
+                // Giữ ảnh mặc định nếu tải thất bại
+            }
+        }
+        
+        // Hàm cập nhật thông tin tình yêu (Giữ nguyên logic tính ngày chuẩn)
         function updateLoveInfo() {
-            if (!loveStartDate) return;
+            const savedLoverName = localStorage.getItem('loverName') || 'Người yêu';
+            const savedStartDate = localStorage.getItem('startDate');
             
+            document.getElementById('displayLoverName').textContent = savedLoverName;
+            document.getElementById('displayStartDate').textContent = savedStartDate || 'Chưa thiết lập';
+            
+            if (!savedStartDate) {
+                 document.getElementById('displayDaysCount').textContent = '0 ngày';
+                 document.getElementById('daysCount').textContent = 0;
+                 return;
+            }
+
             const today = new Date();
-            const start = new Date(loveStartDate);
+            const start = new Date(savedStartDate);
             
             today.setHours(0, 0, 0, 0);
             start.setHours(0, 0, 0, 0);
@@ -406,15 +422,13 @@
             const daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
             const daysCount = daysDiff + 1; // Ngày thứ 1
             
-            document.getElementById('displayLoverName').textContent = loverName;
-            document.getElementById('displayStartDate').textContent = formatDate(loveStartDate);
             document.getElementById('displayDaysCount').textContent = daysCount + ' ngày';
             document.getElementById('daysCount').textContent = daysCount;
             
             setTimeout(updateLoveInfo, 24 * 60 * 60 * 1000);
         }
         
-        // ... (Các hàm formatDate, saveStatus, loadStatus, formatDateTime giữ nguyên)
+        // Hàm định dạng ngày tháng (giữ nguyên)
         function formatDate(date) {
             const day = date.getDate().toString().padStart(2, '0');
             const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -422,59 +436,74 @@
             return `${day}/${month}/${year}`;
         }
         
-        function saveStatus() {
+        // Hàm lưu status (SỬA ĐỔI: Dùng API gửi tin nhắn)
+        document.getElementById('saveStatus').addEventListener('click', async function() {
             const statusText = document.getElementById('statusText').value.trim();
-            if (statusText) {
-                const status = {
-                    text: statusText,
-                    date: new Date().toISOString()
-                };
+            if (!statusText || !sitePassword) {
+                return alert('Vui lòng nhập nội dung status và đảm bảo đã đăng nhập!');
+            }
+            
+            try {
+                const response = await fetch('/api/message', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': sitePassword 
+                    },
+                    body: JSON.stringify({
+                        date: new Date().toISOString(),
+                        message: statusText,
+                        style: 'default'
+                    })
+                });
                 
-                let statusList = JSON.parse(localStorage.getItem('loveStatus') || '[]');
-                
-                statusList.unshift(status);
-                
-                if (statusList.length > 10) {
-                    statusList = statusList.slice(0, 10);
+                const data = await response.json();
+                if (data.success) {
+                    alert('Đã lưu status thành công và đồng bộ lên Server!');
+                    document.getElementById('statusText').value = '';
+                    loadStatus();
+                } else {
+                    alert('Lỗi lưu status: ' + data.error);
                 }
+            } catch (error) {
+                alert('Lỗi kết nối Server khi lưu status.');
+            }
+        });
+        
+        // Hàm tải và hiển thị status (SỬA ĐỔI: Dùng API lấy tin nhắn)
+        async function loadStatus() {
+            try {
+                const response = await fetch('/api/messages', {
+                    method: 'GET',
+                    headers: { 'Authorization': sitePassword || localStorage.getItem('sitePassword') || 'dummy' }
+                });
+                const data = await response.json();
+                const statusDisplay = document.getElementById('statusDisplay');
                 
-                localStorage.setItem('loveStatus', JSON.stringify(statusList));
-                
-                loadStatus();
-                
-                document.getElementById('statusText').value = '';
-                
-                alert('Đã lưu status thành công!');
-            } else {
-                alert('Vui lòng nhập nội dung status!');
+                if (data.success && data.messages.length > 0) {
+                    let html = data.messages.reverse().map(status => {
+                        const date = new Date(status.timestamp);
+                        const formattedDate = formatDateTime(date);
+                        return `
+                            <div class="status-item">
+                                <p>${status.content}</p>
+                                <div class="status-date">${formattedDate}</div>
+                            </div>
+                            <hr style="margin: 10px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);">
+                        `;
+                    }).join('');
+                    
+                    statusDisplay.innerHTML = html;
+                } else {
+                    statusDisplay.innerHTML = '<p>Chưa có status nào. Hãy viết status đầu tiên!</p>';
+                }
+            } catch (error) {
+                console.error('Lỗi tải status:', error);
+                document.getElementById('statusDisplay').innerHTML = '<p style="color: red;">Không thể tải status từ Server.</p>';
             }
         }
         
-        function loadStatus() {
-            const statusList = JSON.parse(localStorage.getItem('loveStatus') || '[]');
-            const statusDisplay = document.getElementById('statusDisplay');
-            
-            if (statusList.length === 0) {
-                statusDisplay.innerHTML = '<p>Chưa có status nào. Hãy viết status đầu tiên!</p>';
-                return;
-            }
-            
-            let html = '';
-            statusList.forEach(status => {
-                const date = new Date(status.date);
-                const formattedDate = formatDateTime(date);
-                html += `
-                    <div class="status-item">
-                        <p>${status.text}</p>
-                        <div class="status-date">${formattedDate}</div>
-                    </div>
-                    <hr style="margin: 10px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);">
-                `;
-            });
-            
-            statusDisplay.innerHTML = html;
-        }
-        
+        // Hàm định dạng ngày giờ (giữ nguyên)
         function formatDateTime(date) {
             const day = date.getDate().toString().padStart(2, '0');
             const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -486,26 +515,26 @@
         
         // Tải thông tin khi mở trang (giữ nguyên)
         window.onload = function() {
-            if (localStorage.getItem('isLoggedIn') === 'true') {
-                const savedLoverName = localStorage.getItem('loverName');
-                const savedStartDate = localStorage.getItem('startDate');
-                
-                if (savedLoverName && savedStartDate) {
-                    isLoggedIn = true;
-                    loverName = savedLoverName;
+             sitePassword = localStorage.getItem('sitePassword');
+             if (sitePassword) {
+                 // Tải thông tin cục bộ và thử load nội dung chính
+                 const savedStartDate = localStorage.getItem('startDate');
+                 if (savedStartDate) {
                     loveStartDate = new Date(savedStartDate);
-                    
-                    document.getElementById('loginForm').classList.add('hidden');
-                    document.getElementById('mainContent').classList.add('visible');
-                    initMiniHeart();
-                    updateLoveInfo();
-                    loadStatus();
-                } else {
-                    document.getElementById('loginMessage').textContent = 'Vui lòng nhập thông tin đăng nhập';
-                }
+                 }
+                
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('mainContent').classList.add('visible');
+                initMiniHeart();
+                updateLoveInfo();
+                loadStatus();
             }
         };
 
+        // Code hiệu ứng trái tim thu nhỏ (giữ nguyên)
+        function initHeartEffect() { /* ... */ }
+    </script>
+    <script>
         // Code hiệu ứng trái tim thu nhỏ (giữ nguyên)
         function initHeartEffect() {
             var canvas = document.getElementById('heartCanvas');
