@@ -85,18 +85,39 @@
             font-weight: normal;
             margin-top: 5px;
         }
+        .status-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+        .status-success {
+            background: rgba(46, 213, 115, 0.2);
+            color: #2ed573;
+            border: 1px solid #2ed573;
+        }
+        .status-error {
+            background: rgba(255, 71, 87, 0.2);
+            color: #ff4757;
+            border: 1px solid #ff4757;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="loginScreen" class="login-box" style="display: none;">
-            <h1>🔒 Trang Quản Trị Bí Mật</h1>
+        <div id="loginScreen" class="login-box">
+            <h1>🔒 Đăng Nhập Admin</h1>
             <p>Vui lòng nhập mật khẩu admin:</p>
-            <input type="password" id="adminPassword" class="password-input" placeholder="Nhập mật khẩu admin">
-            <button onclick="login()" class="btn" style="width: 100%;">🔑 Đăng Nhập</button>
+            <input type="password" id="adminPassword" class="password-input" placeholder="Nhập mật khẩu admin" value="611181">
+            <button onclick="adminLogin()" class="btn" style="width: 100%;">🔑 Đăng Nhập</button>
+            <p id="adminLoginMessage" style="color: red; margin-top: 10px;"></p>
+            <p style="color: #666; font-size: 0.9em;">
+                💡 Mật khẩu mặc định: <strong>611181</strong>
+            </p>
         </div>
 
-        <div id="adminContent" style="display: block;">
+        <div id="adminContent" style="display: none;">
             <h1>👑 Trang Quản Trị Bí Mật</h1>
             
             <div class="admin-section password-section">
@@ -106,7 +127,7 @@
                 <div class="password-form">
                     <div class="password-field">
                         <label>🔒 Mật Khẩu Trang Chính Hiện Tại:</label>
-                        <div id="currentSitePassword" class="current-password-display"></div>
+                        <div id="currentSitePassword" class="current-password-display">Đang tải...</div>
                         <label>🔄 Đổi Mật Khẩu Trang Chính</label>
                         <input type="password" id="newSitePassword" class="date-input" 
                                placeholder="Nhập mật khẩu mới cho trang chính">
@@ -117,7 +138,7 @@
                     
                     <div class="password-field">
                         <label>🔑 Mật Khẩu Admin Hiện Tại:</label>
-                        <div id="currentAdminPasswordDisplay" class="current-password-display"></div>
+                        <div id="currentAdminPasswordDisplay" class="current-password-display">Đang tải...</div>
                         <label>🔒 Đổi Mật Khẩu Admin</label>
                         <input type="password" id="newAdminPassword" class="date-input" 
                                placeholder="Nhập mật khẩu admin mới">
@@ -127,13 +148,13 @@
                     </div>
                 </div>
                 
-                <div id="passwordMessage" style="margin-top: 15px; font-weight: bold;"></div>
+                <div id="passwordMessage" class="status-message"></div>
             </div>
 
             <div class="admin-section">
                 <h2>📷 Ảnh Hiện Tại</h2>
                 <div id="currentImageContainer">
-                    <div id="noCurrentImage">Chưa có ảnh nào</div>
+                    <div id="noCurrentImage">Đang tải ảnh...</div>
                     <img id="currentImage" class="current-image" style="display:none;">
                 </div>
             </div>
@@ -175,7 +196,7 @@
 
             <div class="admin-section">
                 <h2>📋 Tin Nhắn Hiện Tại</h2>
-                <div id="currentMessages"></div>
+                <div id="currentMessages">Đang tải...</div>
             </div>
 
             <div class="navigation" style="text-align: center; margin-top: 30px;">
@@ -187,38 +208,81 @@
     </div>
 
     <script>
-        let isAuthenticated = true; // Luôn đặt là true vì đã bỏ qua login
-        let adminPassword = 'DUMMY_KEY'; // Khóa giả để API vẫn chạy
-        let currentUploadMode = 'url';
-        
-        // Tự động gán một hàm login rỗng hoặc khởi tạo
-        function login() {
-            console.log('Admin login bypassed.');
+        let adminPassword = localStorage.getItem('adminPassword') || '';
+        let isAuthenticated = false;
+
+        async function adminLogin() {
+            const inputPassword = document.getElementById('adminPassword').value.trim();
+            const messageElement = document.getElementById('adminLoginMessage');
+
+            if (!inputPassword) {
+                messageElement.textContent = 'Vui lòng nhập mật khẩu!';
+                return;
+            }
+
+            try {
+                console.log('🔐 Đang đăng nhập admin...');
+                const response = await fetch('/api/admin-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: inputPassword })
+                });
+
+                const data = await response.json();
+                console.log('📨 Phản hồi admin:', data);
+
+                if (response.ok && data.success) {
+                    isAuthenticated = true;
+                    adminPassword = inputPassword;
+                    localStorage.setItem('adminPassword', adminPassword);
+                    
+                    messageElement.textContent = '✅ Đăng nhập admin thành công!';
+                    messageElement.style.color = 'green';
+                    
+                    setTimeout(() => {
+                        document.getElementById('loginScreen').style.display = 'none';
+                        document.getElementById('adminContent').style.display = 'block';
+                        loadCurrentData();
+                        loadCurrentPasswords();
+                    }, 1000);
+
+                } else {
+                    messageElement.textContent = '❌ ' + (data.error || 'Sai mật khẩu admin');
+                    messageElement.style.color = 'red';
+                }
+            } catch (error) {
+                console.error('❌ Lỗi đăng nhập admin:', error);
+                messageElement.textContent = '❌ Lỗi kết nối server';
+                messageElement.style.color = 'red';
+            }
         }
 
         async function loadCurrentPasswords() {
-            // Sử dụng khóa giả để API vẫn trả về mật khẩu thật (vì requireAdminAuth đã bị bỏ)
             try {
                 const response = await fetch('/api/passwords', {
                     headers: { 'Authorization': adminPassword }
                 });
-                const data = await response.json();
                 
-                document.getElementById('currentSitePassword').textContent = data.sitePassword;
-                document.getElementById('currentAdminPasswordDisplay').textContent = data.adminPassword;
+                const data = await response.json();
+                console.log('🔐 Mật khẩu từ server:', data);
+                
+                if (data.sitePassword) {
+                    document.getElementById('currentSitePassword').textContent = data.sitePassword;
+                }
+                if (data.adminPassword) {
+                    document.getElementById('currentAdminPasswordDisplay').textContent = data.adminPassword;
+                }
                 
             } catch (error) {
-                console.error('Lỗi tải mật khẩu:', error);
-                showPasswordMessage('Lỗi tải thông tin mật khẩu!', 'error');
+                console.error('❌ Lỗi tải mật khẩu:', error);
+                showPasswordMessage('❌ Lỗi tải thông tin mật khẩu!', 'error');
             }
         }
         
         async function changeSitePassword() {
-            if (!isAuthenticated) return;
-            
             const newPassword = document.getElementById('newSitePassword').value.trim();
             if (!newPassword || newPassword.length < 3) {
-                showPasswordMessage('Mật khẩu trang chính phải có ít nhất 3 ký tự!', 'error');
+                showPasswordMessage('❌ Mật khẩu phải có ít nhất 3 ký tự!', 'error');
                 return;
             }
 
@@ -233,25 +297,23 @@
                 });
 
                 const data = await response.json();
-                if (response.ok) {
-                    showPasswordMessage(data.message, 'success');
+                if (response.ok && data.success) {
+                    showPasswordMessage('✅ ' + data.message, 'success');
                     document.getElementById('newSitePassword').value = '';
-                    loadCurrentPasswords(); 
+                    loadCurrentPasswords();
                 } else {
-                    showPasswordMessage(data.error || 'Lỗi khi đổi mật khẩu trang chính', 'error');
+                    showPasswordMessage('❌ ' + (data.error || 'Lỗi khi đổi mật khẩu'), 'error');
                 }
             } catch (error) {
-                showPasswordMessage('Lỗi kết nối!', 'error');
+                showPasswordMessage('❌ Lỗi kết nối!', 'error');
             }
         }
         
         async function changeAdminPassword() {
-            if (!isAuthenticated) return;
-            
             const newPassword = document.getElementById('newAdminPassword').value.trim();
             
             if (!newPassword || newPassword.length < 3) {
-                showPasswordMessage('Mật khẩu admin mới phải có ít nhất 3 ký tự!', 'error');
+                showPasswordMessage('❌ Mật khẩu phải có ít nhất 3 ký tự!', 'error');
                 return;
             }
 
@@ -266,38 +328,37 @@
                 });
 
                 const data = await response.json();
-                if (response.ok) {
-                    showPasswordMessage(data.message, 'success');
+                if (response.ok && data.success) {
+                    showPasswordMessage('✅ ' + data.message, 'success');
                     document.getElementById('newAdminPassword').value = '';
+                    adminPassword = newPassword;
+                    localStorage.setItem('adminPassword', adminPassword);
                     loadCurrentPasswords();
                 } else {
-                    showPasswordMessage(data.error || 'Lỗi khi đổi mật khẩu admin', 'error');
+                    showPasswordMessage('❌ ' + (data.error || 'Lỗi khi đổi mật khẩu'), 'error');
                 }
             } catch (error) {
-                showPasswordMessage('Lỗi kết nối!', 'error');
+                showPasswordMessage('❌ Lỗi kết nối!', 'error');
             }
         }
-
 
         function showPasswordMessage(message, type) {
             const messageElement = document.getElementById('passwordMessage');
             messageElement.textContent = message;
-            messageElement.style.color = type === 'success' ? '#2ed573' : '#ff4757';
-            setTimeout(() => { messageElement.textContent = ''; }, 5000);
+            messageElement.className = `status-message ${type === 'success' ? 'status-success' : 'status-error'}`;
+            setTimeout(() => { messageElement.textContent = ''; messageElement.className = 'status-message'; }, 5000);
         }
 
         function switchUploadMode(mode) {
             document.getElementById('urlUpload').style.display = mode === 'url' ? 'block' : 'none';
             document.getElementById('fileUpload').style.display = mode === 'file' ? 'block' : 'none';
-            document.querySelectorAll('.upload-option').forEach(opt => {
-                opt.classList.remove('active');
-            });
+            document.querySelectorAll('.upload-option').forEach(opt => opt.classList.remove('active'));
             event.currentTarget.classList.add('active');
         }
 
         async function uploadImageUrl() {
             const imageUrl = document.getElementById('imageUrl').value.trim();
-            if (!imageUrl) return alert('Vui lòng nhập URL ảnh!');
+            if (!imageUrl) return alert('❌ Vui lòng nhập URL ảnh!');
 
             try {
                 const response = await fetch('/api/upload-url', {
@@ -310,15 +371,15 @@
                 });
 
                 const data = await response.json();
-                if (response.ok) {
-                    alert('✅ Đã upload ảnh từ URL thành công!');
+                if (response.ok && data.success) {
+                    alert('✅ ' + data.message);
                     document.getElementById('imageUrl').value = '';
                     loadCurrentData();
                 } else {
                     alert('❌ ' + (data.error || 'Lỗi upload ảnh!'));
                 }
             } catch (error) {
-                alert('Lỗi kết nối!');
+                alert('❌ Lỗi kết nối!');
             }
         }
         
@@ -326,8 +387,11 @@
             const fileInput = document.getElementById('fileInput');
             const file = fileInput.files[0];
             
-            if (!file) return alert('Vui lòng chọn file ảnh!');
-            if (file.size > 5 * 1024 * 1024) { alert('File quá lớn! Tối đa 5MB.'); return; }
+            if (!file) return alert('❌ Vui lòng chọn file ảnh!');
+            if (file.size > 5 * 1024 * 1024) { 
+                alert('❌ File quá lớn! Tối đa 5MB.'); 
+                return; 
+            }
 
             const formData = new FormData();
             formData.append('image', file);
@@ -340,8 +404,8 @@
                 });
 
                 const data = await response.json();
-                if (response.ok) {
-                    alert('✅ Đã upload ảnh từ file thành công!');
+                if (response.ok && data.success) {
+                    alert('✅ ' + data.message);
                     fileInput.value = '';
                     document.getElementById('fileInfo').innerHTML = '';
                     loadCurrentData();
@@ -349,30 +413,37 @@
                     alert('❌ ' + (data.error || 'Lỗi upload ảnh!'));
                 }
             } catch (error) {
-                alert('Lỗi kết nối!');
+                alert('❌ Lỗi kết nối!');
             }
         }
 
         async function addMessage() {
             const message = document.getElementById('newMessage').value.trim();
-            if (!message) return alert('Vui lòng nhập tin nhắn!');
+            if (!message) return alert('❌ Vui lòng nhập tin nhắn!');
 
             try {
-                const response = await fetch('/api/love-messages', {
+                const response = await fetch('/api/message', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': adminPassword },
-                    body: JSON.stringify({ message })
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': adminPassword 
+                    },
+                    body: JSON.stringify({ 
+                        date: new Date().toISOString().split('T')[0], 
+                        message 
+                    })
                 });
 
-                if (response.ok) {
-                    alert('✅ Đã thêm tin nhắn thành công!');
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    alert('✅ ' + data.message);
                     document.getElementById('newMessage').value = '';
                     loadCurrentMessages();
                 } else {
                     alert('❌ Lỗi khi thêm tin nhắn!');
                 }
             } catch (error) {
-                alert('Lỗi kết nối!');
+                alert('❌ Lỗi kết nối!');
             }
         }
 
@@ -387,36 +458,36 @@
                     headers: { 'Authorization': adminPassword }
                 });
                 
-                if (response.ok) {
-                    const data = await response.json();
-                    const currentImage = document.getElementById('currentImage');
-                    const noCurrentImage = document.getElementById('noCurrentImage');
-                    
-                    if (data.image) {
-                        currentImage.src = data.image;
-                        currentImage.style.display = 'block';
-                        noCurrentImage.style.display = 'none';
-                    } else {
-                        currentImage.style.display = 'none';
-                        noCurrentImage.style.display = 'block';
-                    }
+                const data = await response.json();
+                const currentImage = document.getElementById('currentImage');
+                const noCurrentImage = document.getElementById('noCurrentImage');
+                
+                if (data.success && data.image) {
+                    currentImage.src = data.image;
+                    currentImage.style.display = 'block';
+                    noCurrentImage.style.display = 'none';
+                    noCurrentImage.textContent = 'Ảnh hiện tại:';
+                } else {
+                    currentImage.style.display = 'none';
+                    noCurrentImage.style.display = 'block';
+                    noCurrentImage.textContent = 'Chưa có ảnh nào';
                 }
             } catch (error) {
-                console.error('Lỗi tải ảnh:', error);
+                console.error('❌ Lỗi tải ảnh:', error);
             }
         }
 
         async function loadCurrentMessages() {
             try {
-                const response = await fetch('/api/love-messages', {
+                const response = await fetch('/api/messages', {
                     headers: { 'Authorization': adminPassword }
                 });
                 
                 const data = await response.json();
                 const container = document.getElementById('currentMessages');
-                container.innerHTML = '';
                 
-                if (data.messages && data.messages.length > 0) {
+                if (data.success && data.messages && data.messages.length > 0) {
+                    container.innerHTML = '';
                     data.messages.forEach((msg, index) => {
                         const div = document.createElement('div');
                         div.style.cssText = 'background: #f1f2f6; padding: 10px; margin: 5px 0; border-radius: 5px;';
@@ -427,18 +498,38 @@
                     container.innerHTML = '<p>Chưa có tin nhắn nào.</p>';
                 }
             } catch (error) {
-                console.error('Lỗi tải tin nhắn:', error);
+                console.error('❌ Lỗi tải tin nhắn:', error);
+                container.innerHTML = '<p>❌ Lỗi tải tin nhắn</p>';
             }
         }
         
         function logout() {
-            window.location.href = '/'; // Quay về trang chính để đăng xuất logic
+            isAuthenticated = false;
+            adminPassword = '';
+            localStorage.removeItem('adminPassword');
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('adminContent').style.display = 'none';
+            document.getElementById('adminPassword').value = '611181';
+            document.getElementById('adminLoginMessage').textContent = '';
         }
 
         // Tự động chạy khi tải trang
         document.addEventListener('DOMContentLoaded', function() {
-            loadCurrentData();
-            loadCurrentPasswords();
+            console.log('🚀 Trang admin đã tải');
+            
+            if (adminPassword) {
+                document.getElementById('adminPassword').value = adminPassword;
+                adminLogin();
+            }
+        });
+
+        // Xử lý chọn file
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('fileInfo').innerHTML = 
+                    `📁 File: ${file.name}<br>📏 Size: ${(file.size / 1024 / 1024).toFixed(2)} MB`;
+            }
         });
     </script>
 </body>
