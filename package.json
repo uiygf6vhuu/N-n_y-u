@@ -1,18 +1,17 @@
 {
   "name": "love-website",
   "version": "2.0.0",
-  "description": "Website tình yêu với database MongoDB",
+  "description": "Website tình yêu - Không cần database",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "multer": "^1.4.5-lts.1",
-    "mongoose": "^8.0.0"
+    "multer": "^1.4.5-lts.1"
   },
-  "keywords": ["love", "secret", "password", "mongodb", "website"],
+  "keywords": ["love", "secret", "password", "website", "memory"],
   "author": "Your Love",
   "license": "MIT"
 }
