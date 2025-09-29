@@ -349,11 +349,11 @@ app.use('/uploads', express.static(uploadsDir));
 
 // 🎯 ROUTING CHÍNH (URL sạch)
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index (5).html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin (2).html'));
+    res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 app.get('/tym1', (req, res) => {
