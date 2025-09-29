@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trang Tình Yêu - Kỷ Niệm Yêu Đương</title>
     <style>
-        /* ... (CSS giữ nguyên) ... */
         * {
             margin: 0;
             padding: 0;
@@ -278,6 +277,14 @@
             margin-top: 10px;
             color: #2ecc71;
         }
+        
+        .message-box {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            text-align: center;
+        }
 
     </style>
 </head>
@@ -359,16 +366,16 @@
             </div>
 
             <div class="image-preview-container">
-                <p>Danh sách ảnh hiện tại:</p>
+                <p>Danh sách ảnh hiện tại (Ảnh đầu tiên là ảnh chính):</p>
                 <img id="imagePreview" src="" style="display: none; max-height: 100px; border-radius: 5px; margin-bottom: 10px;" alt="Ảnh xem trước">
                 <div id="imageListDisplay" style="font-size: 0.8em; word-break: break-all;">Đang tải...</div>
             </div>
             <p id="imageMessage" class="message-admin"></p>
         </div>
         <div class="status-section">
-            <h2>Viết Status</h2>
-            <textarea id="statusText" placeholder="Viết status tình yêu của bạn ở đây..."></textarea>
-            <button id="saveStatus">Lưu Status</button>
+            <h2>Viết Tin Nhắn</h2>
+            <textarea id="statusText" placeholder="Gửi tin nhắn cho người yêu..."></textarea>
+            <button id="saveStatus">Gửi Tin Nhắn</button>
 
             <h2>Dòng thời gian</h2>
             <div id="statusDisplay" class="status-display">
@@ -468,10 +475,10 @@
         // ===============================================
 
         async function loadAdminData() {
-             const response = await fetch('/api/accounts', { method: 'GET', headers: { 'Authorization': userAuthKey } });
+             const response = await fetch('/api/account-structure');
              const data = await response.json();
              
-             if(data.success) {
+             if(data.success && data.accounts.owner) {
                 // Đổ dữ liệu tài khoản
                 document.getElementById('ownerNameInput').value = data.accounts.owner.name;
                 document.getElementById('ownerPasswordInput').value = data.accounts.owner.password;
@@ -749,7 +756,7 @@
             const month = (date.getMonth() + 1).toString().padStart(2, '0');
             const year = date.getFullYear();
             const hours = date.getHours().toString().padStart(2, '0');
-            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const minutes = date.getMinutes().getMinutes().toString().padStart(2, '0');
             return `${hours}:${minutes} - ${day}/${month}/${year}`;
         }
         
