@@ -193,7 +193,31 @@
         .info-value {
             color: #74b9ff;
         }
+
+        /* ONLINE STATUS STYLES */
+        #onlineStatus {
+            margin-top: 5px;
+            font-size: 0.9em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
         
+        .status-dot {
+            height: 10px;
+            width: 10px;
+            background-color: #bbb;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        
+        .online {
+            background-color: #2ecc71; /* Green */
+            box-shadow: 0 0 5px #2ecc71;
+        }
+
         /* Phần status */
         .status-section {
             background: rgba(255, 255, 255, 0.1);
@@ -249,6 +273,26 @@
             border-left: 4px solid #ff6b6b;
         }
         
+        .status-item {
+            padding: 10px 0;
+            border-bottom: 1px dashed rgba(255,255,255,0.1);
+            text-align: left;
+        }
+
+        .status-item:last-child {
+             border-bottom: none;
+        }
+
+        .status-sender {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .status-content {
+            color: #fff;
+            margin-bottom: 5px;
+        }
+        
         .status-date {
             font-size: 0.8rem;
             color: #ffcccb;
@@ -286,9 +330,12 @@
 <body>
     <div id="loginForm">
         <h2>Đăng Nhập Tình Yêu</h2>
-        <p>Nhập mật khẩu trang chính do Admin cung cấp</p>
-        <input type="password" id="sitePassword" placeholder="Mật khẩu trang chính">
+        <p>Chọn tài khoản để đăng nhập</p>
+        
+        <input type="text" id="userNameLogin" placeholder="Tên tài khoản (ví dụ: Owner/Lover)">
+        <input type="password" id="userPasswordLogin" placeholder="Mật khẩu">
         <button onclick="login()">Đăng Nhập</button>
+        
         <p id="loginMessage" style="color: red; margin-top: 10px; font-size: 14px;"></p>
     </div>
 
@@ -300,10 +347,21 @@
             <a href="tym1" class="menu-item">Trái Tim Đỏ</a>
             <a href="tym2" class="menu-item">Trái Tim Hồng</a>
             <a href="tym3" class="menu-item">Trái Tim Xanh</a>
+            <a href="admin" class="menu-item">Cài Đặt</a> 
         </div>
         
         <div class="love-info">
             <h2>Thông Tin Tình Yêu</h2>
+            <div class="info-item">
+                <span class="info-label">Đang đăng nhập:</span>
+                <span class="info-value" id="currentUserName">Loading...</span>
+            </div>
+             <div class="info-item">
+                <span class="info-label" id="otherUserNameLabel">Trạng thái người kia:</span>
+                <span class="info-value">
+                     <span id="onlineStatus" class="status-dot"></span>
+                </span>
+            </div>
             <div class="info-item">
                 <span class="info-label">Tên người yêu:</span>
                 <span class="info-value" id="displayLoverName">Đang tải...</span>
@@ -337,37 +395,35 @@
 
     <script>
         // Biến toàn cục
-        let sitePassword = ''; // Dùng làm Auth Token cho các API
+        let userAuthKey = ''; // Khóa Auth cho các API
+        let currentUserName = '';
+        let pingInterval;
         
-        // Hàm đăng nhập (Dùng API kiểm tra mật khẩu)
+        // Hàm đăng nhập (SỬA ĐỔI: Dùng API login mới)
         async function login() {
-            const password = document.getElementById('sitePassword').value;
+            const name = document.getElementById('userNameLogin').value.trim();
+            const password = document.getElementById('userPasswordLogin').value;
             const message = document.getElementById('loginMessage');
             
             try {
-                const response = await fetch('/api/check-password', {
+                const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password })
+                    body: JSON.stringify({ name, password })
                 });
 
                 const data = await response.json();
                 if (data.success) {
-                    sitePassword = password; // Lưu mật khẩu để dùng làm Auth cho các API khác
-                    localStorage.setItem('sitePassword', password);
-                    
-                    // Lấy thông tin cục bộ (Tên người yêu, Ngày bắt đầu)
-                    const savedLoverName = localStorage.getItem('loverName') || 'Người yêu';
-                    const savedStartDate = localStorage.getItem('startDate');
+                    userAuthKey = data.authKey;
+                    currentUserName = data.userName;
+
+                    localStorage.setItem('userAuthKey', userAuthKey);
+                    localStorage.setItem('currentUserName', currentUserName);
                     
                     document.getElementById('loginForm').classList.add('hidden');
                     document.getElementById('mainContent').classList.add('visible');
                     
-                    document.getElementById('displayLoverName').textContent = savedLoverName;
-                    
-                    initMiniHeart();
-                    updateLoveInfo();
-                    loadStatus();
+                    loadAllData();
                 } else {
                     message.textContent = data.error || 'Đăng nhập thất bại';
                 }
@@ -376,9 +432,78 @@
             }
         }
         
+        // Load toàn bộ dữ liệu sau khi đăng nhập
+        async function loadAllData() {
+            document.getElementById('currentUserName').textContent = currentUserName;
+            
+            // Lấy thông tin cục bộ (Tên người yêu, Ngày bắt đầu)
+            const savedLoverName = localStorage.getItem('loverName') || 'Người yêu';
+            document.getElementById('displayLoverName').textContent = savedLoverName;
+
+            initMiniHeart();
+            updateLoveInfo();
+            loadStatus();
+            
+            // KHỞI ĐỘNG CƠ CHẾ PING
+            startPingMechanism();
+        }
+        
+        // CƠ CHẾ ONLINE STATUS
+        function startPingMechanism() {
+            const ping = async () => {
+                const auth = userAuthKey || localStorage.getItem('userAuthKey');
+                if (!auth) return;
+
+                try {
+                    await fetch('/api/ping', {
+                        method: 'POST',
+                        headers: { 'Authorization': auth }
+                    });
+                    checkOnlineStatus(); 
+                } catch (e) {
+                    console.error("Lỗi Ping Server:", e);
+                }
+            };
+            
+            // Gửi ping lần đầu
+            ping();
+            // Thiết lập interval 15 giây
+            pingInterval = setInterval(ping, 15000); 
+        }
+
+        async function checkOnlineStatus() {
+            const currentAuth = userAuthKey || localStorage.getItem('userAuthKey');
+            if (!currentAuth) return;
+            
+            try {
+                const response = await fetch('/api/online-status', {
+                    method: 'GET',
+                    headers: { 'Authorization': currentAuth }
+                });
+                const data = await response.json();
+                
+                const statusDot = document.getElementById('onlineStatus');
+                const otherUserNameLabel = document.getElementById('otherUserNameLabel');
+
+                if (data.success) {
+                    otherUserNameLabel.textContent = `Trạng thái ${data.otherUserName}:`;
+                    
+                    if (data.isOnline) {
+                        statusDot.className = 'status-dot online';
+                        statusDot.textContent = ' Đang online';
+                    } else {
+                        statusDot.className = 'status-dot';
+                        statusDot.textContent = ` Offline`;
+                    }
+                }
+            } catch (e) {
+                console.error("Lỗi kiểm tra trạng thái Online:", e);
+            }
+        }
+
         // Hàm khởi tạo trái tim thu nhỏ (Dùng API lấy ảnh)
         async function initMiniHeart() {
-            const currentAuth = sitePassword || localStorage.getItem('sitePassword') || 'dummy';
+            const currentAuth = userAuthKey || localStorage.getItem('userAuthKey') || 'dummy';
             
             try {
                 const response = await fetch('/api/love-images', {
@@ -414,7 +539,6 @@
                  return;
             }
 
-            // Logic tính ngày chính xác (tự động xử lý năm nhuận/tháng)
             const today = new Date();
             const start = new Date(savedStartDate);
             
@@ -434,7 +558,7 @@
         // Hàm lưu status (Dùng API gửi tin nhắn)
         document.getElementById('saveStatus').addEventListener('click', async function() {
             const statusText = document.getElementById('statusText').value.trim();
-            const currentAuth = sitePassword || localStorage.getItem('sitePassword');
+            const currentAuth = userAuthKey || localStorage.getItem('userAuthKey');
 
             if (!statusText || !currentAuth) {
                 return alert('Vui lòng nhập nội dung status và đảm bảo đã đăng nhập!');
@@ -448,29 +572,29 @@
                         'Authorization': currentAuth 
                     },
                     body: JSON.stringify({
-                        date: new Date().toISOString(),
-                        message: statusText,
-                        style: 'default'
+                        message: statusText
                     })
                 });
                 
                 const data = await response.json();
                 if (data.success) {
-                    alert('Đã lưu status thành công và đồng bộ lên Server!');
+                    alert('Đã gửi tin nhắn thành công!');
                     document.getElementById('statusText').value = '';
                     loadStatus();
                 } else {
-                    alert('Lỗi lưu status: ' + data.error);
+                    alert('Lỗi gửi tin nhắn: ' + data.error);
                 }
             } catch (error) {
-                alert('Lỗi kết nối Server khi lưu status.');
+                alert('Lỗi kết nối Server khi gửi tin nhắn.');
             }
         });
         
         // Hàm tải và hiển thị status (Dùng API lấy tin nhắn)
         async function loadStatus() {
-            const currentAuth = sitePassword || localStorage.getItem('sitePassword') || 'dummy';
+            const currentAuth = userAuthKey || localStorage.getItem('userAuthKey');
             
+            if (!currentAuth) return;
+
             try {
                 const response = await fetch('/api/messages', {
                     method: 'GET',
@@ -480,51 +604,57 @@
                 const statusDisplay = document.getElementById('statusDisplay');
                 
                 if (data.success && data.messages.length > 0) {
-                    const displayMessages = data.messages.slice(-10).reverse(); 
+                    const displayMessages = data.messages.reverse(); 
                     
                     let html = displayMessages.map(status => {
                         const date = new Date(status.timestamp);
                         const formattedDate = formatDateTime(date);
+                        
+                        // Màu sắc tin nhắn khác nhau cho 2 người
+                        const senderColor = status.sender === currentUserName ? '#74b9ff' : '#ff6b6b';
+                        const alignment = status.sender === currentUserName ? 'right' : 'left';
+                        
                         return `
-                            <div class="status-item">
-                                <p>${status.content}</p>
+                            <div class="status-item" style="text-align: ${alignment};">
+                                <p class="status-sender" style="color: ${senderColor};">${status.sender}:</p>
+                                <p class="status-content">${status.content}</p>
                                 <div class="status-date">${formattedDate}</div>
                             </div>
-                            <hr style="margin: 10px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);">
+                            <hr style="margin: 10px 0; border: none; border-top: 1px dashed rgba(255,255,255,0.1);">
                         `;
                     }).join('');
                     
                     statusDisplay.innerHTML = html;
                 } else {
-                    statusDisplay.innerHTML = '<p>Chưa có status nào. Hãy viết status đầu tiên!</p>';
+                    statusDisplay.innerHTML = '<p>Chưa có tin nhắn nào. Hãy gửi tin nhắn đầu tiên!</p>';
                 }
             } catch (error) {
                 console.error('Lỗi tải status:', error);
-                document.getElementById('statusDisplay').innerHTML = '<p style="color: red;">Không thể tải status từ Server.</p>';
+                document.getElementById('statusDisplay').innerHTML = '<p style="color: red;">Không thể tải tin nhắn từ Server.</p>';
             }
         }
         
         // Tải thông tin khi mở trang (Tự động đăng nhập nếu có token)
         window.onload = function() {
-             sitePassword = localStorage.getItem('sitePassword');
+             userAuthKey = localStorage.getItem('userAuthKey');
+             currentUserName = localStorage.getItem('currentUserName');
              
-             if (sitePassword) {
+             if (userAuthKey && currentUserName) {
+                // Giả định khóa xác thực còn hiệu lực và tải nội dung
                 const savedLoverName = localStorage.getItem('loverName');
                 const savedStartDate = localStorage.getItem('startDate');
                 
                 if (savedLoverName && savedStartDate) {
                     
-                    document.getElementById('displayLoverName').textContent = savedLoverName;
-                    
                     document.getElementById('loginForm').classList.add('hidden');
                     document.getElementById('mainContent').classList.add('visible');
                     
-                    initMiniHeart();
-                    updateLoveInfo();
-                    loadStatus();
+                    loadAllData();
                 } else {
-                    document.getElementById('sitePassword').value = sitePassword; 
-                    document.getElementById('loginMessage').textContent = 'Vui lòng đăng nhập lại để xác thực Server và tải thông tin tĩnh.';
+                    document.getElementById('loginForm').style.display = 'flex';
+                    document.getElementById('userNameLogin').value = currentUserName;
+                    document.getElementById('userPasswordLogin').placeholder = 'Mật khẩu';
+                    document.getElementById('loginMessage').textContent = 'Vui lòng đăng nhập lại để xác thực Server.';
                 }
             }
         };
@@ -546,6 +676,7 @@
             return `${hours}:${minutes} - ${day}/${month}/${year}`;
         }
         
+        // Code hiệu ứng trái tim thu nhỏ (giữ nguyên)
         function initHeartEffect() {
             var canvas = document.getElementById('heartCanvas');
             var ctx = canvas.getContext('2d');
