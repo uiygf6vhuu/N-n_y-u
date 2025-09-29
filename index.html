@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trang Tình Yêu - Kỷ Niệm Yêu Đương</title>
     <style>
+        /* ... (CSS giữ nguyên) ... */
         * {
             margin: 0;
             padding: 0;
@@ -19,59 +20,8 @@
             overflow-x: hidden;
         }
         
-        /* Form đăng nhập */
-        #loginForm {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.95);
-            padding: 30px;
-            border-radius: 15px;
-            z-index: 1000;
-            text-align: center;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-            color: #333;
-            width: 90%;
-            max-width: 400px;
-        }
-        
-        #loginForm h2 {
-            color: #ff6b6b;
-            margin-bottom: 20px;
-        }
-        
-        #loginForm input {
-            display: block;
-            margin: 10px auto;
-            padding: 12px;
-            width: 100%;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        
-        #loginForm button {
-            background: #ff6b6b;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 15px;
-            font-size: 16px;
-            width: 100%;
-            transition: background 0.3s;
-        }
-        
-        #loginForm button:hover {
-            background: #ff5252;
-        }
-        
-        /* Ẩn form đăng nhập sau khi đăng nhập */
-        #loginForm.hidden {
-            display: none;
-        }
+        /* Form đăng nhập (Chỉ dùng khi lỗi) */
+        #loginForm { display: none; }
         
         /* Nội dung chính sau đăng nhập */
         #mainContent {
@@ -84,7 +34,7 @@
             display: block;
         }
         
-        #mainContent h1 {
+        h1 {
             color: #ff6b6b;
             margin-bottom: 10px;
             text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
@@ -193,10 +143,9 @@
         .info-value {
             color: #74b9ff;
         }
-
+        
         /* ONLINE STATUS STYLES */
-        #onlineStatus {
-            margin-top: 5px;
+        #onlineStatusContainer {
             font-size: 0.9em;
             font-weight: bold;
             display: flex;
@@ -298,47 +247,41 @@
             color: #ffcccb;
             margin-top: 5px;
         }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            #heartContainer {
-                width: 80px;
-                height: 80px;
-                top: 10px;
-                left: 10px;
-            }
-            
-            #loveDays {
-                left: 100px;
-                top: 25px;
-                font-size: 12px;
-                padding: 6px 12px;
-            }
-            
-            .menu {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .menu-item {
-                width: 80%;
-                text-align: center;
-            }
+
+        .admin-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 30px auto;
+            max-width: 600px;
         }
+        
+        .admin-section h2 {
+            color: #f1c40f;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .upload-file-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .upload-file-group input[type="file"] {
+            flex: 1;
+            padding: 5px;
+        }
+
+        .message-admin {
+            padding: 5px;
+            margin-top: 10px;
+            color: #2ecc71;
+        }
+
     </style>
 </head>
 <body>
-    <div id="loginForm">
-        <h2>Đăng Nhập Tình Yêu</h2>
-        <p>Chọn tài khoản để đăng nhập</p>
-        
-        <input type="text" id="userNameLogin" placeholder="Tên tài khoản (ví dụ: Owner/Lover)">
-        <input type="password" id="userPasswordLogin" placeholder="Mật khẩu">
-        <button onclick="login()">Đăng Nhập</button>
-        
-        <p id="loginMessage" style="color: red; margin-top: 10px; font-size: 14px;"></p>
-    </div>
-
     <div id="mainContent">
         <h1>Chào Mừng Đến Với Thế Giới Của Chúng Ta</h1>
         <p>Nơi lưu giữ những kỷ niệm đẹp nhất của tình yêu</p>
@@ -347,7 +290,7 @@
             <a href="tym1" class="menu-item">Trái Tim Đỏ</a>
             <a href="tym2" class="menu-item">Trái Tim Hồng</a>
             <a href="tym3" class="menu-item">Trái Tim Xanh</a>
-            <a href="admin" class="menu-item">Cài Đặt</a> 
+            <button class="menu-item" onclick="logout()">Đăng Xuất</button>
         </div>
         
         <div class="love-info">
@@ -359,7 +302,10 @@
              <div class="info-item">
                 <span class="info-label" id="otherUserNameLabel">Trạng thái người kia:</span>
                 <span class="info-value">
-                     <span id="onlineStatus" class="status-dot"></span>
+                     <span id="onlineStatusContainer">
+                         <span class="status-dot" id="statusDot"></span>
+                         <span id="onlineStatusText">Offline</span>
+                     </span>
                 </span>
             </div>
             <div class="info-item">
@@ -376,6 +322,49 @@
             </div>
         </div>
         
+        <div id="adminSection" class="admin-section" style="display: none;">
+            <h2>🛠️ Cài Đặt và Quản Trị Hệ Thống</h2>
+
+            <h3>1. Quản Lý Tài Khoản</h3>
+            <div class="form-group">
+                <label>Tên tài khoản Owner:</label>
+                <input type="text" id="ownerNameInput">
+                <label>Mật khẩu Owner:</label>
+                <input type="password" id="ownerPasswordInput">
+            </div>
+            
+            <div class="form-group">
+                <label>Tên tài khoản Lover:</label>
+                <input type="text" id="loverNameInput">
+                <label>Mật khẩu Lover:</label>
+                <input type="password" id="loverPasswordInput">
+            </div>
+            
+            <button style="background: #e67e22;" onclick="saveAccountDetails()">Lưu Tên & Mật khẩu Tài khoản</button>
+            <p id="accountMessage" class="message-admin"></p>
+
+            <h3>2. Quản Lý Thư Viện Ảnh</h3>
+            <div class="form-group">
+                <label>Thêm ảnh bằng URL:</label>
+                <input type="text" id="imageUrl" placeholder="Dán URL ảnh tại đây">
+                <button style="background: #27ae60;" onclick="uploadImageFromUrl()">Thêm Ảnh từ URL</button>
+            </div>
+            
+            <div class="form-group">
+                <label>Tải ảnh lên từ thiết bị (Tối đa 5MB):</label>
+                <div class="upload-file-group">
+                    <input type="file" id="imageFile" accept="image/*">
+                    <button style="background: #3498db;" onclick="uploadImageFromFile()">Tải Lên Server</button>
+                </div>
+            </div>
+
+            <div class="image-preview-container">
+                <p>Danh sách ảnh hiện tại:</p>
+                <img id="imagePreview" src="" style="display: none; max-height: 100px; border-radius: 5px; margin-bottom: 10px;" alt="Ảnh xem trước">
+                <div id="imageListDisplay" style="font-size: 0.8em; word-break: break-all;">Đang tải...</div>
+            </div>
+            <p id="imageMessage" class="message-admin"></p>
+        </div>
         <div class="status-section">
             <h2>Viết Status</h2>
             <textarea id="statusText" placeholder="Viết status tình yêu của bạn ở đây..."></textarea>
@@ -394,48 +383,66 @@
     <div id="loveDays">Ngày thứ: <span id="daysCount">0</span></div>
 
     <script>
-        // Biến toàn cục
-        let userAuthKey = ''; // Khóa Auth cho các API
+        let userAuthKey = ''; 
         let currentUserName = '';
+        let isAdmin = false;
         let pingInterval;
         
-        // Hàm đăng nhập (SỬA ĐỔI: Dùng API login mới)
-        async function login() {
-            const name = document.getElementById('userNameLogin').value.trim();
-            const password = document.getElementById('userPasswordLogin').value;
-            const message = document.getElementById('loginMessage');
-            
+        const MESSAGE_DURATION = 3000;
+
+        function showMessage(elId, text, isSuccess) {
+            const messageEl = document.getElementById(elId);
+            messageEl.textContent = text;
+            messageEl.style.color = isSuccess ? '#2ecc71' : '#e74c3c';
+            messageEl.style.display = 'block';
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, MESSAGE_DURATION);
+        }
+
+        // ===============================================
+        // KHỞI TẠO VÀ XÁC THỰC
+        // ===============================================
+
+        function redirectToAuth() {
+            window.location.href = '/auth';
+        }
+
+        async function checkAuthAndLoad() {
+            userAuthKey = localStorage.getItem('userAuthKey');
+            currentUserName = localStorage.getItem('currentUserName');
+            isAdmin = localStorage.getItem('isAdmin') === 'true';
+
+            if (!userAuthKey || userAuthKey === 'null') {
+                return redirectToAuth(); // Buộc đăng nhập nếu không có Auth Key
+            }
+
             try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, password })
-                });
+                 // Gửi ping lần đầu để xác nhận token và user name
+                await fetch('/api/ping', { method: 'POST', headers: { 'Authorization': userAuthKey } });
+                
+                document.getElementById('mainContent').classList.add('visible');
+                
+                loadAllData();
 
-                const data = await response.json();
-                if (data.success) {
-                    userAuthKey = data.authKey;
-                    currentUserName = data.userName;
-
-                    localStorage.setItem('userAuthKey', userAuthKey);
-                    localStorage.setItem('currentUserName', currentUserName);
-                    
-                    document.getElementById('loginForm').classList.add('hidden');
-                    document.getElementById('mainContent').classList.add('visible');
-                    
-                    loadAllData();
-                } else {
-                    message.textContent = data.error || 'Đăng nhập thất bại';
-                }
             } catch (error) {
-                message.textContent = 'Lỗi kết nối Server.';
+                // Nếu ping thất bại (token hết hạn/sai), xóa cục bộ và chuyển hướng
+                localStorage.removeItem('userAuthKey');
+                localStorage.removeItem('currentUserName');
+                localStorage.removeItem('isAdmin');
+                redirectToAuth();
             }
         }
-        
-        // Load toàn bộ dữ liệu sau khi đăng nhập
+
         async function loadAllData() {
-            document.getElementById('currentUserName').textContent = currentUserName;
-            
+            document.getElementById('currentUserName').textContent = currentUserName + (isAdmin ? ' (ADMIN)' : '');
+
+            // Hiện/Ẩn phần Admin
+            document.getElementById('adminSection').style.display = isAdmin ? 'block' : 'none';
+            if (isAdmin) {
+                loadAdminData();
+            }
+
             // Lấy thông tin cục bộ (Tên người yêu, Ngày bắt đầu)
             const savedLoverName = localStorage.getItem('loverName') || 'Người yêu';
             document.getElementById('displayLoverName').textContent = savedLoverName;
@@ -448,31 +455,169 @@
             startPingMechanism();
         }
         
-        // CƠ CHẾ ONLINE STATUS
+        function logout() {
+            clearInterval(pingInterval);
+            localStorage.removeItem('userAuthKey');
+            localStorage.removeItem('currentUserName');
+            localStorage.removeItem('isAdmin');
+            redirectToAuth();
+        }
+
+        // ===============================================
+        // ADMIN FUNCTIONALITY (GỘP TỪ ADMIN.HTML)
+        // ===============================================
+
+        async function loadAdminData() {
+             const response = await fetch('/api/accounts', { method: 'GET', headers: { 'Authorization': userAuthKey } });
+             const data = await response.json();
+             
+             if(data.success) {
+                // Đổ dữ liệu tài khoản
+                document.getElementById('ownerNameInput').value = data.accounts.owner.name;
+                document.getElementById('ownerPasswordInput').value = data.accounts.owner.password;
+                document.getElementById('loverNameInput').value = data.accounts.lover.name;
+                document.getElementById('loverPasswordInput').value = data.accounts.lover.password;
+
+                loadImagesAdmin();
+             }
+        }
+
+        async function saveAccountDetails() {
+            const ownerName = document.getElementById('ownerNameInput').value;
+            const ownerPassword = document.getElementById('ownerPasswordInput').value;
+            const loverName = document.getElementById('loverNameInput').value;
+            const loverPassword = document.getElementById('loverPasswordInput').value;
+            
+            try {
+                // Lưu thông tin Owner
+                await fetch('/api/update-account', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': userAuthKey },
+                    body: JSON.stringify({ accountType: 'owner', name: ownerName, password: ownerPassword })
+                });
+
+                // Lưu thông tin Lover
+                await fetch('/api/update-account', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': userAuthKey },
+                    body: JSON.stringify({ accountType: 'lover', name: loverName, password: loverPassword })
+                });
+
+                // Lưu thông tin tĩnh cục bộ (cho tính năng tính ngày)
+                localStorage.setItem('loverName', loverName); 
+
+                showMessage('accountMessage', 'Đã lưu tên và mật khẩu lên Server!', true);
+                
+            } catch (error) {
+                showMessage('accountMessage', 'Lỗi Server khi lưu tài khoản.', false);
+            }
+        }
+        
+        async function uploadImageFromUrl() {
+            const imageUrl = document.getElementById('imageUrl').value;
+            
+            try {
+                const response = await fetch('/api/upload-url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': userAuthKey },
+                    body: JSON.stringify({ imageUrl })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showMessage('imageMessage', 'Đã thêm ảnh từ URL thành công!', true);
+                    document.getElementById('imageUrl').value = '';
+                    await loadImagesAdmin();
+                } else {
+                    showMessage('imageMessage', data.error || 'Lỗi thêm ảnh', false);
+                }
+            } catch (error) {
+                showMessage('imageMessage', 'Lỗi kết nối Server khi upload URL.', false);
+            }
+        }
+
+        async function uploadImageFromFile() {
+            const fileInput = document.getElementById('imageFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                return showMessage('imageMessage', 'Vui lòng chọn một tệp ảnh.', false);
+            }
+
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            try {
+                const response = await fetch('/api/upload-file', {
+                    method: 'POST',
+                    headers: { 'Authorization': userAuthKey },
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showMessage('imageMessage', 'Đã tải ảnh lên Server thành công!', true);
+                    fileInput.value = '';
+                    await loadImagesAdmin();
+                } else {
+                    showMessage('imageMessage', data.error || 'Lỗi tải tệp', false);
+                }
+            } catch (error) {
+                showMessage('imageMessage', 'Lỗi kết nối Server khi tải tệp.', false);
+            }
+        }
+
+        async function loadImagesAdmin() {
+            try {
+                const response = await fetch('/api/love-images', {
+                    method: 'GET',
+                    headers: { 'Authorization': userAuthKey }
+                });
+                
+                const data = await response.json();
+                const display = document.getElementById('imageListDisplay');
+                
+                if (data.success && data.images && data.images.length > 0) {
+                    display.innerHTML = data.images.map((url, index) => `
+                        <div style="margin-top: 5px; font-size: 0.8em;">
+                            #${index + 1}: <a href="${url}" target="_blank" style="color: #74b9ff; word-break: break-all;">${url.substring(0, 40)}...</a>
+                        </div>
+                    `).join('');
+                    
+                    document.getElementById('imagePreview').src = data.images[0];
+                    document.getElementById('imagePreview').style.display = 'block';
+                } else {
+                    display.textContent = 'Chưa có ảnh nào được tải lên.';
+                    document.getElementById('imagePreview').style.display = 'none';
+                }
+            } catch (error) {
+                document.getElementById('imageListDisplay').textContent = 'Lỗi tải danh sách ảnh từ Server.';
+            }
+        }
+
+        // ===============================================
+        // ONLINE STATUS & PING
+        // ===============================================
+
         function startPingMechanism() {
             const ping = async () => {
-                const auth = userAuthKey || localStorage.getItem('userAuthKey');
+                const auth = userAuthKey;
                 if (!auth) return;
 
                 try {
-                    await fetch('/api/ping', {
-                        method: 'POST',
-                        headers: { 'Authorization': auth }
-                    });
+                    await fetch('/api/ping', { method: 'POST', headers: { 'Authorization': auth } });
                     checkOnlineStatus(); 
                 } catch (e) {
                     console.error("Lỗi Ping Server:", e);
                 }
             };
             
-            // Gửi ping lần đầu
             ping();
-            // Thiết lập interval 15 giây
             pingInterval = setInterval(ping, 15000); 
         }
 
         async function checkOnlineStatus() {
-            const currentAuth = userAuthKey || localStorage.getItem('userAuthKey');
+            const currentAuth = userAuthKey;
             if (!currentAuth) return;
             
             try {
@@ -482,7 +627,8 @@
                 });
                 const data = await response.json();
                 
-                const statusDot = document.getElementById('onlineStatus');
+                const statusDot = document.getElementById('statusDot');
+                const statusText = document.getElementById('onlineStatusText');
                 const otherUserNameLabel = document.getElementById('otherUserNameLabel');
 
                 if (data.success) {
@@ -490,47 +636,25 @@
                     
                     if (data.isOnline) {
                         statusDot.className = 'status-dot online';
-                        statusDot.textContent = ' Đang online';
+                        statusText.textContent = ' Đang online';
                     } else {
                         statusDot.className = 'status-dot';
-                        statusDot.textContent = ` Offline`;
+                        statusText.textContent = ' Offline';
                     }
                 }
             } catch (e) {
                 console.error("Lỗi kiểm tra trạng thái Online:", e);
             }
         }
-
-        // Hàm khởi tạo trái tim thu nhỏ (Dùng API lấy ảnh)
-        async function initMiniHeart() {
-            const currentAuth = userAuthKey || localStorage.getItem('userAuthKey') || 'dummy';
-            
-            try {
-                const response = await fetch('/api/love-images', {
-                    method: 'GET',
-                    headers: { 'Authorization': currentAuth }
-                });
-                const data = await response.json();
-                
-                let imageUrl = 'https://images.unsplash.com/photo-1518568814500-bf0f8d125f46?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60';
-                
-                if (data.success && data.images && data.images.length > 0) {
-                    imageUrl = data.images[0]; // Lấy ảnh đầu tiên
-                }
-                
-                document.getElementById('heartImage').src = imageUrl;
-                initHeartEffect();
-            } catch (error) {
-                console.error('Lỗi tải ảnh Mini Heart:', error);
-            }
-        }
         
-        // Hàm cập nhật thông tin tình yêu (Giữ nguyên logic tính ngày chuẩn)
+        // ===============================================
+        // CÁC HÀM CƠ BẢN KHÁC (TÍNH NGÀY, STATUS)
+        // ===============================================
+        
         function updateLoveInfo() {
             const savedLoverName = localStorage.getItem('loverName') || 'Người yêu';
             const savedStartDate = localStorage.getItem('startDate');
             
-            document.getElementById('displayLoverName').textContent = savedLoverName;
             document.getElementById('displayStartDate').textContent = savedStartDate || 'Chưa thiết lập';
             
             if (!savedStartDate) {
@@ -555,43 +679,31 @@
             setTimeout(updateLoveInfo, 24 * 60 * 60 * 1000);
         }
         
-        // Hàm lưu status (Dùng API gửi tin nhắn)
         document.getElementById('saveStatus').addEventListener('click', async function() {
             const statusText = document.getElementById('statusText').value.trim();
-            const currentAuth = userAuthKey || localStorage.getItem('userAuthKey');
+            const currentAuth = userAuthKey;
 
             if (!statusText || !currentAuth) {
                 return alert('Vui lòng nhập nội dung status và đảm bảo đã đăng nhập!');
             }
             
             try {
-                const response = await fetch('/api/message', {
+                await fetch('/api/message', {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': currentAuth 
-                    },
-                    body: JSON.stringify({
-                        message: statusText
-                    })
+                    headers: { 'Content-Type': 'application/json', 'Authorization': currentAuth },
+                    body: JSON.stringify({ message: statusText })
                 });
                 
-                const data = await response.json();
-                if (data.success) {
-                    alert('Đã gửi tin nhắn thành công!');
-                    document.getElementById('statusText').value = '';
-                    loadStatus();
-                } else {
-                    alert('Lỗi gửi tin nhắn: ' + data.error);
-                }
+                alert('Đã gửi tin nhắn thành công!');
+                document.getElementById('statusText').value = '';
+                loadStatus();
             } catch (error) {
                 alert('Lỗi kết nối Server khi gửi tin nhắn.');
             }
         });
         
-        // Hàm tải và hiển thị status (Dùng API lấy tin nhắn)
         async function loadStatus() {
-            const currentAuth = userAuthKey || localStorage.getItem('userAuthKey');
+            const currentAuth = userAuthKey;
             
             if (!currentAuth) return;
 
@@ -610,7 +722,6 @@
                         const date = new Date(status.timestamp);
                         const formattedDate = formatDateTime(date);
                         
-                        // Màu sắc tin nhắn khác nhau cho 2 người
                         const senderColor = status.sender === currentUserName ? '#74b9ff' : '#ff6b6b';
                         const alignment = status.sender === currentUserName ? 'right' : 'left';
                         
@@ -629,42 +740,8 @@
                     statusDisplay.innerHTML = '<p>Chưa có tin nhắn nào. Hãy gửi tin nhắn đầu tiên!</p>';
                 }
             } catch (error) {
-                console.error('Lỗi tải status:', error);
                 document.getElementById('statusDisplay').innerHTML = '<p style="color: red;">Không thể tải tin nhắn từ Server.</p>';
             }
-        }
-        
-        // Tải thông tin khi mở trang (Tự động đăng nhập nếu có token)
-        window.onload = function() {
-             userAuthKey = localStorage.getItem('userAuthKey');
-             currentUserName = localStorage.getItem('currentUserName');
-             
-             if (userAuthKey && currentUserName) {
-                // Giả định khóa xác thực còn hiệu lực và tải nội dung
-                const savedLoverName = localStorage.getItem('loverName');
-                const savedStartDate = localStorage.getItem('startDate');
-                
-                if (savedLoverName && savedStartDate) {
-                    
-                    document.getElementById('loginForm').classList.add('hidden');
-                    document.getElementById('mainContent').classList.add('visible');
-                    
-                    loadAllData();
-                } else {
-                    document.getElementById('loginForm').style.display = 'flex';
-                    document.getElementById('userNameLogin').value = currentUserName;
-                    document.getElementById('userPasswordLogin').placeholder = 'Mật khẩu';
-                    document.getElementById('loginMessage').textContent = 'Vui lòng đăng nhập lại để xác thực Server.';
-                }
-            }
-        };
-
-        // --- Hàm hỗ trợ (giữ nguyên) ---
-        function formatDate(date) {
-            const day = date.getDate().toString().padStart(2, '0');
-            const month = (date.getMonth() + 1).toString().padStart(2, '0');
-            const year = date.getFullYear();
-            return `${day}/${month}/${year}`;
         }
         
         function formatDateTime(date) {
@@ -792,6 +869,9 @@
 
             loop();
         }
+
+        // Bắt đầu kiểm tra và load
+        window.onload = checkAuthAndLoad;
     </script>
 </body>
 </html>
