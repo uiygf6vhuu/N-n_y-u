@@ -193,8 +193,6 @@
                     statusEl.textContent = 'Hệ thống chưa được thiết lập. Hãy đăng ký Admin.';
                     document.getElementById('registerForm').style.display = 'block';
                     document.getElementById('loginForm').style.display = 'none';
-                    // Hiển thị mật khẩu admin mặc định
-                    // (Tự động điền nếu cần, nhưng để trống cho bảo mật)
                 }
             } catch (error) {
                 showMessage('Lỗi kết nối Server. Vui lòng kiểm tra Server.js', false);
@@ -222,6 +220,8 @@
                 const data = await response.json();
                 if (data.success) {
                     showMessage('Đăng ký thành công! Đang chuyển hướng...', true);
+                    // Lưu thông tin tĩnh cục bộ (cho tính năng tính ngày)
+                    localStorage.setItem('loverName', loverName); 
                     // Sau khi đăng ký, buộc người dùng đăng nhập lại
                     setTimeout(checkSystemStatus, 2000); 
                 } else {
