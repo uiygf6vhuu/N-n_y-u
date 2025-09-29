@@ -339,7 +339,7 @@
         // Biến toàn cục
         let sitePassword = ''; // Dùng làm Auth Token cho các API
         
-        // Hàm đăng nhập (SỬA ĐỔI: Dùng API kiểm tra mật khẩu)
+        // Hàm đăng nhập (Dùng API kiểm tra mật khẩu)
         async function login() {
             const password = document.getElementById('sitePassword').value;
             const message = document.getElementById('loginMessage');
@@ -376,7 +376,7 @@
             }
         }
         
-        // Hàm khởi tạo trái tim thu nhỏ (SỬA ĐỔI: Dùng API lấy ảnh)
+        // Hàm khởi tạo trái tim thu nhỏ (Dùng API lấy ảnh)
         async function initMiniHeart() {
             const currentAuth = sitePassword || localStorage.getItem('sitePassword') || 'dummy';
             
@@ -390,14 +390,13 @@
                 let imageUrl = 'https://images.unsplash.com/photo-1518568814500-bf0f8d125f46?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60';
                 
                 if (data.success && data.images && data.images.length > 0) {
-                    imageUrl = data.images[0]; // Lấy ảnh đầu tiên trong mảng
+                    imageUrl = data.images[0]; // Lấy ảnh đầu tiên
                 }
                 
                 document.getElementById('heartImage').src = imageUrl;
                 initHeartEffect();
             } catch (error) {
                 console.error('Lỗi tải ảnh Mini Heart:', error);
-                // Giữ ảnh mặc định nếu tải thất bại
             }
         }
         
@@ -432,7 +431,7 @@
             setTimeout(updateLoveInfo, 24 * 60 * 60 * 1000);
         }
         
-        // Hàm lưu status (SỬA ĐỔI: Dùng API gửi tin nhắn)
+        // Hàm lưu status (Dùng API gửi tin nhắn)
         document.getElementById('saveStatus').addEventListener('click', async function() {
             const statusText = document.getElementById('statusText').value.trim();
             const currentAuth = sitePassword || localStorage.getItem('sitePassword');
@@ -468,7 +467,7 @@
             }
         });
         
-        // Hàm tải và hiển thị status (SỬA ĐỔI: Dùng API lấy tin nhắn)
+        // Hàm tải và hiển thị status (Dùng API lấy tin nhắn)
         async function loadStatus() {
             const currentAuth = sitePassword || localStorage.getItem('sitePassword') || 'dummy';
             
@@ -481,7 +480,6 @@
                 const statusDisplay = document.getElementById('statusDisplay');
                 
                 if (data.success && data.messages.length > 0) {
-                    // Hiển thị 10 tin nhắn gần nhất
                     const displayMessages = data.messages.slice(-10).reverse(); 
                     
                     let html = displayMessages.map(status => {
@@ -506,12 +504,11 @@
             }
         }
         
-        // Tải thông tin khi mở trang (SỬA ĐỔI: Tự động đăng nhập nếu có token)
+        // Tải thông tin khi mở trang (Tự động đăng nhập nếu có token)
         window.onload = function() {
              sitePassword = localStorage.getItem('sitePassword');
              
              if (sitePassword) {
-                // Giả định mật khẩu còn hiệu lực và tải nội dung
                 const savedLoverName = localStorage.getItem('loverName');
                 const savedStartDate = localStorage.getItem('startDate');
                 
@@ -526,14 +523,13 @@
                     updateLoveInfo();
                     loadStatus();
                 } else {
-                     // Nếu thiếu thông tin tĩnh (tên, ngày), buộc phải đăng nhập lại
                     document.getElementById('sitePassword').value = sitePassword; 
                     document.getElementById('loginMessage').textContent = 'Vui lòng đăng nhập lại để xác thực Server và tải thông tin tĩnh.';
                 }
             }
         };
 
-        // --- Hàm hỗ trợ ---
+        // --- Hàm hỗ trợ (giữ nguyên) ---
         function formatDate(date) {
             const day = date.getDate().toString().padStart(2, '0');
             const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -550,7 +546,6 @@
             return `${hours}:${minutes} - ${day}/${month}/${year}`;
         }
         
-        // Code hiệu ứng trái tim thu nhỏ (giữ nguyên)
         function initHeartEffect() {
             var canvas = document.getElementById('heartCanvas');
             var ctx = canvas.getContext('2d');
