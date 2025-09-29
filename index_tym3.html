@@ -175,7 +175,7 @@
     </style>
 </head>
 <body>
-    <button class="back-button" onclick="window.location.href='index.html'">← Quay lại</button>
+    <button class="back-button" onclick="window.location.href='index (5).html'">← Quay lại</button>
     
     <div class="container">
         <h1>Trái Tim Xanh</h1>
@@ -203,20 +203,10 @@
     <input type="file" id="imageUpload" accept="image/*" style="display: none;">
 
     <script>
-        // SỬA ĐỔI: Lấy danh sách ảnh từ localStorage
-        function getSavedImages() {
-            const savedImages = JSON.parse(localStorage.getItem('loveImages') || '[]');
-            if (savedImages.length > 0) {
-                return savedImages;
-            } else {
-                // Trả về ảnh placeholder nếu không có ảnh nào
-                return [{ url: 'https://via.placeholder.com/500x500.png?text=No+Images+Found', name: 'Chưa có ảnh nào' }];
-            }
-        }
-        
-        // Khởi tạo danh sách ảnh với ảnh đã lưu
-        let imageList = getSavedImages();
+        let imageList = [];
         let currentImageIndex = 0;
+        let sitePassword = localStorage.getItem('sitePassword') || 'dummy';
+        
         const heartImage = document.getElementById('heartImage');
         const currentImageName = document.getElementById('currentImageName');
         const changeImageBtn = document.getElementById('changeImageBtn');
@@ -224,17 +214,42 @@
         const colorEffectBtn = document.getElementById('colorEffectBtn');
         const imageUpload = document.getElementById('imageUpload');
 
-        // Khởi tạo ảnh
-        heartImage.src = imageList[0].url;
-        currentImageName.textContent = imageList[0].name;
+        // Khởi tạo và tải danh sách ảnh
+        async function loadImages() {
+            try {
+                const response = await fetch('/api/love-images', {
+                    method: 'GET',
+                    headers: { 'Authorization': sitePassword }
+                });
+                const data = await response.json();
+                
+                if (data.success && data.images && data.images.length > 0) {
+                    imageList = data.images.map((url, index) => ({ 
+                        url: url.startsWith('/') ? url : url, 
+                        name: index === 0 ? 'Ảnh chính (Server)' : `Ảnh ${index + 1}` 
+                    }));
+                    
+                    currentImageIndex = 0;
+                    heartImage.src = imageList[0].url;
+                    currentImageName.textContent = imageList[0].name;
+                } else {
+                    heartImage.src = 'https://via.placeholder.com/400x400.png?text=No+Images+Found';
+                    currentImageName.textContent = 'Chưa có ảnh nào';
+                }
+            } catch (error) {
+                console.error('Lỗi tải danh sách ảnh:', error);
+                currentImageName.textContent = 'Lỗi tải ảnh từ Server';
+            }
+        }
         
         // Hàm đổi ảnh
         function changeImage() {
+            if (imageList.length < 2) return; 
+
             currentImageIndex = (currentImageIndex + 1) % imageList.length;
             heartImage.src = imageList[currentImageIndex].url;
             currentImageName.textContent = imageList[currentImageIndex].name;
             
-            // Hiệu ứng khi đổi ảnh
             heartImage.style.opacity = '0';
             setTimeout(() => {
                 heartImage.style.opacity = '1';
@@ -247,37 +262,12 @@
         // Sự kiện click canvas trái tim
         document.getElementById('heartCanvas').addEventListener('click', changeImage);
         
-        // Sự kiện tải ảnh lên (SỬA ĐỔI: Thêm vào mảng và lưu lại)
+        // Sự kiện tải ảnh lên (SỬA ĐỔI: Dùng API tải file lên Server - Cảnh báo cho người dùng)
         uploadImageBtn.addEventListener('click', () => {
-            imageUpload.click();
+             alert("Tính năng tải ảnh lên từ thiết bị chỉ hoạt động khi bạn đăng nhập Admin. Vui lòng sử dụng trang Admin để upload ảnh.");
         });
         
-        imageUpload.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const newImageUrl = event.target.result;
-                    const newImageName = 'Tải lên: ' + file.name;
-
-                    // Thêm ảnh mới vào mảng
-                    imageList.push({ url: newImageUrl, name: newImageName });
-
-                    // Lưu toàn bộ mảng đã cập nhật vào localStorage
-                    localStorage.setItem('loveImages', JSON.stringify(imageList));
-
-                    // Hiển thị ảnh vừa tải lên và cập nhật chỉ mục
-                    currentImageIndex = imageList.length - 1;
-                    heartImage.src = newImageUrl;
-                    currentImageName.textContent = newImageName;
-                    
-                    alert('Đã tải ảnh lên và thêm vào danh sách thành công!');
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-        
-        // Hiệu ứng màu sắc (giữ nguyên)
+        // Hiệu ứng màu sắc
         colorEffectBtn.addEventListener('click', function() {
             const canvas = document.getElementById('heartCanvas');
             canvas.classList.toggle('pulse');
@@ -288,6 +278,9 @@
                 this.textContent = 'Hiệu Ứng Màu';
             }
         });
+
+        // --- Khởi tạo ---
+        document.addEventListener('DOMContentLoaded', loadImages);
         
         // Code hiệu ứng trái tim canvas (màu xanh - giữ nguyên)
         window.requestAnimationFrame = window.requestAnimationFrame || 
