@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập Tình Yêu</title>
+    <title>Xác Thực Hệ Thống Tình Yêu</title>
     <style>
         * {
             margin: 0;
@@ -182,7 +182,7 @@
                 const response = await fetch('/api/account-structure');
                 const data = await response.json();
                 
-                isRegistered = data.isRegistered;
+                isRegistered = !!data.accounts.owner;
                 const statusEl = document.getElementById('systemStatus');
 
                 if (isRegistered) {
@@ -190,7 +190,7 @@
                     document.getElementById('registerForm').style.display = 'none';
                     document.getElementById('loginForm').style.display = 'block';
                 } else {
-                    statusEl.textContent = 'Hệ thống chưa được thiết lập. Hãy đăng ký Admin.';
+                    statusEl.textContent = 'Hệ thống chưa được thiết lập. Hãy đăng ký.';
                     document.getElementById('registerForm').style.display = 'block';
                     document.getElementById('loginForm').style.display = 'none';
                 }
