@@ -175,7 +175,17 @@
     </style>
 </head>
 <body>
-    <button class="back-button" onclick="window.location.href='index.html'">← Quay lại</button>
+<script>
+    // Mã bảo vệ: Kiểm tra Auth Key trước khi load nội dung
+    const userAuthKey = localStorage.getItem('userAuthKey');
+    if (!userAuthKey || userAuthKey === 'null') {
+        window.location.href = '/auth'; 
+    }
+    const sitePassword = userAuthKey || 'dummy'; 
+
+    window.sitePassword = sitePassword;
+</script>
+    <button class="back-button" onclick="window.location.href='/'">← Quay lại</button>
     
     <div class="container">
         <h1>Trái Tim Xanh</h1>
@@ -205,7 +215,6 @@
     <script>
         let imageList = [];
         let currentImageIndex = 0;
-        let sitePassword = localStorage.getItem('sitePassword') || 'dummy';
         
         const heartImage = document.getElementById('heartImage');
         const currentImageName = document.getElementById('currentImageName');
@@ -219,7 +228,7 @@
             try {
                 const response = await fetch('/api/love-images', {
                     method: 'GET',
-                    headers: { 'Authorization': sitePassword }
+                    headers: { 'Authorization': window.sitePassword }
                 });
                 const data = await response.json();
                 
@@ -262,9 +271,9 @@
         // Sự kiện click canvas trái tim
         document.getElementById('heartCanvas').addEventListener('click', changeImage);
         
-        // Sự kiện tải ảnh lên (SỬA ĐỔI: Dùng API tải file lên Server - Cảnh báo cho người dùng)
+        // Sự kiện tải ảnh lên (Cảnh báo cho người dùng)
         uploadImageBtn.addEventListener('click', () => {
-             alert("Tính năng tải ảnh lên từ thiết bị chỉ hoạt động khi bạn đăng nhập Admin. Vui lòng sử dụng trang Admin để upload ảnh.");
+             alert("Tính năng tải ảnh lên chỉ dành cho Admin và phải thực hiện trên trang chính hoặc qua URL.");
         });
         
         // Hiệu ứng màu sắc
