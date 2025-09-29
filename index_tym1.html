@@ -123,7 +123,7 @@
 </HEAD>
 
 <BODY>
-<button class="back-button" onclick="window.location.href='index.html'">← Quay lại</button>
+<button class="back-button" onclick="window.location.href='index (5).html'">← Quay lại</button>
 
 <canvas id="heart"></canvas>
 
@@ -147,9 +147,101 @@
 
 
 <script>
-    // --- Bắt đầu phần JavaScript cho Trang Trái Tim Đỏ ---
+    let imageList = [];
+    let currentImageIndex = 0;
+    let sitePassword = localStorage.getItem('sitePassword') || 'dummy';
+    
+    const heartImage = document.getElementById('heartImage');
+    const currentImageNameEl = document.getElementById('currentImageName');
+    const changeImageBtn = document.getElementById('changeImageBtn');
+    const uploadImageBtn = document.getElementById('uploadImageBtn');
+    const imageUpload = document.getElementById('imageUpload');
 
-    // Polyfill cho requestAnimationFrame (giữ nguyên)
+    // Khởi tạo và tải danh sách ảnh
+    async function loadImages() {
+        try {
+            const response = await fetch('/api/love-images', {
+                method: 'GET',
+                headers: { 'Authorization': sitePassword }
+            });
+            const data = await response.json();
+            
+            if (data.success && data.images && data.images.length > 0) {
+                imageList = data.images.map((url, index) => ({ 
+                    url: url.startsWith('/') ? url : url, 
+                    name: index === 0 ? 'Ảnh chính (Server)' : `Ảnh ${index + 1}` 
+                }));
+                
+                currentImageIndex = 0;
+                heartImage.src = imageList[0].url;
+                currentImageNameEl.textContent = imageList[0].name;
+            } else {
+                 heartImage.src = 'https://via.placeholder.com/250x250.png?text=No+Images+Found';
+                 currentImageNameEl.textContent = 'Chưa có ảnh nào';
+            }
+        } catch (error) {
+            console.error('Lỗi tải danh sách ảnh:', error);
+            currentImageNameEl.textContent = 'Lỗi tải ảnh từ Server';
+        }
+    }
+
+    // Hàm đổi ảnh
+    function changeImage() {
+        if (imageList.length < 2) return; 
+
+        currentImageIndex = (currentImageIndex + 1) % imageList.length;
+        heartImage.src = imageList[currentImageIndex].url;
+        currentImageNameEl.textContent = imageList[currentImageIndex].name;
+        
+        heartImage.style.opacity = '0';
+        setTimeout(() => {
+            heartImage.style.opacity = '1';
+        }, 300);
+    }
+
+    // Sự kiện click nút đổi ảnh
+    changeImageBtn.addEventListener('click', changeImage);
+
+    // Sự kiện tải ảnh lên (Dùng API tải file lên Server - Cảnh báo)
+    uploadImageBtn.addEventListener('click', () => {
+        alert("Tính năng tải ảnh lên từ thiết bị chỉ hoạt động khi bạn đăng nhập Admin. Vui lòng sử dụng trang Admin để upload ảnh.");
+    });
+    
+    imageUpload.addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        const adminToken = localStorage.getItem('adminPasswordLogin'); // Giả định mật khẩu Admin được lưu cục bộ
+        
+        if (!file || !adminToken) {
+            return alert('Bạn cần đăng nhập Admin để upload ảnh trực tiếp!');
+        }
+
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        try {
+            const response = await fetch('/api/upload-file', {
+                method: 'POST',
+                headers: { 'Authorization': adminToken },
+                body: formData
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                alert('Đã tải ảnh lên Server thành công!');
+                imageUpload.value = '';
+                await loadImages();
+            } else {
+                alert('Lỗi tải ảnh lên: ' + (data.error || 'Lỗi không xác định'));
+            }
+        } catch (error) {
+            alert('Lỗi kết nối Server khi tải tệp.');
+        }
+    });
+
+    // --- Khởi tạo ---
+    document.addEventListener('DOMContentLoaded', loadImages);
+
+    // Code hiệu ứng trái tim canvas (giữ nguyên)
     window.requestAnimationFrame =
             window.__requestAnimationFrame ||
             window.requestAnimationFrame ||
@@ -170,80 +262,8 @@
                 };
             })();
     
-    // Phát hiện thiết bị (giữ nguyên)
     window.isDevice = (/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(((navigator.userAgent || navigator.vendor || window.opera)).toLowerCase()));
 
-    // SỬA ĐỔI: Lấy danh sách ảnh từ localStorage
-    function getSavedImages() {
-        const savedImages = JSON.parse(localStorage.getItem('loveImages') || '[]');
-        if (savedImages.length > 0) {
-            return savedImages;
-        } else {
-            // Trả về ảnh placeholder nếu không có ảnh nào
-            return [{ url: 'https://via.placeholder.com/250x250.png?text=No+Images+Found', name: 'Chưa có ảnh nào' }];
-        }
-    }
-    
-    // Khởi tạo danh sách ảnh với ảnh đã lưu
-    let imageList = getSavedImages();
-    let currentImageIndex = 0;
-    const heartImage = document.getElementById('heartImage');
-    const currentImageNameEl = document.getElementById('currentImageName');
-    const changeImageBtn = document.getElementById('changeImageBtn');
-    const uploadImageBtn = document.getElementById('uploadImageBtn');
-    const imageUpload = document.getElementById('imageUpload');
-
-    // Khởi tạo ảnh
-    heartImage.src = imageList[0].url;
-    currentImageNameEl.textContent = imageList[0].name;
-
-    // Hàm đổi ảnh
-    function changeImage() {
-        currentImageIndex = (currentImageIndex + 1) % imageList.length;
-        heartImage.src = imageList[currentImageIndex].url;
-        currentImageNameEl.textContent = imageList[currentImageIndex].name;
-        
-        // Hiệu ứng khi đổi ảnh
-        heartImage.style.opacity = '0';
-        setTimeout(() => {
-            heartImage.style.opacity = '1';
-        }, 300);
-    }
-
-    // Sự kiện click nút đổi ảnh
-    changeImageBtn.addEventListener('click', changeImage);
-
-    // Sự kiện tải ảnh lên (SỬA ĐỔI: Thêm vào mảng và lưu lại)
-    uploadImageBtn.addEventListener('click', () => {
-        imageUpload.click();
-    });
-    
-    imageUpload.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const newImageUrl = event.target.result;
-                const newImageName = 'Tải lên: ' + file.name;
-
-                // Thêm ảnh mới vào mảng
-                imageList.push({ url: newImageUrl, name: newImageName });
-
-                // Lưu toàn bộ mảng đã cập nhật vào localStorage
-                localStorage.setItem('loveImages', JSON.stringify(imageList));
-
-                // Hiển thị ảnh vừa tải lên và cập nhật chỉ mục
-                currentImageIndex = imageList.length - 1;
-                heartImage.src = newImageUrl;
-                currentImageNameEl.textContent = newImageName;
-                
-                alert('Đã tải ảnh lên và thêm vào danh sách thành công!');
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-
-    // --- Bắt đầu phần Canvas (Hiệu ứng trái tim) ---
     var loaded = false;
     var init = function () {
         if (loaded) return;
@@ -256,13 +276,11 @@
         var height = canvas.height = koef * innerHeight;
         var rand = Math.random;
         
-        // Màu nền đen
         ctx.fillStyle = "rgba(0,0,0,1)";
         ctx.fillRect(0, 0, width, height);
 
 
         var heartPosition = function (rad) {
-            // Phương trình cardioid cho hiệu ứng
             return [Math.pow(Math.sin(rad), 3), -(15 * Math.cos(rad) - 5 * Math.cos(2 * rad) - 2 * Math.cos(3 * rad) - Math.cos(4 * rad))];
         };
         var scaleAndTranslate = function (pos, sx, sy, dx, dy) {
@@ -281,7 +299,6 @@
         var i;
         var dr = mobile ? 0.3 : 0.1;
         
-        // Tạo các điểm cho 3 lớp trái tim
         for (i = 0; i < Math.PI * 2; i += dr) pointsOrigin.push(scaleAndTranslate(heartPosition(i), 210, 13, 0, 0));
         for (i = 0; i < Math.PI * 2; i += dr) pointsOrigin.push(scaleAndTranslate(heartPosition(i), 150, 9, 0, 0));
         for (i = 0; i < Math.PI * 2; i += dr) pointsOrigin.push(scaleAndTranslate(heartPosition(i), 90, 5, 0, 0));
@@ -308,7 +325,6 @@
                 q: ~~(rand() * heartPointsCount),
                 D: 2 * (i % 2) - 1,
                 force: 0.2 * rand() + 0.7,
-                // Màu Đỏ/Hồng (Hue 0)
                 f: "hsla(0," + ~~(40 * rand() + 60) + "%," + ~~(60 * rand() + 20) + "%,.3)",
                 trace: []
             };
@@ -326,7 +342,6 @@
             pulse((1 + n) * .5, (1 + n) * .5);
             time += ((Math.sin(time)) < 0 ? 9 : (n > 0.8) ? .2 : 1) * config.timeDelta;
             
-            // Hiệu ứng mờ (trail effect)
             ctx.fillStyle = "rgba(0,0,0,.1)";
             ctx.fillRect(0, 0, width, height);
             
