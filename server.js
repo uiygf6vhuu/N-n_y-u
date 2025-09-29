@@ -275,11 +275,11 @@ app.get('/api/love-images', requireAuth, (req, res) => {
 app.use('/uploads', express.static(uploadsDir));
 
 // 🎯 ROUTING CHÍNH (Đã sửa để khớp tên file)
-app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'index (5).html')); });
-app.get('/admin', (req, res) => { res.sendFile(path.join(__dirname, 'admin (2).html')); });
-app.get('/tym1', (req, res) => { res.sendFile(path.join(__dirname, 'tym1.html')); });
+app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'index.html')); });
+app.get('/admin', (req, res) => { res.sendFile(path.join(__dirname, 'admin.html')); });
+app.get('/tym1', (req, res) => { res.sendFile(path.join(__dirname, 'index_tym1.html')); });
 app.get('/tym2', (req, res) => { res.sendFile(path.join(__dirname, 'index_tym2.html')); });
-app.get('/tym3', (req, res) => { res.sendFile(path.join(__dirname, 'index_tym3 (1).html')); });
+app.get('/tym3', (req, res) => { res.sendFile(path.join(__dirname, 'index_tym3.html')); });
 
 // Xử lý lỗi upload và 404
 app.use((error, req, res, next) => {
