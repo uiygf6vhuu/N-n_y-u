@@ -123,7 +123,19 @@
 </HEAD>
 
 <BODY>
-<button class="back-button" onclick="window.location.href='index.html'">← Quay lại</button>
+<script>
+    // Mã bảo vệ: Kiểm tra Auth Key trước khi load nội dung
+    const userAuthKey = localStorage.getItem('userAuthKey');
+    if (!userAuthKey || userAuthKey === 'null') {
+        window.location.href = '/auth'; 
+    }
+    const sitePassword = userAuthKey || 'dummy'; // Dùng Auth Key làm token
+
+    // Lưu Auth Key vào scope toàn cục để các hàm JS sau có thể dùng
+    window.sitePassword = sitePassword;
+</script>
+
+<button class="back-button" onclick="window.location.href='/'">← Quay lại</button>
 
 <canvas id="heart"></canvas>
 
@@ -149,7 +161,6 @@
 <script>
     let imageList = [];
     let currentImageIndex = 0;
-    let sitePassword = localStorage.getItem('sitePassword') || 'dummy';
     
     const heartImage = document.getElementById('heartImage');
     const currentImageNameEl = document.getElementById('currentImageName');
@@ -162,7 +173,7 @@
         try {
             const response = await fetch('/api/love-images', {
                 method: 'GET',
-                headers: { 'Authorization': sitePassword }
+                headers: { 'Authorization': window.sitePassword }
             });
             const data = await response.json();
             
@@ -202,46 +213,15 @@
     // Sự kiện click nút đổi ảnh
     changeImageBtn.addEventListener('click', changeImage);
 
-    // Sự kiện tải ảnh lên (Dùng API tải file lên Server - Cảnh báo)
+    // Sự kiện tải ảnh lên (Chỉ hoạt động khi Admin tải file lên)
     uploadImageBtn.addEventListener('click', () => {
-        alert("Tính năng tải ảnh lên từ thiết bị chỉ hoạt động khi bạn đăng nhập Admin. Vui lòng sử dụng trang Admin để upload ảnh.");
+        alert("Tính năng tải ảnh lên chỉ dành cho Admin và phải thực hiện trên trang chính hoặc qua URL.");
     });
     
-    imageUpload.addEventListener('change', async function(e) {
-        const file = e.target.files[0];
-        const adminToken = localStorage.getItem('adminPasswordLogin'); // Giả định mật khẩu Admin được lưu cục bộ
-        
-        if (!file || !adminToken) {
-            return alert('Bạn cần đăng nhập Admin để upload ảnh trực tiếp!');
-        }
-
-        const formData = new FormData();
-        formData.append('image', file);
-        
-        try {
-            const response = await fetch('/api/upload-file', {
-                method: 'POST',
-                headers: { 'Authorization': adminToken },
-                body: formData
-            });
-
-            const data = await response.json();
-            if (data.success) {
-                alert('Đã tải ảnh lên Server thành công!');
-                imageUpload.value = '';
-                await loadImages();
-            } else {
-                alert('Lỗi tải ảnh lên: ' + (data.error || 'Lỗi không xác định'));
-            }
-        } catch (error) {
-            alert('Lỗi kết nối Server khi tải tệp.');
-        }
-    });
-
-    // --- Khởi tạo ---
+    // Khởi tạo ảnh khi DOM tải xong
     document.addEventListener('DOMContentLoaded', loadImages);
 
-    // Code hiệu ứng trái tim canvas (giữ nguyên)
+    // --- Code hiệu ứng trái tim canvas (giữ nguyên) ---
     window.requestAnimationFrame =
             window.__requestAnimationFrame ||
             window.requestAnimationFrame ||
