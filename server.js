@@ -9,14 +9,11 @@ console.log('🚀 Khởi động server...');
 
 // Lưu trữ dữ liệu trong RAM (ĐỒNG BỘ)
 let storage = {
-    // Cập nhật cấu trúc tài khoản để lưu trạng thái hoạt động
-    accounts: {
-        owner: { name: 'Owner', password: '111', authKey: 'owner', lastActive: new Date(0) },
-        lover: { name: 'Lover', password: '222', authKey: 'lover', lastActive: new Date(0) }
-    },
-    adminPassword: '611181', 
-    messages: [], 
-    loveImages: [], 
+    // THAY ĐỔI LỚN: Tài khoản cố định
+    accounts: {}, // SẼ LÀ MẢNG RỖNG BAN ĐẦU, CHỜ ĐĂNG KÝ
+    admin: { password: '611181', authKey: 'admin_key' },
+    messages: [], // Dòng tin nhắn chung
+    loveImages: [], // Lưu nhiều URL ảnh
 };
 
 // Middleware cơ bản
@@ -64,12 +61,12 @@ const requireAuth = (req, res, next) => {
         }
 
         let user = null;
-        if (authKey === storage.accounts.owner.authKey) {
+        if (authKey === storage.admin.authKey) {
+            user = { name: 'Admin', authKey: storage.admin.authKey, isAdmin: true };
+        } else if (storage.accounts.owner && authKey === storage.accounts.owner.authKey) {
             user = storage.accounts.owner;
-        } else if (authKey === storage.accounts.lover.authKey) {
+        } else if (storage.accounts.lover && authKey === storage.accounts.lover.authKey) {
             user = storage.accounts.lover;
-        } else if (authKey === storage.adminPassword) {
-            user = { name: 'Admin', authKey: storage.adminPassword };
         } else {
             return res.status(401).json({ success: false, error: 'Khóa xác thực không hợp lệ' });
         }
@@ -84,8 +81,8 @@ const requireAuth = (req, res, next) => {
 
 const requireAdminAuth = (req, res, next) => {
     const authKey = req.headers['authorization'];
-    if (authKey === storage.adminPassword) {
-        req.user = { name: 'Admin', authKey: storage.adminPassword };
+    if (authKey === storage.admin.authKey) {
+        req.user = { name: 'Admin', authKey: storage.admin.authKey };
         next();
     } else {
         res.status(401).json({ success: false, error: 'Chỉ Admin được truy cập' });
@@ -94,7 +91,6 @@ const requireAdminAuth = (req, res, next) => {
 
 // 💖 API Ping (Cơ chế Heartbeat)
 app.post('/api/ping', requireAuth, (req, res) => {
-    // Chỉ cập nhật nếu là Owner hoặc Lover
     if (req.user.authKey === storage.accounts.owner.authKey) {
         storage.accounts.owner.lastActive = new Date();
     } else if (req.user.authKey === storage.accounts.lover.authKey) {
@@ -106,22 +102,22 @@ app.post('/api/ping', requireAuth, (req, res) => {
 // 💖 API Lấy trạng thái Online của người yêu
 app.get('/api/online-status', requireAuth, (req, res) => {
     try {
+        if (!storage.accounts.owner || !storage.accounts.lover) {
+            return res.json({ success: true, isOnline: false, otherUserName: 'Chưa Đăng Ký' });
+        }
+        
         const isOwner = req.user.authKey === storage.accounts.owner.authKey;
         const otherAccount = isOwner ? storage.accounts.lover : storage.accounts.owner;
-        const selfAccount = isOwner ? storage.accounts.owner : storage.accounts.lover;
         
         const now = new Date();
         const lastActiveTime = new Date(otherAccount.lastActive);
         
-        // Coi là Online nếu lần cuối hoạt động trong 30 giây
         const isOnline = (now - lastActiveTime) < 30000; 
 
         res.json({
             success: true,
             isOnline: isOnline,
-            otherUserName: otherAccount.name,
-            selfUserName: selfAccount.name,
-            lastActive: lastActiveTime
+            otherUserName: otherAccount.name
         });
     } catch (error) {
         res.status(500).json({ success: false, error: 'Lỗi server' });
@@ -129,29 +125,61 @@ app.get('/api/online-status', requireAuth, (req, res) => {
 });
 
 
-// 🔐 API Đăng nhập cho 2 tài khoản
+// 🔐 API Đăng ký Cặp Tài khoản (Owner/Lover)
+app.post('/api/register', async (req, res) => {
+    try {
+        const { ownerName, ownerPassword, loverName, loverPassword, adminPassword } = req.body;
+
+        if (storage.accounts.owner || storage.accounts.lover) {
+            return res.status(400).json({ success: false, error: 'Tài khoản Owner/Lover đã tồn tại. Vui lòng đăng nhập.' });
+        }
+        if (adminPassword !== storage.admin.password) {
+            return res.status(401).json({ success: false, error: 'Mật khẩu Admin không đúng.' });
+        }
+
+        // Tạo Auth Key và lưu vào Server
+        storage.accounts.owner = { name: ownerName, password: ownerPassword, authKey: 'owner_' + Date.now(), lastActive: new Date(0) };
+        storage.accounts.lover = { name: loverName, password: loverPassword, authKey: 'lover_' + Date.now(), lastActive: new Date(0) };
+        
+        return res.json({ success: true, message: 'Đăng ký cặp tài khoản thành công. Vui lòng đăng nhập lại.' });
+
+    } catch (error) {
+        return res.status(500).json({ success: false, error: 'Lỗi server' });
+    }
+});
+
+// 🔐 API Đăng nhập Chung (Owner, Lover, Admin)
 app.post('/api/login', async (req, res) => {
     try {
         const { name, password } = req.body;
         
+        if (!name || !password) {
+            return res.status(400).json({ success: false, error: 'Vui lòng nhập Tên và Mật khẩu' });
+        }
+
         let user = null;
         
-        if (name === storage.accounts.owner.name && password === storage.accounts.owner.password) {
+        if (name === 'Admin' && password === storage.admin.password) {
+             user = { name: 'Admin', authKey: storage.admin.authKey, isAdmin: true };
+        } else if (storage.accounts.owner && name === storage.accounts.owner.name && password === storage.accounts.owner.password) {
             user = storage.accounts.owner;
-        } else if (name === storage.accounts.lover.name && password === storage.accounts.lover.password) {
+        } else if (storage.accounts.lover && name === storage.accounts.lover.name && password === storage.accounts.lover.password) {
             user = storage.accounts.lover;
         } else {
             return res.status(401).json({ success: false, error: 'Sai Tên hoặc Mật khẩu' });
         }
         
-        // Cập nhật lastActive ngay khi đăng nhập thành công
-        user.lastActive = new Date(); 
+        // Cập nhật lastActive chỉ cho Owner/Lover
+        if (!user.isAdmin) {
+            const accountType = user.authKey.split('_')[0];
+            storage.accounts[accountType].lastActive = new Date();
+        }
         
         res.json({ 
             success: true, 
-            message: 'Đăng nhập thành công',
             authKey: user.authKey, 
-            userName: user.name
+            userName: user.name,
+            isAdmin: !!user.isAdmin
         });
         
     } catch (error) {
@@ -159,24 +187,24 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// 🔐 API Đăng nhập Admin
-app.post('/api/admin-login', async (req, res) => {
-    try {
-        const { password } = req.body;
-        if (password === storage.adminPassword) {
-            res.json({ success: true, authKey: storage.adminPassword });
-        } else {
-            res.status(401).json({ success: false, error: 'Sai mật khẩu admin' });
-        }
-    } catch (error) {
-        res.status(500).json({ success: false, error: 'Lỗi server' });
-    }
+
+// 5. ⚙️ API Lấy cấu trúc tài khoản (ĐỂ CLIENT TỰ XỬ LÝ)
+app.get('/api/account-structure', (req, res) => {
+    const isRegistered = !!storage.accounts.owner;
+    res.json({ 
+        success: true, 
+        isRegistered: isRegistered,
+        ownerName: isRegistered ? storage.accounts.owner.name : null,
+        loverName: isRegistered ? storage.accounts.lover.name : null,
+        adminPassword: storage.admin.password,
+        accounts: storage.accounts 
+    });
 });
 
 // ⚙️ API Cập nhật thông tin tài khoản (Dùng Admin Auth)
 app.post('/api/update-account', requireAdminAuth, (req, res) => {
     try {
-        const { accountType, name, password } = req.body;
+        const { accountType, name, password } = req.body; // accountType: 'owner' hoặc 'lover'
         
         if (!accountType || !storage.accounts[accountType]) {
             return res.status(400).json({ success: false, error: 'Loại tài khoản không hợp lệ' });
@@ -189,19 +217,9 @@ app.post('/api/update-account', requireAdminAuth, (req, res) => {
             storage.accounts[accountType].password = password;
         }
         
-        res.json({ success: true, message: `Thông tin tài khoản ${accountType} đã được cập nhật!` });
-    } catch (error) {
-        res.status(500).json({ success: false, error: 'Lỗi server' });
-    }
-});
-
-// ⚙️ API Lấy thông tin tài khoản (Chỉ Admin)
-app.get('/api/accounts', requireAdminAuth, (req, res) => {
-    try {
         res.json({ 
-            success: true,
-            accounts: storage.accounts,
-            adminPassword: storage.adminPassword
+            success: true, 
+            message: `Thông tin tài khoản ${accountType} đã được cập nhật!` 
         });
     } catch (error) {
         res.status(500).json({ success: false, error: 'Lỗi server' });
@@ -276,10 +294,13 @@ app.use('/uploads', express.static(uploadsDir));
 
 // 🎯 ROUTING CHÍNH (Đã sửa để khớp tên file)
 app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'index.html')); });
-app.get('/admin', (req, res) => { res.sendFile(path.join(__dirname, 'admin.html')); });
-app.get('/tym1', (req, res) => { res.sendFile(path.join(__dirname, 'index_tym1.html')); });
-app.get('/tym2', (req, res) => { res.sendFile(path.join(__dirname, 'index_tym2.html')); });
-app.get('/tym3', (req, res) => { res.sendFile(path.join(__dirname, 'index_tym3.html')); });
+
+// URL /auth trỏ đến file admin (2).html
+app.get('/auth', (req, res) => { res.sendFile(path.join(__dirname, 'admin.html')); }); 
+
+app.get('/tym1', requireAuth, (req, res) => { res.sendFile(path.join(__dirname, 'index_tym1.html')); }); 
+app.get('/tym2', requireAuth, (req, res) => { res.sendFile(path.join(__dirname, 'index_tym2.html')); }); 
+app.get('/tym3', requireAuth, (req, res) => { res.sendFile(path.join(__dirname, 'index_tym3.html')); }); 
 
 // Xử lý lỗi upload và 404
 app.use((error, req, res, next) => {
@@ -294,7 +315,8 @@ app.use((req, res) => { res.status(404).json({ success: false, error: 'Trang kh�
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server đang chạy trên port ${PORT}`);
     console.log(`🔗 Truy cập: http://localhost:${PORT}`);
-    console.log('🔐 Tài khoản mặc định: Owner(111), Lover(222), Admin(611181)');
+    console.log('💾 Chế độ: Lưu trữ bộ nhớ RAM (không cần database)');
+    console.log('🔐 Tài khoản mặc định: Admin(611181). Owner/Lover CHƯA ĐĂNG KÝ.');
 });
 
 // Xử lý tắt server
