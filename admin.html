@@ -158,12 +158,12 @@
         <div id="adminContent" style="display: none;">
             <h2>1. Thông Tin Yêu Đương</h2>
             <div class="form-group">
-                <label for="sitePassword">Mật khẩu trang chính (Sẽ được lưu trên Server):</label>
+                <label for="sitePassword">Mật khẩu trang chính (Server):</label>
                 <input type="password" id="sitePassword" placeholder="Thiết lập mật khẩu trang chính">
             </div>
             
             <div class="form-group">
-                <label for="adminPassword">Mật khẩu Admin (Sẽ được lưu trên Server):</label>
+                <label for="adminPassword">Mật khẩu Admin (Server):</label>
                 <input type="password" id="adminPassword" placeholder="Thiết lập mật khẩu Admin">
             </div>
             
@@ -196,16 +196,18 @@
             </div>
 
             <div class="image-preview-container">
-                <p>Danh sách ảnh hiện tại:</p>
+                <p>Danh sách ảnh hiện tại (Ảnh đầu tiên là ảnh chính):</p>
+                <img id="imagePreview" src="" style="display: none;" alt="Ảnh xem trước">
                 <div id="imageListDisplay">Chưa có ảnh nào được tải lên.</div>
             </div>
             
             <h2>3. Quản Lý Status</h2>
             <p style="font-size: 0.8em; color: #aaa;">Status được lưu trên Server. Chỉ có thể xóa status qua database/server.</p>
             <div id="statusList">
-                </div>
+                <p>Chức năng tải status đang được triển khai...</p>
+            </div>
             
-            <button class="back-button" onclick="window.location.href='index (4).html'">Quay Lại Trang Chính</button>
+            <button class="back-button" onclick="window.location.href='index (5).html'">Quay Lại Trang Chính</button>
         </div>
         
         <p id="message" class="message"></p>
@@ -236,7 +238,7 @@
 
                 const data = await response.json();
                 if (data.success) {
-                    adminToken = password; // Sử dụng mật khẩu làm token xác thực (chỉ cho demo)
+                    adminToken = password;
                     document.getElementById('loginForm').style.display = 'none';
                     document.getElementById('adminContent').style.display = 'block';
                     showMessage('Đăng nhập Admin thành công!', true);
@@ -257,9 +259,8 @@
             const loverName = document.getElementById('loverName').value;
             const startDate = document.getElementById('startDate').value;
 
-            // 1. Lưu thông tin mật khẩu (Server)
             try {
-                // Đổi mật khẩu trang chính
+                // 1. Lưu thông tin mật khẩu (Server)
                 if (sitePassword) {
                     await fetch('/api/change-site-password', {
                         method: 'POST',
@@ -268,7 +269,6 @@
                     });
                 }
 
-                // Đổi mật khẩu Admin
                 if (adminPassword) {
                     const response = await fetch('/api/change-admin-password', {
                         method: 'POST',
@@ -276,7 +276,6 @@
                         body: JSON.stringify({ newPassword: adminPassword })
                     });
                     if (response.ok) {
-                         // Cập nhật token nếu mật khẩu admin được thay đổi thành công
                         adminToken = adminPassword; 
                     }
                 }
@@ -348,11 +347,11 @@
         }
 
         async function loadImages() {
-            // Không cần auth để lấy ảnh
             try {
+                // Dùng dummy auth vì API requireSiteAuth
                 const response = await fetch('/api/love-images', {
                     method: 'GET',
-                    headers: { 'Authorization': 'dummy' } // Dùng dummy auth vì API requireSiteAuth
+                    headers: { 'Authorization': 'dummy' }
                 });
                 
                 const data = await response.json();
@@ -365,7 +364,6 @@
                         </div>
                     `).join('');
                     
-                    // Cập nhật preview bằng ảnh đầu tiên
                     document.getElementById('imagePreview').src = data.images[0];
                     document.getElementById('imagePreview').style.display = 'block';
                 } else {
@@ -378,26 +376,18 @@
             }
         }
 
-        async function loadStatus() {
-            // Không cần auth vì status được lưu ở index.html
-            const statusListContainer = document.getElementById('statusList');
-            statusListContainer.innerHTML = '<p>Tính năng xem status đang được triển khai (Server side).</p>';
-            // Mặc dù file server.js có API messages, nhưng index.html lưu status cục bộ. 
-            // Cần sửa index.html để sử dụng API messages cho tính đồng bộ.
-        }
-
         async function loadData() {
-            // Tải mật khẩu từ server (Chỉ để xem)
             try {
-                const response = await fetch('/api/passwords', {
+                // Tải mật khẩu từ server 
+                const passResponse = await fetch('/api/passwords', {
                     method: 'GET',
                     headers: { 'Authorization': adminToken }
                 });
 
-                const data = await response.json();
-                if (data.success) {
-                    document.getElementById('sitePassword').value = data.sitePassword;
-                    document.getElementById('adminPassword').value = data.adminPassword;
+                const passData = await passResponse.json();
+                if (passData.success) {
+                    document.getElementById('sitePassword').value = passData.sitePassword;
+                    document.getElementById('adminPassword').value = passData.adminPassword;
                 }
             } catch (error) {
                 console.error('Lỗi tải mật khẩu:', error);
@@ -408,11 +398,10 @@
             document.getElementById('startDate').value = localStorage.getItem('startDate') || '';
 
             loadImages();
-            loadStatus();
         }
 
         window.onload = () => {
-            // Để đơn giản, không tự động login. Bắt buộc nhập lại mật khẩu Admin.
+             // Đảm bảo không có adminToken được lưu cục bộ.
         };
     </script>
 </body>
