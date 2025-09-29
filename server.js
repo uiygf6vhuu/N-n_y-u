@@ -357,7 +357,7 @@ app.get('/admin', (req, res) => {
 });
 
 app.get('/tym1', (req, res) => {
-    res.sendFile(path.join(__dirname, 'tym1.html'));
+    res.sendFile(path.join(__dirname, 'index_tym1.html'));
 });
 
 app.get('/tym2', (req, res) => {
@@ -365,7 +365,7 @@ app.get('/tym2', (req, res) => {
 });
 
 app.get('/tym3', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index_tym3 (1).html'));
+    res.sendFile(path.join(__dirname, 'index_tym3.html'));
 });
 
 // Xử lý lỗi upload
