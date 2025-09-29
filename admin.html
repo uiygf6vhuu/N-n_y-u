@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Thiết lập thông tin tình yêu</title>
+    <title>Đăng nhập Tình Yêu</title>
     <style>
         * {
             margin: 0;
@@ -28,30 +28,34 @@
             border-radius: 15px;
             box-shadow: 0 0 30px rgba(255, 107, 107, 0.5);
             width: 100%;
-            max-width: 500px;
+            max-width: 400px;
+            text-align: center;
         }
         
         h1 {
             color: #ff6b6b;
-            text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+        }
+
+        h3 {
+            color: #ffcccb;
+            margin-top: 20px;
+            margin-bottom: 15px;
         }
         
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         
         label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             font-weight: bold;
             color: #ffcccb;
+            text-align: left;
         }
         
-        input[type="text"],
-        input[type="date"],
-        input[type="password"],
-        textarea {
+        input {
             width: 100%;
             padding: 10px;
             border-radius: 5px;
@@ -62,68 +66,29 @@
             box-sizing: border-box;
         }
         
-        textarea {
-            min-height: 80px;
-            resize: vertical;
-        }
-
-        .image-preview-container {
-            text-align: center;
-            margin-top: 15px;
-            border: 2px dashed #ff6b6b;
-            padding: 10px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        #imagePreview {
-            max-width: 100%;
-            max-height: 200px;
-            object-fit: contain;
-            border-radius: 5px;
-            margin-top: 10px;
-            display: none;
-        }
-        
-        .save-button {
+        button {
             background: linear-gradient(to right, #ff6b6b, #ff8e8e);
             color: white;
             border: none;
             padding: 12px 25px;
             border-radius: 5px;
             cursor: pointer;
-            margin-top: 20px;
-            font-size: 18px;
+            font-size: 16px;
             width: 100%;
-            transition: background 0.3s;
+            margin-top: 10px;
+            transition: all 0.3s;
         }
         
-        .save-button:hover {
+        button:hover {
             background: linear-gradient(to right, #ff5252, #ff6b6b);
         }
 
-        .back-button {
-            background: #74b9ff;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
+        #toggleLink {
+            display: block;
             margin-top: 15px;
-            font-size: 16px;
-            width: 100%;
-            transition: background 0.3s;
-        }
-        
-        .upload-file-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .upload-file-group input[type="file"] {
-            flex: 1;
-            padding: 5px;
+            color: #74b9ff;
+            text-decoration: none;
+            cursor: pointer;
         }
 
         .message {
@@ -146,76 +111,61 @@
 </head>
 <body>
     <div class="container">
-        <h1>Thiết Lập Admin</h1>
+        <h1>Xác Thực Hệ Thống Tình Yêu</h1>
+        <p id="systemStatus" style="font-size: 0.9em; color: #74b9ff;">Đang kiểm tra trạng thái...</p>
         
-        <div id="loginForm">
-            <h2>Đăng nhập Admin</h2>
-            <input type="password" id="adminPasswordLogin" placeholder="Nhập mật khẩu Admin">
-            <button class="save-button" onclick="adminLogin()">Đăng nhập</button>
-            <p id="loginMessage" class="message"></p>
+        <div id="registerForm" style="display: none;">
+            <h3>Thiết lập Lần Đầu</h3>
+            <p style="color: #ffcccb; font-size: 0.9em; margin-bottom: 15px;">Tạo 2 tài khoản chính và mật khẩu Admin.</p>
+
+            <div class="form-group">
+                <label>Admin Password:</label>
+                <input type="password" id="adminPasswordRegister" placeholder="Mật khẩu Admin (để quản lý)">
+            </div>
+            
+            <div class="form-group">
+                <label>Owner Name:</label>
+                <input type="text" id="ownerNameRegister" placeholder="Tên tài khoản 1 (ví dụ: Ny A)">
+            </div>
+            <div class="form-group">
+                <label>Owner Password:</label>
+                <input type="password" id="ownerPasswordRegister" placeholder="Mật khẩu tài khoản 1">
+            </div>
+            
+            <div class="form-group">
+                <label>Lover Name:</label>
+                <input type="text" id="loverNameRegister" placeholder="Tên tài khoản 2 (ví dụ: Ny B)">
+            </div>
+            <div class="form-group">
+                <label>Lover Password:</label>
+                <input type="password" id="loverPasswordRegister" placeholder="Mật khẩu tài khoản 2">
+            </div>
+            
+            <button onclick="registerAccounts()">BẮT ĐẦU SỬ DỤNG</button>
         </div>
 
-        <div id="adminContent" style="display: none;">
-            <h2>1. Thông Tin Yêu Đương</h2>
-            <div class="form-group">
-                <label for="sitePassword">Mật khẩu trang chính (Server):</label>
-                <input type="password" id="sitePassword" placeholder="Thiết lập mật khẩu trang chính">
-            </div>
+        <div id="loginForm" style="display: none;">
+            <h3>Đăng Nhập</h3>
             
             <div class="form-group">
-                <label for="adminPassword">Mật khẩu Admin (Server):</label>
-                <input type="password" id="adminPassword" placeholder="Thiết lập mật khẩu Admin">
-            </div>
-            
-            <div class="form-group">
-                <label for="loverName">Tên người yêu (Lưu cục bộ):</label>
-                <input type="text" id="loverName" placeholder="Nhập tên người yêu">
+                <label>Tên tài khoản/Admin:</label>
+                <input type="text" id="userNameLogin" placeholder="Tên của bạn (hoặc Admin)">
             </div>
             <div class="form-group">
-                <label for="startDate">Ngày bắt đầu yêu (Lưu cục bộ):</label>
-                <input type="date" id="startDate">
+                <label>Mật khẩu:</label>
+                <input type="password" id="userPasswordLogin" placeholder="Mật khẩu">
             </div>
             
-            <button class="save-button" onclick="saveBasicSettings()">Lưu Thông Tin Cơ Bản</button>
-
-            <h2>2. Quản Lý Thư Viện Ảnh</h2>
-            <p style="font-size: 0.8em; color: #aaa; margin-bottom: 10px;">Các ảnh này sẽ được dùng cho slideshow và lưu trên Server.</p>
-
-            <div class="form-group">
-                <label for="imageUrl">Thêm ảnh bằng URL:</label>
-                <input type="text" id="imageUrl" placeholder="Dán URL ảnh tại đây">
-                <button class="save-button" style="margin-top: 10px; background: #2ecc71;" onclick="uploadImageFromUrl()">Thêm Ảnh từ URL</button>
-            </div>
-            
-            <div class="form-group">
-                <label for="imageFile">Tải ảnh lên từ thiết bị (Tối đa 5MB):</label>
-                <div class="upload-file-group">
-                    <input type="file" id="imageFile" accept="image/*">
-                    <button class="save-button" style="margin-top: 0; width: auto; background: #3498db;" onclick="uploadImageFromFile()">Tải Lên Server</button>
-                </div>
-            </div>
-
-            <div class="image-preview-container">
-                <p>Danh sách ảnh hiện tại (Ảnh đầu tiên là ảnh chính):</p>
-                <img id="imagePreview" src="" style="display: none;" alt="Ảnh xem trước">
-                <div id="imageListDisplay">Chưa có ảnh nào được tải lên.</div>
-            </div>
-            
-            <h2>3. Quản Lý Status</h2>
-            <p style="font-size: 0.8em; color: #aaa;">Status được lưu trên Server. Chỉ có thể xóa status qua database/server.</p>
-            <div id="statusList">
-                <p>Chức năng tải status đang được triển khai...</p>
-            </div>
-            
-            <button class="back-button" onclick="window.location.href='index (5).html'">Quay Lại Trang Chính</button>
+            <button onclick="login()">Đăng Nhập</button>
+            <a id="toggleLink" onclick="redirectToMain()">Quay về Trang Chính (Nếu đã đăng nhập)</a>
         </div>
         
         <p id="message" class="message"></p>
     </div>
 
     <script>
-        let adminToken = '';
         const MESSAGE_DURATION = 3000;
+        let isRegistered = false;
 
         function showMessage(text, isSuccess) {
             const messageEl = document.getElementById('message');
@@ -227,182 +177,98 @@
             }, MESSAGE_DURATION);
         }
 
-        async function adminLogin() {
-            const password = document.getElementById('adminPasswordLogin').value;
+        async function checkSystemStatus() {
             try {
-                const response = await fetch('/api/admin-login', {
+                const response = await fetch('/api/account-structure');
+                const data = await response.json();
+                
+                isRegistered = data.isRegistered;
+                const statusEl = document.getElementById('systemStatus');
+
+                if (isRegistered) {
+                    statusEl.textContent = 'Hệ thống đã được thiết lập. Vui lòng đăng nhập.';
+                    document.getElementById('registerForm').style.display = 'none';
+                    document.getElementById('loginForm').style.display = 'block';
+                } else {
+                    statusEl.textContent = 'Hệ thống chưa được thiết lập. Hãy đăng ký Admin.';
+                    document.getElementById('registerForm').style.display = 'block';
+                    document.getElementById('loginForm').style.display = 'none';
+                    // Hiển thị mật khẩu admin mặc định
+                    // (Tự động điền nếu cần, nhưng để trống cho bảo mật)
+                }
+            } catch (error) {
+                showMessage('Lỗi kết nối Server. Vui lòng kiểm tra Server.js', false);
+            }
+        }
+        
+        async function registerAccounts() {
+            const ownerName = document.getElementById('ownerNameRegister').value.trim();
+            const ownerPassword = document.getElementById('ownerPasswordRegister').value;
+            const loverName = document.getElementById('loverNameRegister').value.trim();
+            const loverPassword = document.getElementById('loverPasswordRegister').value;
+            const adminPassword = document.getElementById('adminPasswordRegister').value;
+            
+            if (!ownerName || !ownerPassword || !loverName || !loverPassword || !adminPassword) {
+                return showMessage('Vui lòng điền đầy đủ thông tin!', false);
+            }
+
+            try {
+                const response = await fetch('/api/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password })
+                    body: JSON.stringify({ ownerName, ownerPassword, loverName, loverPassword, adminPassword })
                 });
 
                 const data = await response.json();
                 if (data.success) {
-                    adminToken = password;
-                    document.getElementById('loginForm').style.display = 'none';
-                    document.getElementById('adminContent').style.display = 'block';
-                    showMessage('Đăng nhập Admin thành công!', true);
-                    loadData();
+                    showMessage('Đăng ký thành công! Đang chuyển hướng...', true);
+                    // Sau khi đăng ký, buộc người dùng đăng nhập lại
+                    setTimeout(checkSystemStatus, 2000); 
+                } else {
+                    showMessage(data.error || 'Lỗi đăng ký', false);
+                }
+            } catch (error) {
+                showMessage('Lỗi kết nối Server.', false);
+            }
+        }
+
+        async function login() {
+            const name = document.getElementById('userNameLogin').value.trim();
+            const password = document.getElementById('userPasswordLogin').value;
+            
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, password })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    localStorage.setItem('userAuthKey', data.authKey);
+                    localStorage.setItem('currentUserName', data.userName);
+                    localStorage.setItem('isAdmin', data.isAdmin ? 'true' : 'false');
+                    
+                    showMessage('Đăng nhập thành công! Đang chuyển hướng...', true);
+                    
+                    // Chuyển về trang chính
+                    setTimeout(() => {
+                        window.location.href = '/'; 
+                    }, 1000);
+                    
                 } else {
                     showMessage(data.error || 'Đăng nhập thất bại', false);
                 }
             } catch (error) {
-                showMessage('Lỗi kết nối Server', false);
+                showMessage('Lỗi kết nối Server.', false);
             }
         }
-
-        async function saveBasicSettings() {
-            if (!adminToken) return showMessage('Chưa đăng nhập Admin!', false);
-
-            const sitePassword = document.getElementById('sitePassword').value;
-            const adminPassword = document.getElementById('adminPassword').value;
-            const loverName = document.getElementById('loverName').value;
-            const startDate = document.getElementById('startDate').value;
-
-            try {
-                // 1. Lưu thông tin mật khẩu (Server)
-                if (sitePassword) {
-                    await fetch('/api/change-site-password', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
-                        body: JSON.stringify({ newPassword: sitePassword })
-                    });
-                }
-
-                if (adminPassword) {
-                    const response = await fetch('/api/change-admin-password', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
-                        body: JSON.stringify({ newPassword: adminPassword })
-                    });
-                    if (response.ok) {
-                        adminToken = adminPassword; 
-                    }
-                }
-
-                // 2. Lưu thông tin cục bộ (Client)
-                localStorage.setItem('loverName', loverName);
-                localStorage.setItem('startDate', startDate);
-                
-                showMessage('Đã lưu thiết lập thành công!', true);
-            } catch (error) {
-                showMessage('Lỗi khi lưu mật khẩu lên Server.', false);
-            }
+        
+        function redirectToMain() {
+            window.location.href = '/';
         }
 
-        async function uploadImageFromUrl() {
-            if (!adminToken) return showMessage('Chưa đăng nhập Admin!', false);
-            const imageUrl = document.getElementById('imageUrl').value;
-            
-            try {
-                const response = await fetch('/api/upload-url', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
-                    body: JSON.stringify({ imageUrl })
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    showMessage('Đã thêm ảnh từ URL thành công!', true);
-                    document.getElementById('imageUrl').value = '';
-                    await loadImages();
-                } else {
-                    showMessage(data.error || 'Lỗi thêm ảnh', false);
-                }
-            } catch (error) {
-                showMessage('Lỗi kết nối Server khi upload URL.', false);
-            }
-        }
-
-        async function uploadImageFromFile() {
-            if (!adminToken) return showMessage('Chưa đăng nhập Admin!', false);
-            const fileInput = document.getElementById('imageFile');
-            const file = fileInput.files[0];
-
-            if (!file) {
-                return showMessage('Vui lòng chọn một tệp ảnh.', false);
-            }
-
-            const formData = new FormData();
-            formData.append('image', file);
-            
-            try {
-                const response = await fetch('/api/upload-file', {
-                    method: 'POST',
-                    headers: { 'Authorization': adminToken },
-                    body: formData
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    showMessage('Đã tải ảnh lên Server thành công!', true);
-                    fileInput.value = '';
-                    await loadImages();
-                } else {
-                    showMessage(data.error || 'Lỗi tải tệp', false);
-                }
-            } catch (error) {
-                showMessage('Lỗi kết nối Server khi tải tệp.', false);
-            }
-        }
-
-        async function loadImages() {
-            try {
-                // Dùng dummy auth vì API requireSiteAuth
-                const response = await fetch('/api/love-images', {
-                    method: 'GET',
-                    headers: { 'Authorization': 'dummy' }
-                });
-                
-                const data = await response.json();
-                const display = document.getElementById('imageListDisplay');
-                
-                if (data.success && data.images && data.images.length > 0) {
-                    display.innerHTML = data.images.map((url, index) => `
-                        <div style="margin-top: 10px; font-size: 0.9em; padding: 5px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-                            #${index + 1}: <a href="${url}" target="_blank" style="color: #74b9ff; word-break: break-all;">${url.substring(0, 40)}...</a>
-                        </div>
-                    `).join('');
-                    
-                    document.getElementById('imagePreview').src = data.images[0];
-                    document.getElementById('imagePreview').style.display = 'block';
-                } else {
-                    display.textContent = 'Chưa có ảnh nào được tải lên.';
-                    document.getElementById('imagePreview').style.display = 'none';
-                }
-            } catch (error) {
-                console.error('Lỗi tải ảnh:', error);
-                document.getElementById('imageListDisplay').textContent = 'Lỗi tải danh sách ảnh từ Server.';
-            }
-        }
-
-        async function loadData() {
-            try {
-                // Tải mật khẩu từ server 
-                const passResponse = await fetch('/api/passwords', {
-                    method: 'GET',
-                    headers: { 'Authorization': adminToken }
-                });
-
-                const passData = await passResponse.json();
-                if (passData.success) {
-                    document.getElementById('sitePassword').value = passData.sitePassword;
-                    document.getElementById('adminPassword').value = passData.adminPassword;
-                }
-            } catch (error) {
-                console.error('Lỗi tải mật khẩu:', error);
-            }
-
-            // Tải thông tin cục bộ
-            document.getElementById('loverName').value = localStorage.getItem('loverName') || '';
-            document.getElementById('startDate').value = localStorage.getItem('startDate') || '';
-
-            loadImages();
-        }
-
-        window.onload = () => {
-             // Đảm bảo không có adminToken được lưu cục bộ.
-        };
+        window.onload = checkSystemStatus;
     </script>
 </body>
 </html>
